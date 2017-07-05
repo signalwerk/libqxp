@@ -28,6 +28,8 @@ libqxp_@QXP_MAJOR_VERSION@_@QXP_MINOR_VERSION@_la_DEPENDENCIES = @LIBQXP_WIN32_R
 libqxp_@QXP_MAJOR_VERSION@_@QXP_MINOR_VERSION@_la_LDFLAGS = $(version_info) -export-dynamic -no-undefined
 libqxp_@QXP_MAJOR_VERSION@_@QXP_MINOR_VERSION@_la_SOURCES = \
 	QXPDocument.cpp \
+	QXPHeader.cpp \
+	QXPHeader.h \
 	libqxp_utils.cpp \
 	libqxp_utils.h
 

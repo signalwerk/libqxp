@@ -16,6 +16,7 @@
 #include <libqxp/libqxp.h>
 
 #include "libqxp_utils.h"
+#include "QXPHeader.h"
 
 using librevenge::RVNGInputStream;
 
@@ -29,6 +30,12 @@ QXPAPI QXPDocument::Confidence QXPDocument::isSupported(librevenge::RVNGInputStr
 {
   if (type)
     *type = TYPE_UNKNOWN;
+
+  QXPHeader header;
+  if (header.load(std::shared_ptr<RVNGInputStream>(input, QXPDummyDeleter())) && header.isSupported())
+  {
+    return CONFIDENCE_EXCELLENT;
+  }
 
   return CONFIDENCE_NONE;
 }
