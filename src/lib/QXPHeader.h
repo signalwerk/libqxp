@@ -8,7 +8,7 @@
  */
 
 #ifndef QXPHEADER_H_INCLUDED
-#define QXP4HEADER_H_INCLUDED
+#define QXPHEADER_H_INCLUDED
 
 #include "libqxp_utils.h"
 #include <string>
