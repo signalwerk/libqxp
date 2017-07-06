@@ -30,6 +30,10 @@ libqxp_@QXP_MAJOR_VERSION@_@QXP_MINOR_VERSION@_la_SOURCES = \
 	QXPDocument.cpp \
 	QXPHeader.cpp \
 	QXPHeader.h \
+	QXP33Header.cpp \
+	QXP33Header.h \
+	QXP4Header.cpp \
+	QXP4Header.h \
 	libqxp_utils.cpp \
 	libqxp_utils.h
 

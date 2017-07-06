@@ -31,8 +31,9 @@ class QXPHeader
 {
 public:
   QXPHeader();
+  virtual ~QXPHeader() = default;
 
-  bool load(const std::shared_ptr<librevenge::RVNGInputStream> &input);
+  virtual bool load(const std::shared_ptr<librevenge::RVNGInputStream> &input);
 
   bool isSupported() const;
 
