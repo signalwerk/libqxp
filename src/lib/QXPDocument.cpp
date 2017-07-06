@@ -17,6 +17,8 @@
 
 #include "libqxp_utils.h"
 #include "QXPHeader.h"
+#include "QXP33Parser.h"
+#include "QXP4Parser.h"
 
 using librevenge::RVNGInputStream;
 
@@ -29,26 +31,32 @@ namespace libqxp
 namespace
 {
 
-}
-
-QXPAPI QXPDocument::Confidence QXPDocument::isSupported(librevenge::RVNGInputStream *const input) try
+QXPDocument::Confidence checkSupport(librevenge::RVNGInputStream *const input, QXPHeader &header) try
 {
-  QXPHeader header;
   if (header.load(std::shared_ptr<RVNGInputStream>(input, QXPDummyDeleter())) && header.isSupported())
   {
-    return CONFIDENCE_EXCELLENT;
+    return QXPDocument::CONFIDENCE_EXCELLENT;
   }
 
-  return CONFIDENCE_NONE;
+  return QXPDocument::CONFIDENCE_NONE;
 }
 catch (...)
 {
-  return CONFIDENCE_NONE;
+  return QXPDocument::CONFIDENCE_NONE;
+}
+
+}
+
+QXPAPI QXPDocument::Confidence QXPDocument::isSupported(librevenge::RVNGInputStream *const input)
+{
+  QXPHeader header;
+  return checkSupport(input, header);
 }
 
 QXPAPI QXPDocument::Result QXPDocument::parse(librevenge::RVNGInputStream *const input, librevenge::RVNGDrawingInterface *const document) try
 {
-  const Confidence confidence = isSupported(input);
+  QXPHeader header;
+  const Confidence confidence = checkSupport(input, header);
   if (CONFIDENCE_NONE == confidence)
     return RESULT_UNSUPPORTED_FORMAT;
   else if (CONFIDENCE_SUPPORTED_PART == confidence)
@@ -59,6 +67,16 @@ QXPAPI QXPDocument::Result QXPDocument::parse(librevenge::RVNGInputStream *const
   const std::shared_ptr<RVNGInputStream> input_(input, QXPDummyDeleter());
 
   input_->seek(0, librevenge::RVNG_SEEK_SET);
+
+  switch (header.version())
+  {
+  case QXPVersion::QXP_33:
+    return QXP33Parser(input_, document, header).parse() ? RESULT_OK : RESULT_UNKNOWN_ERROR;
+  case QXPVersion::QXP_4:
+    return QXP4Parser(input_, document, header).parse() ? RESULT_OK : RESULT_UNKNOWN_ERROR;
+  default:
+    return RESULT_UNSUPPORTED_FORMAT;
+  }
 
   return RESULT_UNKNOWN_ERROR;
 }
