@@ -74,12 +74,11 @@ int main(int argc, char *argv[])
 
   std::shared_ptr<librevenge::RVNGInputStream> input(new librevenge::RVNGFileStream(file));
 
-  QXPDocument::Type type = QXPDocument::TYPE_UNKNOWN;
-  QXPDocument::Confidence confidence = QXPDocument::isSupported(input.get(), &type);
+  QXPDocument::Confidence confidence = QXPDocument::isSupported(input.get());
 
   librevenge::RVNGRawDrawingGenerator documentGenerator(printIndentLevel);
 
-  return (QXPDocument::RESULT_OK == QXPDocument::parse(input.get(), &documentGenerator, type)) ? 0 : 1;
+  return (QXPDocument::RESULT_OK == QXPDocument::parse(input.get(), &documentGenerator)) ? 0 : 1;
 }
 
 /* vim:set shiftwidth=4 softtabstop=4 noexpandtab: */

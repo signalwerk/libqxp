@@ -33,8 +33,7 @@ namespace
 void assertDetection(const string &name, const bool expectedSupported)
 {
   librevenge::RVNGFileStream input((string(DETECTION_TEST_DIR) + "/" + name).c_str());
-  QXPDocument::Type type = QXPDocument::TYPE_UNKNOWN;
-  const QXPDocument::Confidence confidence = QXPDocument::isSupported(&input, &type);
+  const QXPDocument::Confidence confidence = QXPDocument::isSupported(&input);
   const bool supported = confidence == QXPDocument::CONFIDENCE_EXCELLENT;
   CPPUNIT_ASSERT_EQUAL_MESSAGE(name, expectedSupported, supported);
 }

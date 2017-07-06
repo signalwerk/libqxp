@@ -26,11 +26,13 @@ using std::shared_ptr;
 namespace libqxp
 {
 
-QXPAPI QXPDocument::Confidence QXPDocument::isSupported(librevenge::RVNGInputStream *const input, Type *const type) try
+namespace
 {
-  if (type)
-    *type = TYPE_UNKNOWN;
 
+}
+
+QXPAPI QXPDocument::Confidence QXPDocument::isSupported(librevenge::RVNGInputStream *const input) try
+{
   QXPHeader header;
   if (header.load(std::shared_ptr<RVNGInputStream>(input, QXPDummyDeleter())) && header.isSupported())
   {
@@ -44,27 +46,15 @@ catch (...)
   return CONFIDENCE_NONE;
 }
 
-QXPAPI QXPDocument::Result QXPDocument::parse(librevenge::RVNGInputStream *const input, librevenge::RVNGDrawingInterface *const document, const char *const)
+QXPAPI QXPDocument::Result QXPDocument::parse(librevenge::RVNGInputStream *const input, librevenge::RVNGDrawingInterface *const document) try
 {
-  Type type;
-  Confidence confidence = isSupported(input, &type);
+  const Confidence confidence = isSupported(input);
   if (CONFIDENCE_NONE == confidence)
     return RESULT_UNSUPPORTED_FORMAT;
   else if (CONFIDENCE_SUPPORTED_PART == confidence)
     return RESULT_UNSUPPORTED_FORMAT;
   else if (CONFIDENCE_UNSUPPORTED_ENCRYPTION == confidence)
     return RESULT_UNSUPPORTED_ENCRYPTION;
-
-  return parse(input, document, type);
-}
-
-QXPAPI QXPDocument::Result QXPDocument::parse(librevenge::RVNGInputStream *const input, librevenge::RVNGDrawingInterface *const document, const QXPDocument::Type type, const char *const) try
-{
-  // sanity check
-  if (QXPDocument::TYPE_UNKNOWN == type)
-    return QXPDocument::RESULT_UNSUPPORTED_FORMAT;
-  if (QXPDocument::TYPE_RESERVED1 <= type)
-    return QXPDocument::RESULT_UNSUPPORTED_FORMAT;
 
   const std::shared_ptr<RVNGInputStream> input_(input, QXPDummyDeleter());
 
@@ -75,14 +65,6 @@ QXPAPI QXPDocument::Result QXPDocument::parse(librevenge::RVNGInputStream *const
 catch (const FileAccessError &)
 {
   return RESULT_FILE_ACCESS_ERROR;
-}
-catch (const PackageError &)
-{
-  return RESULT_PACKAGE_ERROR;
-}
-catch (const PasswordMismatch &)
-{
-  return RESULT_PASSWORD_MISMATCH;
 }
 catch (const UnsupportedEncryption &)
 {

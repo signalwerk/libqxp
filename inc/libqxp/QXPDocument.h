@@ -51,34 +51,14 @@ public:
   {
     RESULT_OK, //< parsed without any problem
     RESULT_FILE_ACCESS_ERROR, //< problem when accessing the file
-    RESULT_PACKAGE_ERROR, //< problem with parsing structured file's content
     RESULT_PARSE_ERROR, //< problem when parsing the file
-    RESULT_PASSWORD_MISMATCH, //< problem with given password
     RESULT_UNSUPPORTED_ENCRYPTION, //< unsupported encryption
     RESULT_UNSUPPORTED_FORMAT, //< unsupported file format
     RESULT_UNKNOWN_ERROR //< an unspecified error
   };
 
-  /** Type of document.
-    */
-  enum Type
-  {
-    TYPE_UNKNOWN, //< unrecognized file
-
-    TYPE_RESERVED1, //< reserved for future use
-    TYPE_RESERVED2, //< reserved for future use
-    TYPE_RESERVED3, //< reserved for future use
-    TYPE_RESERVED4, //< reserved for future use
-    TYPE_RESERVED5, //< reserved for future use
-    TYPE_RESERVED6, //< reserved for future use
-    TYPE_RESERVED7, //< reserved for future use
-    TYPE_RESERVED8, //< reserved for future use
-    TYPE_RESERVED9 //< reserved for future use
-  };
-
-  static QXPAPI Confidence isSupported(librevenge::RVNGInputStream *input, Type *type = 0);
-  static QXPAPI Result parse(librevenge::RVNGInputStream *input, librevenge::RVNGDrawingInterface *document, const char *password = 0);
-  static QXPAPI Result parse(librevenge::RVNGInputStream *input, librevenge::RVNGDrawingInterface *document, Type type, const char *password = 0);
+  static QXPAPI Confidence isSupported(librevenge::RVNGInputStream *input);
+  static QXPAPI Result parse(librevenge::RVNGInputStream *input, librevenge::RVNGDrawingInterface *document);
 };
 
 } // namespace libqxp

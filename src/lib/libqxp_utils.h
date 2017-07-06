@@ -102,15 +102,7 @@ class FileAccessError
 {
 };
 
-class PackageError
-{
-};
-
 class ParseError
-{
-};
-
-class PasswordMismatch
 {
 };
 
