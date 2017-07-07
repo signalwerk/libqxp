@@ -15,9 +15,20 @@ namespace libqxp
 QXPParser::QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter,
                      const QXPHeader &commonHeader)
   : m_input(input)
-  , m_collector(painter)
   , be(!commonHeader.isLittleEndian())
+  , m_collector(painter)
+  , m_colors()
 {
+  // default colors, in case parsing fails
+  m_colors[0] = Color(255, 255, 255); // white
+  m_colors[1] = Color(0, 0, 0); // black
+  m_colors[2] = Color(255, 0, 0); // red
+  m_colors[3] = Color(0, 255, 0); // green
+  m_colors[4] = Color(0, 0, 255); // blue
+  m_colors[5] = Color(1, 160, 198); // cyan
+  m_colors[6] = Color(239, 4, 127); // magenta
+  m_colors[7] = Color(255, 255, 0); // yellow
+  m_colors[8] = Color(0, 0, 0); // registration
 }
 
 

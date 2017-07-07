@@ -13,6 +13,8 @@
 #include "libqxp_utils.h"
 #include "QXPHeader.h"
 #include "QXPCollector.h"
+#include "QXPTypes.h"
+#include <map>
 
 namespace libqxp
 {
@@ -32,8 +34,11 @@ public:
 
 protected:
   const std::shared_ptr<librevenge::RVNGInputStream> m_input;
-  QXPCollector m_collector;
   const bool be; // big endian
+
+  QXPCollector m_collector;
+
+  std::map<uint32_t, Color> m_colors;
 };
 
 }
