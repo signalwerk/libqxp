@@ -12,6 +12,7 @@
 
 #include "libqxp_utils.h"
 #include "QXPHeader.h"
+#include "QXPCollector.h"
 
 namespace libqxp
 {
@@ -31,6 +32,7 @@ public:
 
 protected:
   const std::shared_ptr<librevenge::RVNGInputStream> m_input;
+  QXPCollector m_collector;
   const bool be; // big endian
 };
 

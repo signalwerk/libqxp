@@ -24,6 +24,10 @@ bool QXP33Parser::parse()
   if (!m_header.load(m_input) || !m_header.isSupported())
     return false;
 
+  m_collector.startDocument();
+
+  m_collector.endDocument();
+
   return true;
 }
 

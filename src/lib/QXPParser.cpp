@@ -15,6 +15,7 @@ namespace libqxp
 QXPParser::QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter,
                      const QXPHeader &commonHeader)
   : m_input(input)
+  , m_collector(painter)
   , be(!commonHeader.isLittleEndian())
 {
 }
