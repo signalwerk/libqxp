@@ -1,6 +1,8 @@
 ## -*- Mode: make; tab-width: 4; indent-tabs-mode: tabs -*-
 
-EXTRA_DIST = \
+libqxpdir = $(includedir)/libqxp-@QXP_MAJOR_VERSION@.@QXP_MINOR_VERSION@/libqxp
+
+dist_libqxp_headers = \
 	libqxp.h \
 	QXPDocument.h
 

@@ -7,10 +7,6 @@ version_info = -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
 endif
 
 lib_LTLIBRARIES = libqxp-@QXP_MAJOR_VERSION@.@QXP_MINOR_VERSION@.la
-libqxp_@QXP_MAJOR_VERSION@_@QXP_MINOR_VERSION@_includedir = $(includedir)/libqxp-@QXP_MAJOR_VERSION@.@QXP_MINOR_VERSION@/libqxp
-libqxp_@QXP_MAJOR_VERSION@_@QXP_MINOR_VERSION@_include_HEADERS = \
-	$(top_srcdir)/inc/libqxp/QXPDocument.h \
-	$(top_srcdir)/inc/libqxp/libqxp.h
 
 AM_CXXFLAGS = \
 	-DLIBQXP_BUILD=1 \
