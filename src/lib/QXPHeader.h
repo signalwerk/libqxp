@@ -38,6 +38,7 @@ public:
   bool isSupported() const;
 
   bool isLittleEndian() const;
+  bool isBigEndian() const;
   QXPVersion version() const;
 
 private:

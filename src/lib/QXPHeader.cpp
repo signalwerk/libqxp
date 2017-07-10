@@ -45,6 +45,11 @@ bool QXPHeader::isLittleEndian() const
   return m_proc == 'I';
 }
 
+bool QXPHeader::isBigEndian() const
+{
+  return !isLittleEndian();
+}
+
 QXPVersion QXPHeader::version() const
 {
   return m_version;
