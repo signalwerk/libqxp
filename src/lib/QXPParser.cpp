@@ -49,6 +49,15 @@ bool QXPParser::parse()
   return true;
 }
 
+void QXPParser::skipRecord(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  auto length = readU32(stream, be);
+  if (length > 0)
+  {
+    seekRelative(stream, length);
+  }
+}
+
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

@@ -21,6 +21,11 @@ QXP33Parser::QXP33Parser(const std::shared_ptr<librevenge::RVNGInputStream> &inp
 
 bool QXP33Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream)
 {
+  for (int i = 0; i < 4; ++i)
+  {
+    skipRecord(docStream);
+  }
+
   return true;
 }
 

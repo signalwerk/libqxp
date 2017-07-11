@@ -45,6 +45,8 @@ protected:
 
   virtual bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) = 0;
 
+  void skipRecord(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
+
 private:
   QXPHeader &m_header;
 };
