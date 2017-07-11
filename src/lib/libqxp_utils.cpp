@@ -135,6 +135,14 @@ string readPascalString(librevenge::RVNGInputStream *input)
   checkStream(input);
 
   const unsigned length = readU8(input);
+
+  return readString(input, length);
+}
+
+std::string readString(librevenge::RVNGInputStream *input, const unsigned length)
+{
+  checkStream(input);
+
   string str;
   for (unsigned i = 0; length != i; ++i)
     str.push_back(readU8(input));
@@ -225,6 +233,11 @@ std::string readCString(const std::shared_ptr<librevenge::RVNGInputStream> input
 std::string readPascalString(const std::shared_ptr<librevenge::RVNGInputStream> input)
 {
   return readPascalString(input.get());
+}
+
+std::string readString(std::shared_ptr<librevenge::RVNGInputStream> input, const unsigned length)
+{
+  return readString(input.get(), length);
 }
 
 void skip(const std::shared_ptr<librevenge::RVNGInputStream> input, const unsigned long numBytes)

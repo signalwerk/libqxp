@@ -26,7 +26,7 @@ bool QXPHeader::load(const std::shared_ptr<librevenge::RVNGInputStream> &input)
 
   m_proc = readU8(input);
   skip(input, 1);
-  m_signature = std::string(reinterpret_cast<const char *>(readNBytes(input, 3)), 3);
+  m_signature = readString(input, 3);
 
   skip(input, 1);
 

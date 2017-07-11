@@ -61,6 +61,7 @@ const unsigned char *readNBytes(librevenge::RVNGInputStream *input, unsigned lon
 
 std::string readCString(librevenge::RVNGInputStream *input);
 std::string readPascalString(librevenge::RVNGInputStream *input);
+std::string readString(librevenge::RVNGInputStream *input, const unsigned length);
 
 void skip(librevenge::RVNGInputStream *input, unsigned long numBytes);
 
@@ -78,6 +79,7 @@ const unsigned char *readNBytes(std::shared_ptr<librevenge::RVNGInputStream> inp
 
 std::string readCString(std::shared_ptr<librevenge::RVNGInputStream> input);
 std::string readPascalString(std::shared_ptr<librevenge::RVNGInputStream> input);
+std::string readString(std::shared_ptr<librevenge::RVNGInputStream> input, const unsigned length);
 
 void skip(std::shared_ptr<librevenge::RVNGInputStream> input, unsigned long numBytes);
 
