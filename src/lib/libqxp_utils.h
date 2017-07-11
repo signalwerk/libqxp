@@ -56,6 +56,7 @@ uint8_t readU8(librevenge::RVNGInputStream *input, bool = false);
 uint16_t readU16(librevenge::RVNGInputStream *input, bool bigEndian=false);
 uint32_t readU32(librevenge::RVNGInputStream *input, bool bigEndian=false);
 uint64_t readU64(librevenge::RVNGInputStream *input, bool bigEndian=false);
+int32_t readS32(librevenge::RVNGInputStream *input, bool bigEndian=false);
 
 const unsigned char *readNBytes(librevenge::RVNGInputStream *input, unsigned long numBytes);
 
@@ -74,6 +75,7 @@ uint8_t readU8(std::shared_ptr<librevenge::RVNGInputStream> input, bool = false)
 uint16_t readU16(std::shared_ptr<librevenge::RVNGInputStream> input, bool bigEndian=false);
 uint32_t readU32(std::shared_ptr<librevenge::RVNGInputStream> input, bool bigEndian=false);
 uint64_t readU64(std::shared_ptr<librevenge::RVNGInputStream> input, bool bigEndian=false);
+int32_t readS32(std::shared_ptr<librevenge::RVNGInputStream> input, bool bigEndian=false);
 
 const unsigned char *readNBytes(std::shared_ptr<librevenge::RVNGInputStream> input, unsigned long numBytes);
 

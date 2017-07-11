@@ -6,6 +6,7 @@ else
 version_info = -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
 endif
 
+noinst_LTLIBRARIES = libqxp_internal.la
 lib_LTLIBRARIES = libqxp-@QXP_MAJOR_VERSION@.@QXP_MINOR_VERSION@.la
 
 AM_CXXFLAGS = \
@@ -17,13 +18,18 @@ AM_CXXFLAGS = \
 	$(DEBUG_CXXFLAGS)
 
 libqxp_@QXP_MAJOR_VERSION@_@QXP_MINOR_VERSION@_la_LIBADD = \
+	libqxp_internal.la \
 	$(REVENGE_LIBS) \
 	@LIBQXP_WIN32_RESOURCE@
 
-libqxp_@QXP_MAJOR_VERSION@_@QXP_MINOR_VERSION@_la_DEPENDENCIES = @LIBQXP_WIN32_RESOURCE@
+libqxp_@QXP_MAJOR_VERSION@_@QXP_MINOR_VERSION@_la_DEPENDENCIES = libqxp_internal.la @LIBQXP_WIN32_RESOURCE@
 libqxp_@QXP_MAJOR_VERSION@_@QXP_MINOR_VERSION@_la_LDFLAGS = $(version_info) -export-dynamic -no-undefined
 libqxp_@QXP_MAJOR_VERSION@_@QXP_MINOR_VERSION@_la_SOURCES = \
-	QXPDocument.cpp \
+	QXPDocument.cpp
+
+libqxp_internal_la_SOURCES = \
+	QXPBlockParser.cpp \
+	QXPBlockParser.h \
 	QXPCollector.cpp \
 	QXPCollector.h \
 	QXPHeader.cpp \

@@ -16,6 +16,7 @@ QXPParser::QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, 
                      const QXPHeader &commonHeader)
   : m_input(input)
   , be(commonHeader.isBigEndian())
+  , m_blockParser(input, commonHeader)
   , m_collector(painter)
   , m_colors()
 {

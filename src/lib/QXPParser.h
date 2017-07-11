@@ -11,6 +11,7 @@
 #define QXPPARSER_H_INCLUDED
 
 #include "libqxp_utils.h"
+#include "QXPBlockParser.h"
 #include "QXPHeader.h"
 #include "QXPCollector.h"
 #include "QXPTypes.h"
@@ -35,6 +36,8 @@ public:
 protected:
   const std::shared_ptr<librevenge::RVNGInputStream> m_input;
   const bool be; // big endian
+
+  QXPBlockParser m_blockParser;
 
   QXPCollector m_collector;
 

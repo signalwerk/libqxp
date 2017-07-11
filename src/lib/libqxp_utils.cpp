@@ -102,6 +102,11 @@ uint64_t readU64(librevenge::RVNGInputStream *input, bool bigEndian)
   throw EndOfStreamException();
 }
 
+int32_t readS32(librevenge::RVNGInputStream *input, bool bigEndian)
+{
+  return int32_t(readU32(input, bigEndian));
+}
+
 const unsigned char *readNBytes(librevenge::RVNGInputStream *const input, const unsigned long numBytes)
 {
   checkStream(input);
@@ -218,6 +223,11 @@ uint32_t readU32(const std::shared_ptr<librevenge::RVNGInputStream> input, const
 uint64_t readU64(const std::shared_ptr<librevenge::RVNGInputStream> input, const bool bigEndian)
 {
   return readU64(input.get(), bigEndian);
+}
+
+int32_t readS32(std::shared_ptr<librevenge::RVNGInputStream> input, bool bigEndian)
+{
+  return readS32(input.get(), bigEndian);
 }
 
 const unsigned char *readNBytes(const std::shared_ptr<librevenge::RVNGInputStream> input, const unsigned long numBytes)
