@@ -54,7 +54,7 @@ void QXPParser::skipRecord(const std::shared_ptr<librevenge::RVNGInputStream> &s
   auto length = readU32(stream, be);
   if (length > 0)
   {
-    seekRelative(stream, length);
+    skip(stream, length);
   }
 }
 
