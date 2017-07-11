@@ -28,10 +28,10 @@ class QXPParser
 
 public:
   QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter,
-            const QXPHeader &commonHeader);
+            const QXPHeader &commonHeader, QXPHeader &header);
   virtual ~QXPParser() = default;
 
-  virtual bool parse() = 0;
+  bool parse();
 
 protected:
   const std::shared_ptr<librevenge::RVNGInputStream> m_input;
@@ -42,6 +42,11 @@ protected:
   QXPCollector m_collector;
 
   std::map<uint32_t, Color> m_colors;
+
+  virtual bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) = 0;
+
+private:
+  QXPHeader &m_header;
 };
 
 }

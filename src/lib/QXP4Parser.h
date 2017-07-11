@@ -23,10 +23,10 @@ public:
   QXP4Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter,
              const QXPHeader &commonHeader);
 
-  bool parse() override;
-
 private:
   QXP4Header m_header;
+
+  bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) override;
 };
 
 }

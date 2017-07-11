@@ -14,19 +14,15 @@ namespace libqxp
 
 QXP4Parser::QXP4Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter,
                        const QXPHeader &commonHeader)
-  : QXPParser(input, painter, commonHeader)
+  : QXPParser(input, painter, commonHeader, m_header)
   , m_header()
 {
 }
 
-bool QXP4Parser::parse()
+bool QXP4Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream)
 {
-  if (!m_header.load(m_input) || !m_header.isSupported())
-    return false;
-
   return true;
 }
-
 
 }
 

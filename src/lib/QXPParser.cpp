@@ -13,12 +13,13 @@ namespace libqxp
 {
 
 QXPParser::QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter,
-                     const QXPHeader &commonHeader)
+                     const QXPHeader &commonHeader, QXPHeader &header)
   : m_input(input)
   , be(commonHeader.isBigEndian())
   , m_blockParser(input, commonHeader)
   , m_collector(painter)
   , m_colors()
+  , m_header(header)
 {
   // default colors, in case parsing fails
   m_colors[0] = Color(255, 255, 255); // white
@@ -32,6 +33,21 @@ QXPParser::QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, 
   m_colors[8] = Color(0, 0, 0); // registration
 }
 
+bool QXPParser::parse()
+{
+  if (!m_header.load(m_input) || !m_header.isSupported())
+    return false;
+
+  m_collector.startDocument();
+
+  auto docStream = m_blockParser.getChain(3);
+  if (!parseDocument(docStream))
+    return false;
+
+  m_collector.endDocument();
+
+  return true;
+}
 
 }
 
