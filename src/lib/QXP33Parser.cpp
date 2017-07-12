@@ -43,11 +43,11 @@ void QXP33Parser::parseColors(const std::shared_ptr<librevenge::RVNGInputStream>
   try
   {
     skip(stream, 1);
-    auto count = readU8(stream);
+    unsigned count = readU8(stream);
     skip(stream, 32);
     for (unsigned i = 0; i < count; ++i)
     {
-      auto index = readU8(stream);
+      unsigned index = readU8(stream);
       skip(stream, 1);
       Color color;
       color.red = readColorComp(stream);
@@ -68,7 +68,7 @@ void QXP33Parser::parseColors(const std::shared_ptr<librevenge::RVNGInputStream>
 
 std::string QXP33Parser::readName(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
 {
-  auto start = stream->tell();
+  unsigned start = stream->tell();
   auto name = readPlatformString(stream, be);
   if ((stream->tell() - start) % 2 == 1)
   {

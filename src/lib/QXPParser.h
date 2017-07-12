@@ -41,8 +41,8 @@ protected:
 
   QXPCollector m_collector;
 
-  std::map<uint32_t, Color> m_colors;
-  std::map<int32_t, std::string> m_fonts;
+  std::map<unsigned, Color> m_colors;
+  std::map<int, std::string> m_fonts;
 
   virtual bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) = 0;
 

@@ -53,7 +53,7 @@ bool QXPParser::parse()
 
 void QXPParser::skipRecord(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
 {
-  auto length = readU32(stream, be);
+  unsigned length = readU32(stream, be);
   if (length > 0)
   {
     skip(stream, length);
@@ -66,10 +66,10 @@ void QXPParser::parseFonts(const std::shared_ptr<librevenge::RVNGInputStream> &s
 
   try
   {
-    auto count = readU16(stream, be);
+    unsigned count = readU16(stream, be);
     for (unsigned i = 0; i < count; ++i)
     {
-      auto index = readS16(stream, be);
+      int index = readS16(stream, be);
       if (m_header.version() >= QXP_4)
       {
         skip(stream, 2);
@@ -90,7 +90,7 @@ void QXPParser::parseFonts(const std::shared_ptr<librevenge::RVNGInputStream> &s
 
 uint32_t QXPParser::readRecordEndOffset(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
 {
-  auto length = readU32(stream, be);
+  unsigned length = readU32(stream, be);
   return stream->tell() + length;
 }
 
