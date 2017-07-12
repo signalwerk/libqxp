@@ -26,6 +26,8 @@ bool QXP4Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStream
     skipRecord(docStream);
   }
 
+  parseFonts(docStream);
+
   return true;
 }
 

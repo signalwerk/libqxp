@@ -102,6 +102,11 @@ uint64_t readU64(librevenge::RVNGInputStream *input, bool bigEndian)
   throw EndOfStreamException();
 }
 
+int16_t readS16(librevenge::RVNGInputStream *input, bool bigEndian)
+{
+  return int16_t(readU16(input, bigEndian));
+}
+
 int32_t readS32(librevenge::RVNGInputStream *input, bool bigEndian)
 {
   return int32_t(readU32(input, bigEndian));
@@ -153,6 +158,11 @@ std::string readString(librevenge::RVNGInputStream *input, const unsigned length
     str.push_back(readU8(input));
 
   return str;
+}
+
+std::string readPlatformString(librevenge::RVNGInputStream *input, bool bigEndian)
+{
+  return bigEndian ? readPascalString(input) : readCString(input);
 }
 
 void skip(librevenge::RVNGInputStream *input, unsigned long numBytes)
@@ -225,6 +235,11 @@ uint64_t readU64(const std::shared_ptr<librevenge::RVNGInputStream> input, const
   return readU64(input.get(), bigEndian);
 }
 
+int16_t readS16(std::shared_ptr<librevenge::RVNGInputStream> input, bool bigEndian)
+{
+  return readS16(input.get(), bigEndian);
+}
+
 int32_t readS32(std::shared_ptr<librevenge::RVNGInputStream> input, bool bigEndian)
 {
   return readS32(input.get(), bigEndian);
@@ -248,6 +263,11 @@ std::string readPascalString(const std::shared_ptr<librevenge::RVNGInputStream> 
 std::string readString(std::shared_ptr<librevenge::RVNGInputStream> input, const unsigned length)
 {
   return readString(input.get(), length);
+}
+
+std::string readPlatformString(std::shared_ptr<librevenge::RVNGInputStream> input, bool bigEndian)
+{
+  return readPlatformString(input.get(), bigEndian);
 }
 
 void skip(const std::shared_ptr<librevenge::RVNGInputStream> input, const unsigned long numBytes)

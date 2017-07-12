@@ -56,6 +56,7 @@ uint8_t readU8(librevenge::RVNGInputStream *input, bool = false);
 uint16_t readU16(librevenge::RVNGInputStream *input, bool bigEndian=false);
 uint32_t readU32(librevenge::RVNGInputStream *input, bool bigEndian=false);
 uint64_t readU64(librevenge::RVNGInputStream *input, bool bigEndian=false);
+int16_t readS16(librevenge::RVNGInputStream *input, bool bigEndian=false);
 int32_t readS32(librevenge::RVNGInputStream *input, bool bigEndian=false);
 
 const unsigned char *readNBytes(librevenge::RVNGInputStream *input, unsigned long numBytes);
@@ -63,6 +64,7 @@ const unsigned char *readNBytes(librevenge::RVNGInputStream *input, unsigned lon
 std::string readCString(librevenge::RVNGInputStream *input);
 std::string readPascalString(librevenge::RVNGInputStream *input);
 std::string readString(librevenge::RVNGInputStream *input, const unsigned length);
+std::string readPlatformString(librevenge::RVNGInputStream *input, bool bigEndian=false);
 
 void skip(librevenge::RVNGInputStream *input, unsigned long numBytes);
 
@@ -75,6 +77,7 @@ uint8_t readU8(std::shared_ptr<librevenge::RVNGInputStream> input, bool = false)
 uint16_t readU16(std::shared_ptr<librevenge::RVNGInputStream> input, bool bigEndian=false);
 uint32_t readU32(std::shared_ptr<librevenge::RVNGInputStream> input, bool bigEndian=false);
 uint64_t readU64(std::shared_ptr<librevenge::RVNGInputStream> input, bool bigEndian=false);
+int16_t readS16(std::shared_ptr<librevenge::RVNGInputStream> input, bool bigEndian=false);
 int32_t readS32(std::shared_ptr<librevenge::RVNGInputStream> input, bool bigEndian=false);
 
 const unsigned char *readNBytes(std::shared_ptr<librevenge::RVNGInputStream> input, unsigned long numBytes);
@@ -82,6 +85,7 @@ const unsigned char *readNBytes(std::shared_ptr<librevenge::RVNGInputStream> inp
 std::string readCString(std::shared_ptr<librevenge::RVNGInputStream> input);
 std::string readPascalString(std::shared_ptr<librevenge::RVNGInputStream> input);
 std::string readString(std::shared_ptr<librevenge::RVNGInputStream> input, const unsigned length);
+std::string readPlatformString(std::shared_ptr<librevenge::RVNGInputStream> input, bool bigEndian=false);
 
 void skip(std::shared_ptr<librevenge::RVNGInputStream> input, unsigned long numBytes);
 

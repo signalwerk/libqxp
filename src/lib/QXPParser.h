@@ -42,10 +42,14 @@ protected:
   QXPCollector m_collector;
 
   std::map<uint32_t, Color> m_colors;
+  std::map<int32_t, std::string> m_fonts;
 
   virtual bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) = 0;
 
   void skipRecord(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
+  void parseFonts(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
+
+  uint32_t readRecordEndOffset(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
 
 private:
   QXPHeader &m_header;
