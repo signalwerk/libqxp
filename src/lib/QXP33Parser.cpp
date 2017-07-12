@@ -45,7 +45,7 @@ void QXP33Parser::parseColors(const std::shared_ptr<librevenge::RVNGInputStream>
     skip(stream, 1);
     auto count = readU8(stream);
     skip(stream, 32);
-    for (int i = 0; i < count; ++i)
+    for (unsigned i = 0; i < count; ++i)
     {
       auto index = readU8(stream);
       skip(stream, 1);

@@ -67,7 +67,7 @@ void QXPParser::parseFonts(const std::shared_ptr<librevenge::RVNGInputStream> &s
   try
   {
     auto count = readU16(stream, be);
-    for (int i = 0; i < count; ++i)
+    for (unsigned i = 0; i < count; ++i)
     {
       auto index = readS16(stream, be);
       if (m_header.version() >= QXP_4)
