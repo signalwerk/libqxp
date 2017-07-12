@@ -18,6 +18,7 @@ namespace libqxp
 
 enum QXPVersion
 {
+  UNKNOWN = 0,
   QXP_31 = 0x3e,
   QXP_33 = 0x3f,
   QXP_4 = 0x41,
