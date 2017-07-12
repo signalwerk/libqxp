@@ -14,6 +14,8 @@
 #include "QXPParser.h"
 #include "QXP33Header.h"
 
+#include <string>
+
 namespace libqxp
 {
 
@@ -27,6 +29,10 @@ private:
   QXP33Header m_header;
 
   bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) override;
+
+  void parseColors(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
+
+  std::string readName(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
 };
 
 }

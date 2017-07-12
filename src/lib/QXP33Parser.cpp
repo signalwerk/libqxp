@@ -8,6 +8,7 @@
  */
 
 #include "QXP33Parser.h"
+#include "QXPTypes.h"
 
 namespace libqxp
 {
@@ -28,7 +29,52 @@ bool QXP33Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStrea
 
   parseFonts(docStream);
 
+  skipRecord(docStream);
+
+  parseColors(docStream);
+
   return true;
+}
+
+void QXP33Parser::parseColors(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  auto end = readRecordEndOffset(stream);
+
+  try
+  {
+    skip(stream, 1);
+    auto count = readU8(stream);
+    skip(stream, 32);
+    for (int i = 0; i < count; ++i)
+    {
+      auto index = readU8(stream);
+      skip(stream, 1);
+      Color color;
+      color.red = readColorComp(stream);
+      color.green = readColorComp(stream);
+      color.blue = readColorComp(stream);
+      m_colors[index] = color;
+      skip(stream, 42);
+      readName(stream); // skip
+    }
+  }
+  catch (...)
+  {
+    QXP_DEBUG_MSG(("Failed to parse colors, offset %ld\n", stream->tell()));
+  }
+
+  seek(stream, end);
+}
+
+std::string QXP33Parser::readName(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  auto start = stream->tell();
+  auto name = readPlatformString(stream, be);
+  if ((stream->tell() - start) % 2 == 1)
+  {
+    skip(stream, 1);
+  }
+  return name;
 }
 
 }

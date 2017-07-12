@@ -50,6 +50,7 @@ protected:
   void parseFonts(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
 
   uint32_t readRecordEndOffset(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
+  uint8_t readColorComp(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
 
 private:
   QXPHeader &m_header;

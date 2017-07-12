@@ -23,7 +23,8 @@ test_LDADD = \
 
 test_SOURCES = \
 	test.cpp \
-	QXPBlockParserTest.cpp
+	QXPBlockParserTest.cpp \
+	UtilsTest.cpp
 
 detection_LDFLAGS = -L$(top_srcdir)/src/lib
 detection_LDADD = \

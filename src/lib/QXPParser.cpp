@@ -8,6 +8,7 @@
  */
 
 #include "QXPParser.h"
+#include <cmath>
 
 namespace libqxp
 {
@@ -91,6 +92,11 @@ uint32_t QXPParser::readRecordEndOffset(const std::shared_ptr<librevenge::RVNGIn
 {
   auto length = readU32(stream, be);
   return stream->tell() + length;
+}
+
+uint8_t QXPParser::readColorComp(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  return uint8_t(std::round(255 * readFloat16(stream, be)));
 }
 
 }
