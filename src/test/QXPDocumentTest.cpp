@@ -77,8 +77,10 @@ void QXPDocumentTest::tearDown()
 
 void QXPDocumentTest::testDetectQXP()
 {
-  assertSupported("qxp33.qxd");
-  assertSupported("qxp4.qxd");
+  assertSupported("qxp33win.qxd");
+  assertSupported("qxp33mac");
+  assertSupported("qxp4win.qxd");
+  assertSupported("qxp4mac");
 }
 
 void QXPDocumentTest::testUnsupported()

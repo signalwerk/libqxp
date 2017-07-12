@@ -30,7 +30,7 @@ bool QXPHeader::load(const std::shared_ptr<librevenge::RVNGInputStream> &input)
 
   skip(input, 1);
 
-  m_version = static_cast<QXPVersion>(readU8(input));
+  m_version = static_cast<QXPVersion>(readU16(input, isBigEndian()));
 
   return true;
 }

@@ -40,8 +40,10 @@ detection_SOURCES = \
 TESTS = $(target_test)
 
 EXTRA_DIST = \
-	data/qxp33.qxd \
-	data/qxp4.qxd \
+	data/qxp33win.qxd \
+	data/qxp33mac \
+	data/qxp4win.qxd \
+	data/qxp4mac \
 	data/qxp5.qxd \
 	data/qxp6.qxd \
 	data/qxp33mac_text \
