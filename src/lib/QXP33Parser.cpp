@@ -47,13 +47,13 @@ void QXP33Parser::parseColors(const std::shared_ptr<librevenge::RVNGInputStream>
     skip(stream, 32);
     for (unsigned i = 0; i < count; ++i)
     {
-      unsigned index = readU8(stream);
+      unsigned id = readU8(stream);
       skip(stream, 1);
       Color color;
       color.red = readColorComp(stream);
       color.green = readColorComp(stream);
       color.blue = readColorComp(stream);
-      m_colors[index] = color;
+      m_colors[id] = color;
       skip(stream, 42);
       readName(stream); // skip
     }

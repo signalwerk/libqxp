@@ -13,6 +13,7 @@
 #include "libqxp_utils.h"
 #include "QXPParser.h"
 #include "QXP4Header.h"
+#include <map>
 
 namespace libqxp
 {
@@ -24,9 +25,31 @@ public:
              const QXPHeader &commonHeader);
 
 private:
+  struct ColorBlockSpec
+  {
+    unsigned offset;
+    unsigned padding;
+    unsigned nextOffset;
+
+    ColorBlockSpec()
+      : offset(0), padding(0), nextOffset(0)
+    { }
+
+    unsigned length() const
+    {
+      return nextOffset - offset - padding;
+    }
+  };
+
   QXP4Header m_header;
 
   bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) override;
+
+  void parseColors(const std::shared_ptr<librevenge::RVNGInputStream> &docStream);
+  ColorBlockSpec parseColorBlockSpec(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
+  unsigned parseColorsHeader(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ColorBlockSpec &block);
+  unsigned parseColor(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ColorBlockSpec &block,
+                      const std::map<unsigned, ColorBlockSpec> &blocks);
 };
 
 }
