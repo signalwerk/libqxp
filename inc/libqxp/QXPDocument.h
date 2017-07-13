@@ -57,7 +57,19 @@ public:
     RESULT_UNKNOWN_ERROR //< an unspecified error
   };
 
-  static QXPAPI Confidence isSupported(librevenge::RVNGInputStream *input);
+  /** Type of document.
+    */
+  enum Type
+  {
+    TYPE_UNKNOWN, //< unrecognized file
+
+    TYPE_DOCUMENT,
+    TYPE_TEMPLATE,
+    TYPE_BOOK,
+    TYPE_LIBRARY
+  };
+
+  static QXPAPI Confidence isSupported(librevenge::RVNGInputStream *input, Type *type = 0);
   static QXPAPI Result parse(librevenge::RVNGInputStream *input, librevenge::RVNGDrawingInterface *document);
 };
 

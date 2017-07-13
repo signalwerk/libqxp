@@ -30,17 +30,20 @@ using std::string;
 namespace
 {
 
-void assertDetection(const string &name, const bool expectedSupported)
+QXPDocument::Type assertDetection(const string &name, const bool expectedSupported)
 {
   librevenge::RVNGFileStream input((string(DETECTION_TEST_DIR) + "/" + name).c_str());
-  const QXPDocument::Confidence confidence = QXPDocument::isSupported(&input);
+  QXPDocument::Type type = QXPDocument::TYPE_UNKNOWN;
+  const QXPDocument::Confidence confidence = QXPDocument::isSupported(&input, &type);
   const bool supported = confidence == QXPDocument::CONFIDENCE_EXCELLENT;
   CPPUNIT_ASSERT_EQUAL_MESSAGE(name, expectedSupported, supported);
+  return type;
 }
 
 void assertSupported(const string &name)
 {
-  assertDetection(name, true);
+  auto type = assertDetection(name, true);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(name, QXPDocument::TYPE_DOCUMENT, type);
 }
 
 void assertUnsupported(const string &name)

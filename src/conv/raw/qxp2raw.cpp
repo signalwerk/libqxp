@@ -74,7 +74,8 @@ int main(int argc, char *argv[])
 
   std::shared_ptr<librevenge::RVNGInputStream> input(new librevenge::RVNGFileStream(file));
 
-  QXPDocument::Confidence confidence = QXPDocument::isSupported(input.get());
+  QXPDocument::Type type = QXPDocument::TYPE_UNKNOWN;
+  QXPDocument::Confidence confidence = QXPDocument::isSupported(input.get(), &type);
 
   librevenge::RVNGRawDrawingGenerator documentGenerator(printIndentLevel);
 

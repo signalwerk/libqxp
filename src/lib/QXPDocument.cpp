@@ -31,10 +31,14 @@ namespace libqxp
 namespace
 {
 
-QXPDocument::Confidence checkSupport(librevenge::RVNGInputStream *const input, QXPHeader &header) try
+QXPDocument::Confidence checkSupport(librevenge::RVNGInputStream *const input, QXPHeader &header, QXPDocument::Type *const type) try
 {
+  if (type)
+    *type = QXPDocument::TYPE_UNKNOWN;
+
   if (header.load(std::shared_ptr<RVNGInputStream>(input, QXPDummyDeleter())) && header.isSupported())
   {
+    *type = QXPDocument::TYPE_DOCUMENT;
     return QXPDocument::CONFIDENCE_EXCELLENT;
   }
 
@@ -47,22 +51,26 @@ catch (...)
 
 }
 
-QXPAPI QXPDocument::Confidence QXPDocument::isSupported(librevenge::RVNGInputStream *const input)
+QXPAPI QXPDocument::Confidence QXPDocument::isSupported(librevenge::RVNGInputStream *const input, Type *const type)
 {
   QXPHeader header;
-  return checkSupport(input, header);
+  return checkSupport(input, header, type);
 }
 
 QXPAPI QXPDocument::Result QXPDocument::parse(librevenge::RVNGInputStream *const input, librevenge::RVNGDrawingInterface *const document) try
 {
+  Type type;
   QXPHeader header;
-  const Confidence confidence = checkSupport(input, header);
+  const Confidence confidence = checkSupport(input, header, &type);
   if (CONFIDENCE_NONE == confidence)
     return RESULT_UNSUPPORTED_FORMAT;
   else if (CONFIDENCE_SUPPORTED_PART == confidence)
     return RESULT_UNSUPPORTED_FORMAT;
   else if (CONFIDENCE_UNSUPPORTED_ENCRYPTION == confidence)
     return RESULT_UNSUPPORTED_ENCRYPTION;
+
+  if (QXPDocument::TYPE_DOCUMENT != type)
+    return QXPDocument::RESULT_UNSUPPORTED_FORMAT;
 
   const std::shared_ptr<RVNGInputStream> input_(input, QXPDummyDeleter());
 
