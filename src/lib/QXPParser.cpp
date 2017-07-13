@@ -62,7 +62,7 @@ void QXPParser::skipRecord(const std::shared_ptr<librevenge::RVNGInputStream> &s
 
 void QXPParser::parseFonts(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
 {
-  auto end = readRecordEndOffset(stream);
+  const unsigned end = readRecordEndOffset(stream);
 
   try
   {
