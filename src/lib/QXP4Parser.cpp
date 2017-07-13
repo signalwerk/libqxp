@@ -54,30 +54,21 @@ void QXP4Parser::parseColors(const std::shared_ptr<librevenge::RVNGInputStream> 
       QXP_DEBUG_MSG(("Invalid number of blocks %u\n", blocksCount));
       return;
     }
-    skip(stream, 8);
-    const unsigned dataEndOffset = readU32(stream, be);
-    skip(stream, 8);
-    std::map<unsigned, ColorBlockSpec> blocks;
+    skip(stream, 20);
+    std::vector<ColorBlockSpec> blocks;
+    blocks.resize(blocksCount + 1); // first dummy block
     for (unsigned i = 1; i <= blocksCount; ++i)
     {
       blocks[i] = parseColorBlockSpec(stream);
     }
-    for (unsigned i = 1; i <= blocksCount - 1; ++i)
-    {
-      blocks[i].nextOffset = blocks[i + 1].offset;
-    }
-    blocks[blocksCount].nextOffset = dataEndOffset;
 
-    const unsigned firstBlockInd = parseColorsHeader(stream, blocks[1]);
-    unsigned ind = firstBlockInd;
-    while (ind != 0)
+    for (unsigned i = 2; i <= blocksCount; ++i)
     {
-      if (blocks.find(ind) == blocks.end())
+      seek(stream, blocks[i].offset);
+      if (readU16(stream, be) + readU16(stream, be) == 6) // 04 02
       {
-        QXP_DEBUG_MSG(("Block %u not found\n", ind));
-        return;
+        parseColor(stream, blocks);
       }
-      ind = parseColor(stream, blocks[ind], blocks);
     }
   }
   catch (...)
@@ -95,21 +86,9 @@ QXP4Parser::ColorBlockSpec QXP4Parser::parseColorBlockSpec(const std::shared_ptr
   return spec;
 }
 
-unsigned QXP4Parser::parseColorsHeader(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ColorBlockSpec &block)
+void QXP4Parser::parseColor(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const std::vector<ColorBlockSpec> &blocks)
 {
-  seek(stream, block.offset + 16);
-  return readU16(stream, be);
-}
-
-unsigned QXP4Parser::parseColor(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ColorBlockSpec &block,
-                                const std::map<unsigned, QXP4Parser::ColorBlockSpec> &blocks)
-{
-  seek(stream, block.offset);
-
-  skip(stream, 6);
-  unsigned nextBlockInd = readU16(stream, be);
-
-  skip(stream, 26);
+  skip(stream, 30);
   unsigned id = readU16(stream, be);
 
   skip(stream, 70);
@@ -117,22 +96,18 @@ unsigned QXP4Parser::parseColor(const std::shared_ptr<librevenge::RVNGInputStrea
 
   if (rgbBlockInd != 0)
   {
-    if (blocks.find(rgbBlockInd) == blocks.end())
+    if (rgbBlockInd >= blocks.size())
     {
       QXP_DEBUG_MSG(("RGB block %u not found\n", rgbBlockInd));
+      return;
     }
-    else
-    {
-      seek(stream, blocks.at(rgbBlockInd).offset + 16);
-      Color color;
-      color.red = readColorComp(stream);
-      color.green = readColorComp(stream);
-      color.blue = readColorComp(stream);
-      m_colors[id] = color;
-    }
+    seek(stream, blocks[rgbBlockInd].offset + 16);
+    Color color;
+    color.red = readColorComp(stream);
+    color.green = readColorComp(stream);
+    color.blue = readColorComp(stream);
+    m_colors[id] = color;
   }
-
-  return nextBlockInd;
 }
 
 }
