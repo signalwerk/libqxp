@@ -37,6 +37,20 @@ bool QXP4Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStream
 
   parseColors(docStream);
 
+  // don't need stylesheets, everything is included in the current style
+  skipParagraphStylesheets(docStream);
+  skipRecord(docStream);
+
+  parseHJs(docStream);
+
+  skipRecord(docStream);
+
+  skipRecord(docStream);
+
+  skipTemplates(docStream);
+
+  parseCharFormats(docStream);
+
   return true;
 }
 
@@ -107,6 +121,72 @@ void QXP4Parser::parseColor(const std::shared_ptr<librevenge::RVNGInputStream> &
     color.green = readColorComp(stream);
     color.blue = readColorComp(stream);
     m_colors[id] = color;
+  }
+}
+
+void QXP4Parser::skipParagraphStylesheets(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  const unsigned end = readRecordEndOffset(stream);
+
+  unsigned tabRecordsCount = 0;
+  while (stream->tell() < end)
+  {
+    skip(stream, 90);
+    const unsigned tabsCount = readU16(stream, be);
+    if (tabsCount > 0)
+    {
+      tabRecordsCount++;
+    }
+    skip(stream, 152);
+  }
+
+  seek(stream, end);
+
+  for (unsigned i = 0; i < tabRecordsCount; ++i)
+  {
+    skipRecord(stream);
+  }
+}
+
+CharFormat QXP4Parser::parseCharFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  skip(stream, 8);
+
+  CharFormat result;
+  parseCommonCharFormatProps(stream, result);
+
+  skip(stream, 4);
+
+  unsigned colorId = readU16(stream, be);
+  if (m_colors.find(colorId) == m_colors.end())
+  {
+    QXP_DEBUG_MSG(("Color %u not found\n", colorId));
+  }
+  else
+  {
+    result.color = m_colors[colorId];
+  }
+
+  skip(stream, 2);
+
+  result.shade = readFraction(stream, be);
+
+  skip(stream, 36);
+
+  return result;
+}
+
+void QXP4Parser::skipTemplates(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  const unsigned indexEnd = readRecordEndOffset(stream);
+
+  const unsigned count = readU32(stream, be);
+
+  seek(stream, indexEnd);
+
+  for (unsigned i = 0; i < count; ++i)
+  {
+    skipRecord(stream);
   }
 }
 

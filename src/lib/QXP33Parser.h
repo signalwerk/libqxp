@@ -31,8 +31,7 @@ private:
   bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) override;
 
   void parseColors(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
-  void parseHJs(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
-  CharFormat parseCharFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
+  CharFormat parseCharFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) override;
 
   std::string readName(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
 };

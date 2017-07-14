@@ -42,6 +42,9 @@ private:
   void parseColors(const std::shared_ptr<librevenge::RVNGInputStream> &docStream);
   ColorBlockSpec parseColorBlockSpec(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   void parseColor(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const std::vector<ColorBlockSpec> &blocks);
+  void skipParagraphStylesheets(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
+  CharFormat parseCharFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) override;
+  void skipTemplates(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
 };
 
 }

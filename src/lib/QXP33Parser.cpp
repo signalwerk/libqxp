@@ -42,11 +42,7 @@ bool QXP33Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStrea
 
   skipRecord(docStream);
 
-  m_charFormats.clear();
-  parseCollection(docStream, [=]()
-  {
-    m_charFormats.emplace_back(parseCharFormat(docStream));
-  });
+  parseCharFormats(docStream);
 
   return true;
 }
@@ -76,22 +72,6 @@ void QXP33Parser::parseColors(const std::shared_ptr<librevenge::RVNGInputStream>
   catch (...)
   {
     QXP_DEBUG_MSG(("Failed to parse colors, offset %ld\n", stream->tell()));
-  }
-
-  seek(stream, end);
-}
-
-void QXP33Parser::parseHJs(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
-{
-  const unsigned end = readRecordEndOffset(stream);
-
-  try
-  {
-
-  }
-  catch (...)
-  {
-    QXP_DEBUG_MSG(("Failed to parse H&Js, offset %ld\n", stream->tell()));
   }
 
   seek(stream, end);

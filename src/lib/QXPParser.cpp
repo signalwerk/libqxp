@@ -89,6 +89,20 @@ void QXPParser::parseFonts(const std::shared_ptr<librevenge::RVNGInputStream> &s
   seek(stream, end);
 }
 
+void QXPParser::parseHJs(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  skipRecord(stream);
+}
+
+void QXPParser::parseCharFormats(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  m_charFormats.clear();
+  parseCollection(stream, [=]()
+  {
+    m_charFormats.emplace_back(parseCharFormat(stream));
+  });
+}
+
 void QXPParser::parseCommonCharFormatProps(const std::shared_ptr<librevenge::RVNGInputStream> &stream, CharFormat &result)
 {
   const int fontIndex = readS16(stream, be);
