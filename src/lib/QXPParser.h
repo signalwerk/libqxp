@@ -15,7 +15,9 @@
 #include "QXPHeader.h"
 #include "QXPCollector.h"
 #include "QXPTypes.h"
+#include <functional>
 #include <map>
+#include <vector>
 
 namespace libqxp
 {
@@ -43,11 +45,16 @@ protected:
 
   std::map<unsigned, Color> m_colors;
   std::map<int, std::string> m_fonts;
+  std::vector<CharFormat> m_charFormats;
 
   virtual bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) = 0;
 
   void skipRecord(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   void parseFonts(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
+  void parseCommonCharFormatProps(const std::shared_ptr<librevenge::RVNGInputStream> &stream, CharFormat &result);
+  void parseCollection(const std::shared_ptr<librevenge::RVNGInputStream>stream,
+                       std::function<void(const std::shared_ptr<librevenge::RVNGInputStream> &, int)> itemHandler,
+                       int initialIndex = 0);
 
   uint32_t readRecordEndOffset(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   uint8_t readColorComp(const std::shared_ptr<librevenge::RVNGInputStream> &stream);

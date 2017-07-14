@@ -117,6 +117,12 @@ double readFloat16(librevenge::RVNGInputStream *input, bool bigEndian)
   return readU16(input, bigEndian) / double(0x10000);
 }
 
+double readFraction(librevenge::RVNGInputStream *input, bool bigEndian)
+{
+  int32_t num = readS32(input, bigEndian);
+  return (num >> 16) + ((num & 0xffff) / double(0x10000));
+}
+
 const unsigned char *readNBytes(librevenge::RVNGInputStream *const input, const unsigned long numBytes)
 {
   checkStream(input);
@@ -253,6 +259,11 @@ int32_t readS32(std::shared_ptr<librevenge::RVNGInputStream> input, bool bigEndi
 double readFloat16(std::shared_ptr<librevenge::RVNGInputStream> input, bool bigEndian)
 {
   return readFloat16(input.get(), bigEndian);
+}
+
+double readFraction(std::shared_ptr<librevenge::RVNGInputStream> input, bool bigEndian)
+{
+  return readFraction(input.get(), bigEndian);
 }
 
 const unsigned char *readNBytes(const std::shared_ptr<librevenge::RVNGInputStream> input, const unsigned long numBytes)

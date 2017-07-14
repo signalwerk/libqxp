@@ -20,6 +20,7 @@ namespace test
 {
 
 using libqxp::readFloat16;
+using libqxp::readFraction;
 
 using librevenge::RVNGStringStream;
 using std::make_shared;
@@ -33,10 +34,12 @@ public:
 private:
   CPPUNIT_TEST_SUITE(UtilsTest);
   CPPUNIT_TEST(testFloat16);
+  CPPUNIT_TEST(testReadFraction);
   CPPUNIT_TEST_SUITE_END();
 
 private:
   void testFloat16();
+  void testReadFraction();
 };
 
 void UtilsTest::setUp()
@@ -62,6 +65,29 @@ void UtilsTest::testFloat16()
   CPPUNIT_ASSERT_DOUBLES_EQUAL(1.0, readFloat16(stream), 0.001);
   CPPUNIT_ASSERT_DOUBLES_EQUAL(0.776, readFloat16(stream, false), 0.001);
   CPPUNIT_ASSERT_DOUBLES_EQUAL(0.776, readFloat16(stream, true), 0.001);
+}
+
+void UtilsTest::testReadFraction()
+{
+  uint8_t data[] =
+  {
+    0x0, 0x0, 0x0, 0x0,
+    0x0, 0x0, 0x24, 0x0,
+    0x0, 0x24, 0x0, 0x0,
+    0x0, 0x80, 0xb0, 0x01,
+    0x01, 0xb0, 0x80, 0x0,
+    0x0, 0x80, 0xf7, 0xff,
+    0xff, 0xf7, 0x80, 0x0,
+  };
+  auto stream = make_shared<RVNGStringStream>(data, sizeof(data));
+
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(0.0, readFraction(stream), 0.001);
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(36.0, readFraction(stream, false), 0.001);
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(36.0, readFraction(stream, true), 0.001);
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(432.5, readFraction(stream, false), 0.001);
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(432.5, readFraction(stream, true), 0.001);
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(-8.5, readFraction(stream, false), 0.001);
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(-8.5, readFraction(stream, true), 0.001);
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(UtilsTest);

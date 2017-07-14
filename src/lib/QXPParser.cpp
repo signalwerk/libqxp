@@ -21,6 +21,7 @@ QXPParser::QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, 
   , m_collector(painter)
   , m_colors()
   , m_fonts()
+  , m_charFormats()
   , m_header(header)
 {
   // default colors, in case parsing fails
@@ -83,6 +84,57 @@ void QXPParser::parseFonts(const std::shared_ptr<librevenge::RVNGInputStream> &s
   catch (...)
   {
     QXP_DEBUG_MSG(("Failed to parse fonts, offset %ld\n", stream->tell()));
+  }
+
+  seek(stream, end);
+}
+
+void QXPParser::parseCommonCharFormatProps(const std::shared_ptr<librevenge::RVNGInputStream> &stream, CharFormat &result)
+{
+  const int fontIndex = readS16(stream, be);
+  if (m_fonts.find(fontIndex) == m_fonts.end())
+  {
+    QXP_DEBUG_MSG(("Font %d not found\n", fontIndex));
+  }
+  else
+  {
+    result.fontName = m_fonts[fontIndex].c_str();
+  }
+
+  const unsigned flags = readU16(stream, be);
+  result.bold = flags & 0x1;
+  result.italic = flags & 0x2;
+  result.underline = flags & 0x4;
+  result.outline = flags & 0x8;
+  result.shadow = flags & 0x10;
+  result.superscript = flags & 0x20;
+  result.subscript = flags & 0x40;
+  result.superior = flags & 0x100;
+  result.strike = flags & 0x200;
+  result.allCaps = flags & 0x400;
+  result.smallCaps = flags & 0x800;
+  result.wordUnderline = flags & 0x1000;
+
+  result.fontSize = readFraction(stream, be);
+}
+
+void QXPParser::parseCollection(const std::shared_ptr<librevenge::RVNGInputStream> stream,
+                                std::function<void(const std::shared_ptr<librevenge::RVNGInputStream> &, int)> itemHandler,
+                                int initialIndex)
+{
+  const unsigned end = readRecordEndOffset(stream);
+
+  try
+  {
+    int i = initialIndex;
+    while (stream->tell() < end)
+    {
+      itemHandler(stream, i++);
+    }
+  }
+  catch (...)
+  {
+    QXP_DEBUG_MSG(("Failed to parse collection, offset %ld\n", stream->tell()));
   }
 
   seek(stream, end);

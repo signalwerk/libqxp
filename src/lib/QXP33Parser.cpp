@@ -13,6 +13,8 @@
 namespace libqxp
 {
 
+using librevenge::RVNGInputStream;
+
 QXP33Parser::QXP33Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter,
                          const QXPHeader &commonHeader)
   : QXPParser(input, painter, commonHeader, m_header)
@@ -32,6 +34,19 @@ bool QXP33Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStrea
   skipRecord(docStream);
 
   parseColors(docStream);
+
+  skipRecord(docStream);
+  skipRecord(docStream); // don't need stylesheets, everything is included in the current style
+
+  parseHJs(docStream);
+
+  skipRecord(docStream);
+
+  m_charFormats.clear();
+  parseCollection(docStream, [=](const std::shared_ptr<RVNGInputStream> &stream, int index)
+  {
+    m_charFormats.emplace_back(parseCharFormat(stream));
+  });
 
   return true;
 }
@@ -64,6 +79,50 @@ void QXP33Parser::parseColors(const std::shared_ptr<librevenge::RVNGInputStream>
   }
 
   seek(stream, end);
+}
+
+void QXP33Parser::parseHJs(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  const unsigned end = readRecordEndOffset(stream);
+
+  try
+  {
+
+  }
+  catch (...)
+  {
+    QXP_DEBUG_MSG(("Failed to parse H&Js, offset %ld\n", stream->tell()));
+  }
+
+  seek(stream, end);
+}
+
+CharFormat QXP33Parser::parseCharFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  skip(stream, 2);
+
+  CharFormat result;
+  parseCommonCharFormatProps(stream, result);
+
+  skip(stream, 4);
+
+  unsigned colorId = readU8(stream);
+  if (m_colors.find(colorId) == m_colors.end())
+  {
+    QXP_DEBUG_MSG(("Color %u not found\n", colorId));
+  }
+  else
+  {
+    result.color = m_colors[colorId];
+  }
+
+  skip(stream, 1);
+
+  result.shade = readFraction(stream, be);
+
+  skip(stream, 26);
+
+  return result;
 }
 
 std::string QXP33Parser::readName(const std::shared_ptr<librevenge::RVNGInputStream> &stream)

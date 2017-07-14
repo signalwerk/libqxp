@@ -58,6 +58,32 @@ struct Color
   librevenge::RVNGString toString() const;
 };
 
+struct CharFormat
+{
+  librevenge::RVNGString fontName;
+  double fontSize;
+  Color color;
+  double shade;
+  bool bold;
+  bool italic;
+  bool underline;
+  bool outline;
+  bool shadow;
+  bool superscript;
+  bool subscript;
+  bool superior;
+  bool strike;
+  bool allCaps;
+  bool smallCaps;
+  bool wordUnderline;
+
+  CharFormat()
+    : fontName("Arial"), fontSize(12.0), color(0, 0, 0), shade(1.0),
+      bold(false), italic(false), underline(false), outline(false), shadow(false), superscript(false), subscript(false), superior(false),
+      strike(false), allCaps(false), smallCaps(false), wordUnderline(false)
+  {  }
+};
+
 struct PageSettings
 {
   Rect offset;
