@@ -43,9 +43,9 @@ bool QXP33Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStrea
   skipRecord(docStream);
 
   m_charFormats.clear();
-  parseCollection(docStream, [=](const std::shared_ptr<RVNGInputStream> &stream, int index)
+  parseCollection(docStream, [=]()
   {
-    m_charFormats.emplace_back(parseCharFormat(stream));
+    m_charFormats.emplace_back(parseCharFormat(docStream));
   });
 
   return true;

@@ -52,9 +52,7 @@ protected:
   void skipRecord(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   void parseFonts(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   void parseCommonCharFormatProps(const std::shared_ptr<librevenge::RVNGInputStream> &stream, CharFormat &result);
-  void parseCollection(const std::shared_ptr<librevenge::RVNGInputStream>stream,
-                       std::function<void(const std::shared_ptr<librevenge::RVNGInputStream> &, int)> itemHandler,
-                       int initialIndex = 0);
+  void parseCollection(const std::shared_ptr<librevenge::RVNGInputStream>stream, std::function<void()> itemHandler);
 
   uint32_t readRecordEndOffset(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   uint8_t readColorComp(const std::shared_ptr<librevenge::RVNGInputStream> &stream);

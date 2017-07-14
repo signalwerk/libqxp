@@ -118,18 +118,15 @@ void QXPParser::parseCommonCharFormatProps(const std::shared_ptr<librevenge::RVN
   result.fontSize = readFraction(stream, be);
 }
 
-void QXPParser::parseCollection(const std::shared_ptr<librevenge::RVNGInputStream> stream,
-                                std::function<void(const std::shared_ptr<librevenge::RVNGInputStream> &, int)> itemHandler,
-                                int initialIndex)
+void QXPParser::parseCollection(const std::shared_ptr<librevenge::RVNGInputStream> stream, std::function<void()> itemHandler)
 {
   const unsigned end = readRecordEndOffset(stream);
 
   try
   {
-    int i = initialIndex;
     while (stream->tell() < end)
     {
-      itemHandler(stream, i++);
+      itemHandler();
     }
   }
   catch (...)
