@@ -132,6 +132,51 @@ void QXPParser::parseCommonCharFormatProps(const std::shared_ptr<librevenge::RVN
   result.fontSize = readFraction(stream, be);
 }
 
+TabStop QXPParser::parseTabStop(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  TabStop tabStop;
+
+  const uint8_t type = readU8(stream);
+  switch (type)
+  {
+  default:
+    QXP_DEBUG_MSG(("Unknown tab stop type %u\n", type));
+  // fall-through intended: pick a default
+  case 0:
+    tabStop.type = TabStopType::LEFT;
+    break;
+  case 1:
+    tabStop.type = TabStopType::CENTER;
+    break;
+  case 2:
+    tabStop.type = TabStopType::RIGHT;
+    break;
+  case 3:
+    tabStop.type = TabStopType::ALIGN;
+    break;
+  }
+
+  const uint8_t alignChar = readU8(stream);
+  switch (alignChar)
+  {
+  case 1:
+    tabStop.alignChar = '.';
+    break;
+  case 2:
+    tabStop.alignChar = ',';
+    break;
+  default:
+    tabStop.alignChar = char(alignChar);
+    break;
+  }
+
+  tabStop.fillChar = char(readU16(stream, be));
+
+  tabStop.position = readFraction(stream, be);
+
+  return tabStop;
+}
+
 void QXPParser::parseCollection(const std::shared_ptr<librevenge::RVNGInputStream> stream, std::function<void()> itemHandler)
 {
   const unsigned end = readRecordEndOffset(stream);

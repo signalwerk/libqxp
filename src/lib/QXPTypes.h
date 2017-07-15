@@ -84,6 +84,27 @@ struct CharFormat
   {  }
 };
 
+
+enum class TabStopType
+{
+  LEFT,
+  CENTER,
+  RIGHT,
+  ALIGN
+};
+
+struct TabStop
+{
+  TabStopType type;
+  double position;
+  char fillChar;
+  char alignChar;
+
+  TabStop()
+    : type(TabStopType::LEFT), position(0.0), fillChar(' '), alignChar(',')
+  {  }
+};
+
 struct PageSettings
 {
   Rect offset;

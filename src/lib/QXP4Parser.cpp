@@ -21,6 +21,7 @@ QXP4Parser::QXP4Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input
                        const QXPHeader &commonHeader)
   : QXPParser(input, painter, commonHeader, m_header)
   , m_header()
+  , m_paragraphTabStops()
 {
 }
 
@@ -50,6 +51,8 @@ bool QXP4Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStream
   skipTemplates(docStream);
 
   parseCharFormats(docStream);
+
+  parseTabStops(docStream);
 
   return true;
 }
@@ -187,6 +190,44 @@ void QXP4Parser::skipTemplates(const std::shared_ptr<librevenge::RVNGInputStream
   for (unsigned i = 0; i < count; ++i)
   {
     skipRecord(stream);
+  }
+}
+
+void QXP4Parser::parseTabStops(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  const unsigned specLength = readU32(stream, be);
+  if (specLength > getLength(stream) - stream->tell())
+  {
+    QXP_DEBUG_MSG(("Invalid tab stop spec length %u\n", specLength));
+    throw ParseError();
+  }
+
+  std::vector<unsigned> tabStopsCounts;
+  tabStopsCounts.resize(specLength / 8);
+  for (auto countIt = tabStopsCounts.rbegin(); countIt != tabStopsCounts.rend(); ++countIt)
+  {
+    skip(stream, 2);
+    const unsigned count = readU16(stream, be);
+    if (count > (getLength(stream) - stream->tell()) / 8)
+    {
+      QXP_DEBUG_MSG(("Invalid tab stop count %u\n", count));
+      throw ParseError();
+    }
+    *countIt = count;
+    skip(stream, 4);
+  }
+
+  m_paragraphTabStops.resize(tabStopsCounts.size());
+  unsigned i = 0;
+  for (auto it = m_paragraphTabStops.rbegin(); it != m_paragraphTabStops.rend(); ++it)
+  {
+    skip(stream, 4);
+    const unsigned tabStopsCount = tabStopsCounts[i++];
+    it->resize(tabStopsCount);
+    for (auto &tabStop : *it)
+    {
+      tabStop = parseTabStop(stream);
+    }
   }
 }
 

@@ -37,6 +37,8 @@ private:
 
   QXP4Header m_header;
 
+  std::vector<std::vector<TabStop>> m_paragraphTabStops;
+
   bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) override;
 
   void parseColors(const std::shared_ptr<librevenge::RVNGInputStream> &docStream);
@@ -45,6 +47,7 @@ private:
   void skipParagraphStylesheets(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   CharFormat parseCharFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) override;
   void skipTemplates(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
+  void parseTabStops(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
 };
 
 }

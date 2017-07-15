@@ -54,6 +54,7 @@ protected:
   void parseHJs(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   void parseCharFormats(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   void parseCommonCharFormatProps(const std::shared_ptr<librevenge::RVNGInputStream> &stream, CharFormat &result);
+  TabStop parseTabStop(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
 
   virtual CharFormat parseCharFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) = 0;
 
