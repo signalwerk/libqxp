@@ -191,7 +191,7 @@ void QXP4Parser::skipTemplates(const std::shared_ptr<librevenge::RVNGInputStream
 void QXP4Parser::parseTabStops(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
 {
   const unsigned specLength = readU32(stream, be);
-  if (specLength > getLength(stream) - stream->tell())
+  if (specLength > getLength(stream))
   {
     QXP_DEBUG_MSG(("Invalid tab stop spec length %u\n", specLength));
     throw ParseError();
@@ -203,7 +203,7 @@ void QXP4Parser::parseTabStops(const std::shared_ptr<librevenge::RVNGInputStream
   {
     skip(stream, 2);
     const unsigned count = readU16(stream, be);
-    if (count > (getLength(stream) - stream->tell()) / 8)
+    if (count > getLength(stream) / 8)
     {
       QXP_DEBUG_MSG(("Invalid tab stop count %u\n", count));
       throw ParseError();
