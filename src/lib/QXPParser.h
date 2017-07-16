@@ -46,6 +46,7 @@ protected:
   std::map<unsigned, Color> m_colors;
   std::map<int, std::string> m_fonts;
   std::vector<CharFormat> m_charFormats;
+  std::vector<ParagraphFormat> m_paragraphFormats;
 
   virtual bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) = 0;
 
@@ -55,8 +56,10 @@ protected:
   void parseCharFormats(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   void parseCommonCharFormatProps(const std::shared_ptr<librevenge::RVNGInputStream> &stream, CharFormat &result);
   TabStop parseTabStop(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
+  void parseParagraphFormats(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
 
   virtual CharFormat parseCharFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) = 0;
+  virtual ParagraphFormat parseParagraphFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) = 0;
 
   void parseCollection(const std::shared_ptr<librevenge::RVNGInputStream>stream, std::function<void()> itemHandler);
 

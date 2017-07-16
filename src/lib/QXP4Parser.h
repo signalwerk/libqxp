@@ -48,6 +48,7 @@ private:
   CharFormat parseCharFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) override;
   void skipTemplates(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   void parseTabStops(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
+  ParagraphFormat parseParagraphFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) override;
 };
 
 }

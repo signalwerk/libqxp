@@ -54,6 +54,8 @@ bool QXP4Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStream
 
   parseTabStops(docStream);
 
+  parseParagraphFormats(docStream);
+
   return true;
 }
 
@@ -229,6 +231,63 @@ void QXP4Parser::parseTabStops(const std::shared_ptr<librevenge::RVNGInputStream
       tabStop = parseTabStop(stream);
     }
   }
+}
+
+ParagraphFormat QXP4Parser::parseParagraphFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  ParagraphFormat result;
+
+  skip(stream, 11);
+  const uint8_t align = readU8(stream);
+  switch (align)
+  {
+  default:
+    QXP_DEBUG_MSG(("Unknown hor. align %u\n", align));
+  // fall-through intended: pick a default
+  case 0:
+    result.alignment = HorizontalAlignment::LEFT;
+    break;
+  case 1:
+    result.alignment = HorizontalAlignment::CENTER;
+    break;
+  case 2:
+    result.alignment = HorizontalAlignment::RIGHT;
+    break;
+  case 3:
+    result.alignment = HorizontalAlignment::JUSTIFIED;
+    break;
+  case 4:
+    result.alignment = HorizontalAlignment::FORCED;
+    break;
+  }
+
+  skip(stream, 8);
+
+  result.margin.left = readFraction(stream, be);
+  result.firstLineIndent = readFraction(stream, be);
+  result.margin.right = readFraction(stream, be);
+  result.leading = readFraction(stream, be);
+  result.margin.top = readFraction(stream, be);
+  result.margin.bottom = readFraction(stream, be);
+
+  skip(stream, 52);
+
+  const unsigned tabStopsIndex = readU16(stream, be);
+  if (tabStopsIndex != 0xffff)
+  {
+    if (tabStopsIndex >= m_paragraphTabStops.size())
+    {
+      QXP_DEBUG_MSG(("Tab stop %u not found\n", tabStopsIndex));
+    }
+    else
+    {
+      result.tabStops = m_paragraphTabStops[tabStopsIndex];
+    }
+  }
+
+  skip(stream, 2);
+
+  return result;
 }
 
 }

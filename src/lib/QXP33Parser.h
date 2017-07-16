@@ -32,6 +32,7 @@ private:
 
   void parseColors(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   CharFormat parseCharFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) override;
+  ParagraphFormat parseParagraphFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) override;
 
   std::string readName(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
 };

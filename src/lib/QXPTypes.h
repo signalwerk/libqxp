@@ -11,6 +11,8 @@
 #define QXPTYPES_H_INCLUDED
 
 #include "libqxp_utils.h"
+#include <boost/optional.hpp>
+#include <vector>
 
 namespace libqxp
 {
@@ -84,6 +86,22 @@ struct CharFormat
   {  }
 };
 
+enum class HorizontalAlignment
+{
+  LEFT,
+  CENTER,
+  RIGHT,
+  JUSTIFIED,
+  FORCED
+};
+
+enum class VerticalAlignment
+{
+  TOP,
+  CENTER,
+  BOTTOM,
+  JUSTIFIED
+};
 
 enum class TabStopType
 {
@@ -102,6 +120,36 @@ struct TabStop
 
   TabStop()
     : type(TabStopType::LEFT), position(0.0), fillChar(' '), alignChar(',')
+  {  }
+};
+
+struct ParagraphRule
+{
+  double width;
+  Color color;
+  double shade;
+  double leftMargin;
+  double rightMargin;
+  double offset;
+
+  ParagraphRule()
+    : width(1.0), color(0, 0, 0), shade(1.0), leftMargin(0), rightMargin(0), offset(0)
+  {  }
+};
+
+struct ParagraphFormat
+{
+  HorizontalAlignment alignment;
+  Rect margin;
+  double firstLineIndent;
+  double leading;
+  boost::optional<ParagraphRule> ruleAbove;
+  boost::optional<ParagraphRule> ruleBelow;
+  std::vector<TabStop> tabStops;
+
+  ParagraphFormat()
+    : alignment(HorizontalAlignment::LEFT), margin(), firstLineIndent(0), leading(0),
+      ruleAbove(), ruleBelow(), tabStops()
   {  }
 };
 

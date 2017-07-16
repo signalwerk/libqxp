@@ -105,6 +105,11 @@ CharFormat QXP33Parser::parseCharFormat(const std::shared_ptr<librevenge::RVNGIn
   return result;
 }
 
+ParagraphFormat QXP33Parser::parseParagraphFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  throw GenericException();
+}
+
 std::string QXP33Parser::readName(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
 {
   unsigned start = stream->tell();

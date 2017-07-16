@@ -22,6 +22,7 @@ QXPParser::QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, 
   , m_colors()
   , m_fonts()
   , m_charFormats()
+  , m_paragraphFormats()
   , m_header(header)
 {
   // default colors, in case parsing fails
@@ -175,6 +176,15 @@ TabStop QXPParser::parseTabStop(const std::shared_ptr<librevenge::RVNGInputStrea
   tabStop.position = readFraction(stream, be);
 
   return tabStop;
+}
+
+void QXPParser::parseParagraphFormats(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  m_paragraphFormats.clear();
+  parseCollection(stream, [=]()
+  {
+    m_paragraphFormats.emplace_back(parseParagraphFormat(stream));
+  });
 }
 
 void QXPParser::parseCollection(const std::shared_ptr<librevenge::RVNGInputStream> stream, std::function<void()> itemHandler)
