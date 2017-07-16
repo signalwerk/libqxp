@@ -52,6 +52,7 @@ protected:
   std::string getFont(unsigned id, std::string defaultFont = "Arial") const;
 
   virtual bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) = 0;
+  virtual bool parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &pagesStream) = 0;
 
   void skipRecord(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   void parseFonts(const std::shared_ptr<librevenge::RVNGInputStream> &stream);

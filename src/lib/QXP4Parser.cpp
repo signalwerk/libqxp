@@ -56,6 +56,13 @@ bool QXP4Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStream
 
   parseParagraphFormats(docStream);
 
+  skipRecord(docStream);
+
+  return true;
+}
+
+bool QXP4Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &pagesStream)
+{
   return true;
 }
 

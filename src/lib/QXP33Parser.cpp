@@ -47,6 +47,11 @@ bool QXP33Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStrea
   return true;
 }
 
+bool QXP33Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &pagesStream)
+{
+  return true;
+}
+
 void QXP33Parser::parseColors(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
 {
   const unsigned end = readRecordEndOffset(stream);

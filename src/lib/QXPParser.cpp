@@ -9,9 +9,13 @@
 
 #include "QXPParser.h"
 #include <cmath>
+#include <memory>
 
 namespace libqxp
 {
+
+using librevenge::RVNGStringStream;
+using std::make_shared;
 
 QXPParser::QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter,
                      const QXPHeader &commonHeader, QXPHeader &header)
@@ -46,6 +50,11 @@ bool QXPParser::parse()
 
   auto docStream = m_blockParser.getChain(3);
   if (!parseDocument(docStream))
+    return false;
+
+  const unsigned long pagesStreamLength = getLength(docStream) ;
+  auto pagesStream = make_shared<RVNGStringStream>(readNBytes(docStream, pagesStreamLength), pagesStreamLength);
+  if (!parsePages(pagesStream))
     return false;
 
   m_collector.endDocument();
