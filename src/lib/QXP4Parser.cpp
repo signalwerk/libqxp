@@ -238,28 +238,7 @@ ParagraphFormat QXP4Parser::parseParagraphFormat(const std::shared_ptr<libreveng
   ParagraphFormat result;
 
   skip(stream, 11);
-  const uint8_t align = readU8(stream);
-  switch (align)
-  {
-  default:
-    QXP_DEBUG_MSG(("Unknown hor. align %u\n", align));
-  // fall-through intended: pick a default
-  case 0:
-    result.alignment = HorizontalAlignment::LEFT;
-    break;
-  case 1:
-    result.alignment = HorizontalAlignment::CENTER;
-    break;
-  case 2:
-    result.alignment = HorizontalAlignment::RIGHT;
-    break;
-  case 3:
-    result.alignment = HorizontalAlignment::JUSTIFIED;
-    break;
-  case 4:
-    result.alignment = HorizontalAlignment::FORCED;
-    break;
-  }
+  result.alignment = parsekHorAlign(stream);
 
   skip(stream, 8);
 

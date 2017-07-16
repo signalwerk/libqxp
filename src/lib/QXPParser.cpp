@@ -209,6 +209,27 @@ void QXPParser::parseParagraphFormats(const std::shared_ptr<librevenge::RVNGInpu
   });
 }
 
+HorizontalAlignment QXPParser::parsekHorAlign(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  const uint8_t align = readU8(stream);
+  switch (align)
+  {
+  default:
+    QXP_DEBUG_MSG(("Unknown hor. align %u\n", align));
+  // fall-through intended: pick a default
+  case 0:
+    return HorizontalAlignment::LEFT;
+  case 1:
+    return HorizontalAlignment::CENTER;
+  case 2:
+    return HorizontalAlignment::RIGHT;
+  case 3:
+    return HorizontalAlignment::JUSTIFIED;
+  case 4:
+    return HorizontalAlignment::FORCED;
+  }
+}
+
 void QXPParser::parseCollection(const std::shared_ptr<librevenge::RVNGInputStream> stream, std::function<void()> itemHandler)
 {
   const unsigned end = readRecordEndOffset(stream);

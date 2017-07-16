@@ -44,6 +44,10 @@ bool QXP33Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStrea
 
   parseCharFormats(docStream);
 
+  parseParagraphFormats(docStream);
+
+  skipRecord(docStream);
+
   return true;
 }
 
@@ -105,7 +109,23 @@ CharFormat QXP33Parser::parseCharFormat(const std::shared_ptr<librevenge::RVNGIn
 
 ParagraphFormat QXP33Parser::parseParagraphFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
 {
-  throw GenericException();
+  ParagraphFormat result;
+
+  skip(stream, 5);
+  result.alignment = parsekHorAlign(stream);
+
+  skip(stream, 8);
+
+  result.margin.left = readFraction(stream, be);
+  result.firstLineIndent = readFraction(stream, be);
+  result.margin.right = readFraction(stream, be);
+  result.leading = readFraction(stream, be);
+  result.margin.top = readFraction(stream, be);
+  result.margin.bottom = readFraction(stream, be);
+
+  skip(stream, 218);
+
+  return result;
 }
 
 std::string QXP33Parser::readName(const std::shared_ptr<librevenge::RVNGInputStream> &stream)

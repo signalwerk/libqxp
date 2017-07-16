@@ -61,6 +61,7 @@ protected:
   void parseCommonCharFormatProps(const std::shared_ptr<librevenge::RVNGInputStream> &stream, CharFormat &result);
   TabStop parseTabStop(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   void parseParagraphFormats(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
+  HorizontalAlignment parsekHorAlign(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
 
   virtual CharFormat parseCharFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) = 0;
   virtual ParagraphFormat parseParagraphFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) = 0;
