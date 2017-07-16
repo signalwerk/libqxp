@@ -53,6 +53,26 @@ bool QXPParser::parse()
   return true;
 }
 
+Color QXPParser::getColor(unsigned id, Color defaultColor) const
+{
+  if (m_colors.find(id) == m_colors.end())
+  {
+    QXP_DEBUG_MSG(("Color %u not found\n", id));
+    return defaultColor;
+  }
+  return m_colors.at(id);
+}
+
+std::string QXPParser::getFont(unsigned id, std::string defaultFont) const
+{
+  if (m_fonts.find(id) == m_fonts.end())
+  {
+    QXP_DEBUG_MSG(("Font %u not found\n", id));
+    return defaultFont;
+  }
+  return m_fonts.at(id);
+}
+
 void QXPParser::skipRecord(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
 {
   unsigned length = readU32(stream, be);
@@ -107,14 +127,7 @@ void QXPParser::parseCharFormats(const std::shared_ptr<librevenge::RVNGInputStre
 void QXPParser::parseCommonCharFormatProps(const std::shared_ptr<librevenge::RVNGInputStream> &stream, CharFormat &result)
 {
   const int fontIndex = readS16(stream, be);
-  if (m_fonts.find(fontIndex) == m_fonts.end())
-  {
-    QXP_DEBUG_MSG(("Font %d not found\n", fontIndex));
-  }
-  else
-  {
-    result.fontName = m_fonts[fontIndex].c_str();
-  }
+  result.fontName = getFont(fontIndex).c_str();
 
   const unsigned flags = readU16(stream, be);
   result.bold = flags & 0x1;

@@ -87,14 +87,7 @@ CharFormat QXP33Parser::parseCharFormat(const std::shared_ptr<librevenge::RVNGIn
   skip(stream, 4);
 
   unsigned colorId = readU8(stream);
-  if (m_colors.find(colorId) == m_colors.end())
-  {
-    QXP_DEBUG_MSG(("Color %u not found\n", colorId));
-  }
-  else
-  {
-    result.color = m_colors[colorId];
-  }
+  result.color = getColor(colorId);
 
   skip(stream, 1);
 

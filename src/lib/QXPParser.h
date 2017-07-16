@@ -48,6 +48,9 @@ protected:
   std::vector<CharFormat> m_charFormats;
   std::vector<ParagraphFormat> m_paragraphFormats;
 
+  Color getColor(unsigned id, Color defaultColor = Color(0, 0, 0)) const;
+  std::string getFont(unsigned id, std::string defaultFont = "Arial") const;
+
   virtual bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) = 0;
 
   void skipRecord(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
