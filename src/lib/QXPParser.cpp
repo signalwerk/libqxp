@@ -71,22 +71,24 @@ bool QXPParser::parse()
 
 Color QXPParser::getColor(unsigned id, Color defaultColor) const
 {
-  if (m_colors.find(id) == m_colors.end())
+  auto it = m_colors.find(id);
+  if (it == m_colors.end())
   {
     QXP_DEBUG_MSG(("Color %u not found\n", id));
     return defaultColor;
   }
-  return m_colors.at(id);
+  return (*it).second;
 }
 
 std::string QXPParser::getFont(unsigned id, std::string defaultFont) const
 {
-  if (m_fonts.find(id) == m_fonts.end())
+  auto it = m_fonts.find(id);
+  if (it == m_fonts.end())
   {
     QXP_DEBUG_MSG(("Font %u not found\n", id));
     return defaultFont;
   }
-  return m_fonts.at(id);
+  return (*it).second;
 }
 
 void QXPParser::skipRecord(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
