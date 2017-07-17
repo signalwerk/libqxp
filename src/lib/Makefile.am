@@ -32,6 +32,7 @@ libqxp_internal_la_SOURCES = \
 	QXPBlockParser.h \
 	QXPCollector.cpp \
 	QXPCollector.h \
+	QXPCollectorInterface.h \
 	QXPHeader.cpp \
 	QXPHeader.h \
 	QXP33Header.cpp \

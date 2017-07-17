@@ -29,7 +29,7 @@ private:
   QXP33Header m_header;
 
   bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) override;
-  bool parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &pagesStream) override;
+  bool parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &pagesStream, QXPCollectorInterface &collector) override;
 
   void parseColors(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   CharFormat parseCharFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) override;

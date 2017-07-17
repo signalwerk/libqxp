@@ -23,6 +23,7 @@ QXPParser::QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, 
   , be(commonHeader.isBigEndian())
   , m_blockParser(input, commonHeader)
   , m_collector(painter)
+  , m_dummyCollector()
   , m_colors()
   , m_fonts()
   , m_charFormats()
@@ -54,7 +55,13 @@ bool QXPParser::parse()
 
   const unsigned long pagesStreamLength = getLength(docStream) ;
   auto pagesStream = make_shared<RVNGStringStream>(readNBytes(docStream, pagesStreamLength), pagesStreamLength);
-  if (!parsePages(pagesStream))
+
+  if (!parsePages(pagesStream, m_dummyCollector))
+    return false;
+
+  pagesStream->seek(0, librevenge::RVNG_SEEK_SET);
+
+  if (!parsePages(pagesStream, m_collector))
     return false;
 
   m_collector.endDocument();

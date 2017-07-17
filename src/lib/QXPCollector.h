@@ -11,11 +11,12 @@
 #define QXPCOLLECTOR_H_INCLUDED
 
 #include "libqxp_utils.h"
+#include "QXPCollectorInterface.h"
 
 namespace libqxp
 {
 
-class QXPCollector
+class QXPCollector : public QXPCollectorInterface
 {
   // disable copying
   QXPCollector(const QXPCollector &other) = delete;
@@ -25,11 +26,11 @@ public:
   QXPCollector(librevenge::RVNGDrawingInterface *painter);
   ~QXPCollector();
 
-  void startDocument();
-  void endDocument();
+  void startDocument() override;
+  void endDocument() override;
 
-  void startPage();
-  void endPage();
+  void startPage() override;
+  void endPage() override;
 
 private:
   librevenge::RVNGDrawingInterface *m_painter;
