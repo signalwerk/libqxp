@@ -56,16 +56,15 @@ bool QXPParser::parse()
   if (!parseDocument(docStream))
     return false;
 
-  const unsigned long pagesStreamLength = getLength(docStream) ;
-  auto pagesStream = make_shared<RVNGStringStream>(readNBytes(docStream, pagesStreamLength), pagesStreamLength);
+  const unsigned long pagesStartPos = docStream->tell();
 
   QXPTextCollector textCollector;
-  if (!parsePages(pagesStream, textCollector))
+  if (!parsePages(docStream, textCollector))
     return false;
 
-  pagesStream->seek(0, librevenge::RVNG_SEEK_SET);
+  docStream->seek(pagesStartPos, librevenge::RVNG_SEEK_SET); // TODO: skip master pages
 
-  if (!parsePages(pagesStream, collector))
+  if (!parsePages(docStream, collector))
     return false;
 
   collector.endDocument();
