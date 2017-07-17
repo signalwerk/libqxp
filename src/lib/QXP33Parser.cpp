@@ -51,7 +51,7 @@ bool QXP33Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStrea
   return true;
 }
 
-bool QXP33Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &pagesStream, QXPCollectorInterface &collector)
+bool QXP33Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &pagesStream, QXPCollector &collector)
 {
   return true;
 }

@@ -30,9 +30,11 @@ libqxp_@QXP_MAJOR_VERSION@_@QXP_MINOR_VERSION@_la_SOURCES = \
 libqxp_internal_la_SOURCES = \
 	QXPBlockParser.cpp \
 	QXPBlockParser.h \
-	QXPCollector.cpp \
 	QXPCollector.h \
-	QXPCollectorInterface.h \
+	QXPContentCollector.cpp \
+	QXPContentCollector.h \
+	QXPTextCollector.cpp \
+	QXPTextCollector.h \
 	QXPHeader.cpp \
 	QXPHeader.h \
 	QXP33Header.cpp \

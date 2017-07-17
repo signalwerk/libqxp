@@ -8,6 +8,8 @@
  */
 
 #include "QXPParser.h"
+#include "QXPContentCollector.h"
+#include "QXPTextCollector.h"
 #include <cmath>
 #include <memory>
 
@@ -20,10 +22,9 @@ using std::make_shared;
 QXPParser::QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter,
                      const QXPHeader &commonHeader, QXPHeader &header)
   : m_input(input)
+  , m_painter(painter)
   , be(commonHeader.isBigEndian())
   , m_blockParser(input, commonHeader)
-  , m_collector(painter)
-  , m_dummyCollector()
   , m_colors()
   , m_fonts()
   , m_charFormats()
@@ -47,7 +48,9 @@ bool QXPParser::parse()
   if (!m_header.load(m_input) || !m_header.isSupported())
     return false;
 
-  m_collector.startDocument();
+  QXPContentCollector collector(m_painter);
+
+  collector.startDocument();
 
   auto docStream = m_blockParser.getChain(3);
   if (!parseDocument(docStream))
@@ -56,15 +59,16 @@ bool QXPParser::parse()
   const unsigned long pagesStreamLength = getLength(docStream) ;
   auto pagesStream = make_shared<RVNGStringStream>(readNBytes(docStream, pagesStreamLength), pagesStreamLength);
 
-  if (!parsePages(pagesStream, m_dummyCollector))
+  QXPTextCollector textCollector;
+  if (!parsePages(pagesStream, textCollector))
     return false;
 
   pagesStream->seek(0, librevenge::RVNG_SEEK_SET);
 
-  if (!parsePages(pagesStream, m_collector))
+  if (!parsePages(pagesStream, collector))
     return false;
 
-  m_collector.endDocument();
+  collector.endDocument();
 
   return true;
 }

@@ -13,7 +13,6 @@
 #include "libqxp_utils.h"
 #include "QXPBlockParser.h"
 #include "QXPHeader.h"
-#include "QXPCollectorInterface.h"
 #include "QXPCollector.h"
 #include "QXPTypes.h"
 #include <functional>
@@ -38,12 +37,10 @@ public:
 
 protected:
   const std::shared_ptr<librevenge::RVNGInputStream> m_input;
+  librevenge::RVNGDrawingInterface *m_painter;
   const bool be; // big endian
 
   QXPBlockParser m_blockParser;
-
-  QXPCollector m_collector;
-  QXPCollectorInterface m_dummyCollector;
 
   std::map<unsigned, Color> m_colors;
   std::map<int, std::string> m_fonts;
@@ -54,7 +51,7 @@ protected:
   std::string getFont(unsigned id, std::string defaultFont = "Arial") const;
 
   virtual bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) = 0;
-  virtual bool parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &pagesStream, QXPCollectorInterface &collector) = 0;
+  virtual bool parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &pagesStream, QXPCollector &collector) = 0;
 
   void skipRecord(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   void parseFonts(const std::shared_ptr<librevenge::RVNGInputStream> &stream);

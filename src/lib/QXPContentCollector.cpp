@@ -7,19 +7,19 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include "QXPCollector.h"
+#include "QXPContentCollector.h"
 
 namespace libqxp
 {
 
-QXPCollector::QXPCollector(librevenge::RVNGDrawingInterface *painter)
+QXPContentCollector::QXPContentCollector(librevenge::RVNGDrawingInterface *painter)
   : m_painter(painter)
   , m_isDocumentStarted(false)
   , m_isPageStarted(false)
 {
 }
 
-QXPCollector::~QXPCollector()
+QXPContentCollector::~QXPContentCollector()
 {
   if (m_isDocumentStarted)
   {
@@ -27,7 +27,7 @@ QXPCollector::~QXPCollector()
   }
 }
 
-void QXPCollector::startDocument()
+void QXPContentCollector::startDocument()
 {
   if (m_isDocumentStarted)
     return;
@@ -39,7 +39,7 @@ void QXPCollector::startDocument()
   m_isDocumentStarted = true;
 }
 
-void QXPCollector::endDocument()
+void QXPContentCollector::endDocument()
 {
   if (!m_isDocumentStarted)
     return;
@@ -52,7 +52,7 @@ void QXPCollector::endDocument()
   m_isDocumentStarted = false;
 }
 
-void QXPCollector::startPage()
+void QXPContentCollector::startPage()
 {
   if (m_isPageStarted)
     return;
@@ -64,7 +64,7 @@ void QXPCollector::startPage()
   m_isPageStarted = true;
 }
 
-void QXPCollector::endPage()
+void QXPContentCollector::endPage()
 {
   if (!m_isPageStarted)
     return;
