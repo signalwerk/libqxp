@@ -33,6 +33,10 @@ libqxp_internal_la_SOURCES = \
 	QXPCollector.h \
 	QXPContentCollector.cpp \
 	QXPContentCollector.h \
+	QXPDeobfuscator.cpp \
+	QXPDeobfuscator.h \
+	QXP33Deobfuscator.cpp \
+	QXP33Deobfuscator.h \
 	QXPTextCollector.cpp \
 	QXPTextCollector.h \
 	QXPHeader.cpp \
