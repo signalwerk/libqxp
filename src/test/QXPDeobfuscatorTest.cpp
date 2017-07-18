@@ -45,23 +45,41 @@ void QXPDeobfuscatorTest::tearDown()
 
 void QXPDeobfuscatorTest::test33Deobfuscation()
 {
-  QXP33Deobfuscator deobfuscator(0x1dee, 0x1eb5);
+  QXP33Deobfuscator deobfuscator(0x337c, 0x3797);
 
-  uint8_t type = 0xed;
-  uint16_t content = 0x1dee;
+  uint8_t type = 0x7f;
+  uint16_t content = 0x337c;
   CPPUNIT_ASSERT_EQUAL(uint8_t(3), deobfuscator.deobfuscate(type));
   CPPUNIT_ASSERT_EQUAL(uint16_t(0), deobfuscator.deobfuscate(content));
   deobfuscator.next();
 
-  type = 0xa0;
-  content = 0x3cb3;
+  type = 0x10;
+  content = 0x6b03;
   CPPUNIT_ASSERT_EQUAL(uint8_t(3), deobfuscator.deobfuscate(type));
   CPPUNIT_ASSERT_EQUAL(uint16_t(0x10), deobfuscator.deobfuscate(content));
   deobfuscator.next();
 
-  type = 0x55;
-  content = 0x5b58;
+  type = 0xa7;
+  content = 0xa2aa;
   CPPUNIT_ASSERT_EQUAL(uint8_t(13), deobfuscator.deobfuscate(type));
+  CPPUNIT_ASSERT_EQUAL(uint16_t(0), deobfuscator.deobfuscate(content));
+  deobfuscator.next();
+
+  type = 0x42;
+  content = 0xda41;
+  CPPUNIT_ASSERT_EQUAL(uint8_t(3), deobfuscator.deobfuscate(type));
+  CPPUNIT_ASSERT_EQUAL(uint16_t(0), deobfuscator.deobfuscate(content));
+  deobfuscator.next();
+
+  type = 0xdb;
+  content = 0x11ca;
+  CPPUNIT_ASSERT_EQUAL(uint8_t(3), deobfuscator.deobfuscate(type));
+  CPPUNIT_ASSERT_EQUAL(uint16_t(0x12), deobfuscator.deobfuscate(content));
+  deobfuscator.next();
+
+  type = 0x6c;
+  content = 0x496f;
+  CPPUNIT_ASSERT_EQUAL(uint8_t(3), deobfuscator.deobfuscate(type));
   CPPUNIT_ASSERT_EQUAL(uint16_t(0), deobfuscator.deobfuscate(content));
   deobfuscator.next();
 }
