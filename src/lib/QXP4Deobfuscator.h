@@ -23,7 +23,7 @@ public:
 
   void next(uint16_t block);
   void nextRev();
-  void nextShift(uint16_t shift);
+  void nextShift(uint16_t count);
 
 private:
   uint16_t m_increment;

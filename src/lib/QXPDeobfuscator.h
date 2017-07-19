@@ -18,8 +18,8 @@ namespace libqxp
 class QXPDeobfuscator
 {
 public:
-  uint16_t deobfuscate(uint16_t value) const;
-  uint8_t deobfuscate(uint8_t value) const;
+  uint16_t operator()(uint16_t value) const;
+  uint8_t operator()(uint8_t value) const;
 
 protected:
   uint16_t m_seed;

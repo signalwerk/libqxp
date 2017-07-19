@@ -29,12 +29,12 @@ uint16_t fill(uint16_t value, uint16_t shift, uint16_t mask)
   return (value | m) & mask;
 }
 
-uint16_t _shift(uint16_t value, uint16_t shift)
+uint16_t shift(uint16_t value, uint16_t count)
 {
-  const uint16_t mask = 0xffff >> (16 - shift);
+  const uint16_t mask = 0xffff >> (16 - count);
   const uint16_t highinit = value & mask;
-  const uint16_t high = fill(highinit | (value >> 15), shift, mask) << (16 - shift);
-  return high | (value >> shift);
+  const uint16_t high = fill(highinit | (value >> 15), count, mask) << (16 - count);
+  return high | (value >> count);
 }
 
 }
@@ -48,7 +48,7 @@ QXP4Deobfuscator::QXP4Deobfuscator(uint16_t seed, uint16_t increment)
 void QXP4Deobfuscator::next(uint16_t block)
 {
   m_seed += m_increment;
-  m_increment = _shift(m_increment, block & 0xf);
+  m_increment = shift(m_increment, block & 0xf);
 }
 
 void QXP4Deobfuscator::nextRev()
@@ -56,9 +56,9 @@ void QXP4Deobfuscator::nextRev()
   m_seed = m_seed + 0xffff - m_increment;
 }
 
-void QXP4Deobfuscator::nextShift(uint16_t shift)
+void QXP4Deobfuscator::nextShift(uint16_t count)
 {
-  m_seed = _shift(m_seed, shift);
+  m_seed = shift(m_seed, count);
 }
 
 }

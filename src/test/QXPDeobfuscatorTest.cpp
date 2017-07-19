@@ -51,38 +51,38 @@ void QXPDeobfuscatorTest::test33Deobfuscation()
 
   uint8_t type = 0x7f;
   uint16_t content = 0x337c;
-  CPPUNIT_ASSERT_EQUAL(uint8_t(3), deobfuscator.deobfuscate(type));
-  CPPUNIT_ASSERT_EQUAL(uint16_t(0), deobfuscator.deobfuscate(content));
+  CPPUNIT_ASSERT_EQUAL(uint8_t(3), deobfuscator(type));
+  CPPUNIT_ASSERT_EQUAL(uint16_t(0), deobfuscator(content));
   deobfuscator.next();
 
   type = 0x10;
   content = 0x6b03;
-  CPPUNIT_ASSERT_EQUAL(uint8_t(3), deobfuscator.deobfuscate(type));
-  CPPUNIT_ASSERT_EQUAL(uint16_t(0x10), deobfuscator.deobfuscate(content));
+  CPPUNIT_ASSERT_EQUAL(uint8_t(3), deobfuscator(type));
+  CPPUNIT_ASSERT_EQUAL(uint16_t(0x10), deobfuscator(content));
   deobfuscator.next();
 
   type = 0xa7;
   content = 0xa2aa;
-  CPPUNIT_ASSERT_EQUAL(uint8_t(13), deobfuscator.deobfuscate(type));
-  CPPUNIT_ASSERT_EQUAL(uint16_t(0), deobfuscator.deobfuscate(content));
+  CPPUNIT_ASSERT_EQUAL(uint8_t(13), deobfuscator(type));
+  CPPUNIT_ASSERT_EQUAL(uint16_t(0), deobfuscator(content));
   deobfuscator.next();
 
   type = 0x42;
   content = 0xda41;
-  CPPUNIT_ASSERT_EQUAL(uint8_t(3), deobfuscator.deobfuscate(type));
-  CPPUNIT_ASSERT_EQUAL(uint16_t(0), deobfuscator.deobfuscate(content));
+  CPPUNIT_ASSERT_EQUAL(uint8_t(3), deobfuscator(type));
+  CPPUNIT_ASSERT_EQUAL(uint16_t(0), deobfuscator(content));
   deobfuscator.next();
 
   type = 0xdb;
   content = 0x11ca;
-  CPPUNIT_ASSERT_EQUAL(uint8_t(3), deobfuscator.deobfuscate(type));
-  CPPUNIT_ASSERT_EQUAL(uint16_t(0x12), deobfuscator.deobfuscate(content));
+  CPPUNIT_ASSERT_EQUAL(uint8_t(3), deobfuscator(type));
+  CPPUNIT_ASSERT_EQUAL(uint16_t(0x12), deobfuscator(content));
   deobfuscator.next();
 
   type = 0x6c;
   content = 0x496f;
-  CPPUNIT_ASSERT_EQUAL(uint8_t(3), deobfuscator.deobfuscate(type));
-  CPPUNIT_ASSERT_EQUAL(uint16_t(0), deobfuscator.deobfuscate(content));
+  CPPUNIT_ASSERT_EQUAL(uint8_t(3), deobfuscator(type));
+  CPPUNIT_ASSERT_EQUAL(uint16_t(0), deobfuscator(content));
   deobfuscator.next();
 }
 
@@ -91,111 +91,111 @@ void QXPDeobfuscatorTest::test4Deobfuscation()
   QXP4Deobfuscator deobfuscator(0x3c3e, 0xb3b7);
 
   uint16_t objectsCount = 0x3c3e;
-  CPPUNIT_ASSERT_EQUAL(uint16_t(0), deobfuscator.deobfuscate(objectsCount));
+  CPPUNIT_ASSERT_EQUAL(uint16_t(0), deobfuscator(objectsCount));
   deobfuscator.nextRev();
 
   objectsCount = 0x8886;
-  CPPUNIT_ASSERT_EQUAL(uint16_t(0), deobfuscator.deobfuscate(objectsCount));
+  CPPUNIT_ASSERT_EQUAL(uint16_t(0), deobfuscator(objectsCount));
   deobfuscator.nextRev();
 
   objectsCount = 0xd4cf;
-  CPPUNIT_ASSERT_EQUAL(uint16_t(1), deobfuscator.deobfuscate(objectsCount));
+  CPPUNIT_ASSERT_EQUAL(uint16_t(1), deobfuscator(objectsCount));
   deobfuscator.nextRev();
 
   uint8_t contentType = 0x15;
   uint16_t content = 0xc422;
   uint8_t shapeType = 0x27;
-  contentType = deobfuscator.deobfuscate(contentType);
+  contentType = deobfuscator(contentType);
   CPPUNIT_ASSERT_EQUAL(uint8_t(3), contentType);
   deobfuscator.nextShift(contentType);
-  content = deobfuscator.deobfuscate(content);
+  content = deobfuscator(content);
   CPPUNIT_ASSERT_EQUAL(uint16_t(0), content);
-  CPPUNIT_ASSERT_EQUAL(uint8_t(5), deobfuscator.deobfuscate(shapeType));
+  CPPUNIT_ASSERT_EQUAL(uint8_t(5), deobfuscator(shapeType));
   deobfuscator.next(content);
 
   objectsCount = 0x77da;
-  CPPUNIT_ASSERT_EQUAL(uint16_t(3), deobfuscator.deobfuscate(objectsCount));
+  CPPUNIT_ASSERT_EQUAL(uint16_t(3), deobfuscator(objectsCount));
   deobfuscator.nextRev();
 
   contentType = 0x22;
   content = 0xf8c0;
   shapeType = 0x8c;
-  contentType = deobfuscator.deobfuscate(contentType);
+  contentType = deobfuscator(contentType);
   CPPUNIT_ASSERT_EQUAL(uint8_t(3), contentType);
   deobfuscator.nextShift(contentType);
-  content = deobfuscator.deobfuscate(content);
+  content = deobfuscator(content);
   CPPUNIT_ASSERT_EQUAL(uint16_t(0x44), content);
-  CPPUNIT_ASSERT_EQUAL(uint8_t(8), deobfuscator.deobfuscate(shapeType));
+  CPPUNIT_ASSERT_EQUAL(uint8_t(8), deobfuscator(shapeType));
   deobfuscator.next(content);
 
   contentType = 0x38;
   content = 0xf5c1;
   shapeType = 0x8f;
-  contentType = deobfuscator.deobfuscate(contentType);
+  contentType = deobfuscator(contentType);
   CPPUNIT_ASSERT_EQUAL(uint8_t(3), contentType);
   deobfuscator.nextShift(contentType);
-  content = deobfuscator.deobfuscate(content);
+  content = deobfuscator(content);
   CPPUNIT_ASSERT_EQUAL(uint16_t(0x46), content);
-  CPPUNIT_ASSERT_EQUAL(uint8_t(8), deobfuscator.deobfuscate(shapeType));
+  CPPUNIT_ASSERT_EQUAL(uint8_t(8), deobfuscator(shapeType));
   deobfuscator.next(content);
 
   contentType = 0xc1;
   content = 0xfe50;
   shapeType = 0x1d;
-  contentType = deobfuscator.deobfuscate(contentType);
+  contentType = deobfuscator(contentType);
   CPPUNIT_ASSERT_EQUAL(uint8_t(3), contentType);
   deobfuscator.nextShift(contentType);
-  content = deobfuscator.deobfuscate(content);
+  content = deobfuscator(content);
   CPPUNIT_ASSERT_EQUAL(uint16_t(0x48), content);
-  CPPUNIT_ASSERT_EQUAL(uint8_t(5), deobfuscator.deobfuscate(shapeType));
+  CPPUNIT_ASSERT_EQUAL(uint8_t(5), deobfuscator(shapeType));
   deobfuscator.next(content);
 
   objectsCount = 0xfe00;
-  CPPUNIT_ASSERT_EQUAL(uint16_t(4), deobfuscator.deobfuscate(objectsCount));
+  CPPUNIT_ASSERT_EQUAL(uint16_t(4), deobfuscator(objectsCount));
   deobfuscator.nextRev();
 
   contentType = 0x04;
   content = 0xfe04;
   shapeType = 0x06;
-  contentType = deobfuscator.deobfuscate(contentType);
+  contentType = deobfuscator(contentType);
   CPPUNIT_ASSERT_EQUAL(uint8_t(0), contentType);
   deobfuscator.nextShift(contentType);
-  content = deobfuscator.deobfuscate(content);
+  content = deobfuscator(content);
   CPPUNIT_ASSERT_EQUAL(uint16_t(0), content);
-  CPPUNIT_ASSERT_EQUAL(uint8_t(2), deobfuscator.deobfuscate(shapeType));
+  CPPUNIT_ASSERT_EQUAL(uint8_t(2), deobfuscator(shapeType));
   deobfuscator.next(content);
 
   contentType = 0x07;
   content = 0xffe0;
   shapeType = 0xe6;
-  contentType = deobfuscator.deobfuscate(contentType);
+  contentType = deobfuscator(contentType);
   CPPUNIT_ASSERT_EQUAL(uint8_t(4), contentType);
   deobfuscator.nextShift(contentType);
-  content = deobfuscator.deobfuscate(content);
+  content = deobfuscator(content);
   CPPUNIT_ASSERT_EQUAL(uint16_t(0), content);
-  CPPUNIT_ASSERT_EQUAL(uint8_t(6), deobfuscator.deobfuscate(shapeType));
+  CPPUNIT_ASSERT_EQUAL(uint8_t(6), deobfuscator(shapeType));
   deobfuscator.next(content);
 
   contentType = 0xdc;
   content = 0xfffb;
   shapeType = 0xf3;
-  contentType = deobfuscator.deobfuscate(contentType);
+  contentType = deobfuscator(contentType);
   CPPUNIT_ASSERT_EQUAL(uint8_t(3), contentType);
   deobfuscator.nextShift(contentType);
-  content = deobfuscator.deobfuscate(content);
+  content = deobfuscator(content);
   CPPUNIT_ASSERT_EQUAL(uint16_t(0), content);
-  CPPUNIT_ASSERT_EQUAL(uint8_t(8), deobfuscator.deobfuscate(shapeType));
+  CPPUNIT_ASSERT_EQUAL(uint8_t(8), deobfuscator(shapeType));
   deobfuscator.next(content);
 
   contentType = 0xf9;
   content = 0xffff;
   shapeType = 0xfa;
-  contentType = deobfuscator.deobfuscate(contentType);
+  contentType = deobfuscator(contentType);
   CPPUNIT_ASSERT_EQUAL(uint8_t(3), contentType);
   deobfuscator.nextShift(contentType);
-  content = deobfuscator.deobfuscate(content);
+  content = deobfuscator(content);
   CPPUNIT_ASSERT_EQUAL(uint16_t(0), content);
-  CPPUNIT_ASSERT_EQUAL(uint8_t(5), deobfuscator.deobfuscate(shapeType));
+  CPPUNIT_ASSERT_EQUAL(uint8_t(5), deobfuscator(shapeType));
   deobfuscator.next(content);
 }
 

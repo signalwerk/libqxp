@@ -17,14 +17,14 @@ QXPDeobfuscator::QXPDeobfuscator(uint16_t seed)
 {
 }
 
-uint16_t QXPDeobfuscator::deobfuscate(uint16_t value) const
+uint16_t QXPDeobfuscator::operator()(uint16_t value) const
 {
   return ((value + m_seed) - (((value & m_seed) << 1)) + (1 << 16));
 }
 
-uint8_t QXPDeobfuscator::deobfuscate(uint8_t value) const
+uint8_t QXPDeobfuscator::operator()(uint8_t value) const
 {
-  return deobfuscate(uint16_t(value)) & 0xff;
+  return operator()(uint16_t(value)) & 0xff;
 }
 
 }
