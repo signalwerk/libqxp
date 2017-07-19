@@ -59,8 +59,14 @@ bool QXPParser::parse()
   const unsigned long pagesStartPos = docStream->tell();
 
   QXPTextCollector textCollector;
-  if (!parsePages(docStream, textCollector))
-    return false;
+  try
+  {
+    parsePages(docStream, textCollector);
+  }
+  catch (...)
+  {
+    // ignore errors during first pass, may be able to output some pages
+  }
 
   docStream->seek(pagesStartPos, librevenge::RVNG_SEEK_SET); // TODO: skip master pages
 
