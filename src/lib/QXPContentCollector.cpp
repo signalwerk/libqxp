@@ -52,7 +52,7 @@ void QXPContentCollector::endDocument()
   m_isDocumentStarted = false;
 }
 
-void QXPContentCollector::startPage()
+void QXPContentCollector::startPage(const Page &page)
 {
   if (m_isPageStarted)
     return;

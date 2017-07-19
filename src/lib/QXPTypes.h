@@ -161,10 +161,21 @@ struct PageSettings
   PageSettings()
     : offset(), margin()
   { }
+};
 
-  PageSettings(Rect off, Rect marg)
-    : offset(off), margin(marg)
+struct Page
+{
+  std::vector<PageSettings> pageSettings;
+  unsigned objectsCount;
+
+  Page()
+    : pageSettings(), objectsCount(0)
   { }
+
+  bool isFacing() const
+  {
+    return pageSettings.size() == 2;
+  }
 };
 
 }

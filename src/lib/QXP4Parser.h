@@ -13,6 +13,7 @@
 #include "libqxp_utils.h"
 #include "QXPParser.h"
 #include "QXP4Header.h"
+#include "QXP4Deobfuscator.h"
 #include <vector>
 
 namespace libqxp
@@ -40,7 +41,7 @@ private:
   std::vector<std::vector<TabStop>> m_paragraphTabStops;
 
   bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) override;
-  bool parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &pagesStream, QXPCollector &collector) override;
+  bool parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXPCollector &collector) override;
 
   void parseColors(const std::shared_ptr<librevenge::RVNGInputStream> &docStream);
   ColorBlockSpec parseColorBlockSpec(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
@@ -50,6 +51,8 @@ private:
   void skipTemplates(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   void parseTabStops(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   ParagraphFormat parseParagraphFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) override;
+
+  Page parsePage(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP4Deobfuscator &deobfuscator);
 };
 
 }

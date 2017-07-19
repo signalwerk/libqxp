@@ -29,7 +29,7 @@ public:
   void startDocument() override;
   void endDocument() override;
 
-  void startPage() override;
+  void startPage(const Page &page) override;
   void endPage() override;
 
 private:

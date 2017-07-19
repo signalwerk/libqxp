@@ -267,6 +267,44 @@ void QXPParser::parseCollection(const std::shared_ptr<librevenge::RVNGInputStrea
   seek(stream, end);
 }
 
+std::vector<PageSettings> QXPParser::parsePageSettings(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  skip(stream, 6);
+  const unsigned count = readU16(stream, be);
+  if (count > 2)
+  {
+    QXP_DEBUG_MSG(("Invalid page settings blocks count %u\n", count));
+    throw ParseError();
+  }
+  skip(stream, 2);
+
+  std::vector<PageSettings> pages;
+  pages.resize(count);
+  for (auto &page : pages)
+  {
+    page.offset.top = readFraction(stream, be);
+    page.offset.left = readFraction(stream, be);
+    page.offset.bottom = readFraction(stream, be);
+    page.offset.right = readFraction(stream, be);
+    skip(stream, 20);
+    page.margin.top = readFraction(stream, be);
+    page.margin.bottom = readFraction(stream, be);
+    page.margin.left = readFraction(stream, be);
+    page.margin.right = readFraction(stream, be);
+    skip(stream, m_header.version() >= QXP_4 ? 12 : 8);
+  }
+  skip(stream, count * 12 + 12);
+
+  if (!be)
+  {
+    skip(stream, 4);
+  }
+  const unsigned nameLength = readU32(stream, be);
+  skip(stream, nameLength);
+
+  return pages;
+}
+
 uint32_t QXPParser::readRecordEndOffset(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
 {
   unsigned length = readU32(stream, be);

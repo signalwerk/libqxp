@@ -13,6 +13,8 @@
 #include "libqxp_utils.h"
 #include "QXPParser.h"
 #include "QXP33Header.h"
+#include "QXPTypes.h"
+#include "QXP33Deobfuscator.h"
 
 #include <string>
 
@@ -34,6 +36,8 @@ private:
   void parseColors(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   CharFormat parseCharFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) override;
   ParagraphFormat parseParagraphFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) override;
+
+  Page parsePage(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
 
   std::string readName(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
 };

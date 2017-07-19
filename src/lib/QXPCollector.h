@@ -11,6 +11,7 @@
 #define QXPCOLLECTOR_H_INCLUDED
 
 #include "libqxp_utils.h"
+#include "QXPTypes.h"
 
 namespace libqxp
 {
@@ -28,8 +29,14 @@ public:
   virtual void startDocument() { }
   virtual void endDocument() { }
 
-  virtual void startPage() { }
+  virtual void startPage(const Page &) { }
   virtual void endPage() { }
+};
+
+class QXPDummyCollector : public QXPCollector
+{
+public:
+  QXPDummyCollector() = default;
 };
 
 }

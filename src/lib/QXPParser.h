@@ -51,7 +51,7 @@ protected:
   std::string getFont(unsigned id, std::string defaultFont = "Arial") const;
 
   virtual bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) = 0;
-  virtual bool parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &pagesStream, QXPCollector &collector) = 0;
+  virtual bool parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXPCollector &collector) = 0;
 
   void skipRecord(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   void parseFonts(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
@@ -66,6 +66,8 @@ protected:
   virtual ParagraphFormat parseParagraphFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) = 0;
 
   void parseCollection(const std::shared_ptr<librevenge::RVNGInputStream>stream, std::function<void()> itemHandler);
+
+  std::vector<PageSettings> parsePageSettings(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
 
   uint32_t readRecordEndOffset(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   uint8_t readColorComp(const std::shared_ptr<librevenge::RVNGInputStream> &stream);

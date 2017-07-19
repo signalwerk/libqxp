@@ -51,8 +51,36 @@ bool QXP33Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStrea
   return true;
 }
 
-bool QXP33Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &pagesStream, QXPCollector &collector)
+bool QXP33Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXPCollector &collector)
 {
+  QXP33Deobfuscator deobfuscator(m_header.seed(), m_header.increment());
+  QXPDummyCollector dummyCollector;
+
+  unsigned ind = 0;
+  while (true)
+  {
+    if (readU32(stream, be) == 0x9e)
+    {
+      break;
+    }
+    seekRelative(stream, -4);
+
+    // don't output master pages, everything is included in normal pages
+    QXPCollector &coll = ind < m_header.masterPagesCount() ? dummyCollector : collector;
+
+    auto page = parsePage(stream);
+    coll.startPage(page);
+
+    for (unsigned i = 0; i < page.objectsCount; ++i)
+    {
+      deobfuscator.next();
+    }
+
+    coll.endPage();
+
+    ind++;
+  }
+
   return true;
 }
 
@@ -126,6 +154,14 @@ ParagraphFormat QXP33Parser::parseParagraphFormat(const std::shared_ptr<libreven
   skip(stream, 218);
 
   return result;
+}
+
+Page QXP33Parser::parsePage(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  Page page;
+  page.pageSettings = parsePageSettings(stream);
+  page.objectsCount = readU32(stream, be);
+  return page;
 }
 
 std::string QXP33Parser::readName(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
