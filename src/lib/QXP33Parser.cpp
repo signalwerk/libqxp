@@ -272,11 +272,11 @@ void QXP33Parser::parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &
 {
   Line line;
   line.boundingBox = header.boundingBox;
-  if (header.fill.is_initialized())
+  if (auto fill = header.fill.get_ptr())
   {
-    if (header.fill.get().type() == typeid(Color))
+    if (auto color = boost::get<Color>(fill))
     {
-      line.color = boost::get<Color>(header.fill.get());
+      line.color = *color;
     }
     else
     {
