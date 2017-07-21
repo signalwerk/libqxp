@@ -9,7 +9,6 @@
 
 #include "QXPParser.h"
 #include "QXPContentCollector.h"
-#include "QXPTextCollector.h"
 #include <cmath>
 #include <memory>
 
@@ -55,20 +54,6 @@ bool QXPParser::parse()
   auto docStream = m_blockParser.getChain(3);
   if (!parseDocument(docStream))
     return false;
-
-  const unsigned long pagesStartPos = docStream->tell();
-
-  QXPTextCollector textCollector;
-  try
-  {
-    parsePages(docStream, textCollector);
-  }
-  catch (...)
-  {
-    // ignore errors during first pass, may be able to output some pages
-  }
-
-  docStream->seek(pagesStartPos, librevenge::RVNG_SEEK_SET); // TODO: skip master pages
 
   if (!parsePages(docStream, collector))
     return false;
