@@ -243,7 +243,7 @@ QXP33Parser::ObjectHeader QXP33Parser::parseObjectHeader(const std::shared_ptr<l
     result.shapeType = ShapeType::RECTANGLE;
     break;
   case 3:
-    result.shapeType = ShapeType::CORNERED_DRECTANGLE;
+    result.shapeType = ShapeType::CORNERED_RECTANGLE;
     break;
   case 4:
     result.shapeType = ShapeType::OVAL;
