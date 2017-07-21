@@ -169,14 +169,37 @@ void QXP33Parser::parseObject(const std::shared_ptr<librevenge::RVNGInputStream>
 {
   const auto &header = parseObjectHeader(stream, deobfuscator);
 
-  switch (header.shapeType)
+  switch (header.contentType)
   {
-  case ShapeType::LINE:
-  case ShapeType::ORTHOGONAL_LINE:
-    parseLine(stream, header, collector);
+  case ContentType::NONE:
+    switch (header.shapeType)
+    {
+    case ShapeType::LINE:
+    case ShapeType::ORTHOGONAL_LINE:
+      parseLine(stream, header, collector);
+      break;
+    case ShapeType::RECTANGLE:
+    case ShapeType::CORNERED_RECTANGLE:
+    case ShapeType::OVAL:
+    case ShapeType::POLYGON:
+      parseEmptyBox(stream, header, collector);
+      break;
+    default:
+      QXP_DEBUG_MSG(("Unsupported shape\n"));
+      throw GenericException();
+    }
+    break;
+  case ContentType::PICTURE:
+    parsePictureBox(stream, header, collector);
+    break;
+  case ContentType::TEXT:
+    parseTextBox(stream, header, collector);
+    break;
+  case ContentType::OBJECTS:
+    parseGroup(stream, header, collector);
     break;
   default:
-    QXP_DEBUG_MSG(("Unsupported shape\n"));
+    QXP_DEBUG_MSG(("Unsupported content\n"));
     throw GenericException();
   }
 }
@@ -288,6 +311,26 @@ void QXP33Parser::parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &
   skip(stream, 2);
 
   collector.collectLine(line);
+}
+
+void QXP33Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP33Parser::ObjectHeader &header, QXPCollector &collector)
+{
+
+}
+
+void QXP33Parser::parsePictureBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP33Parser::ObjectHeader &header, QXPCollector &collector)
+{
+
+}
+
+void QXP33Parser::parseEmptyBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP33Parser::ObjectHeader &header, QXPCollector &collector)
+{
+
+}
+
+void QXP33Parser::parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP33Parser::ObjectHeader &header, QXPCollector &collector)
+{
+
 }
 
 std::string QXP33Parser::readName(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
