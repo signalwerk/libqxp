@@ -213,12 +213,13 @@ protected:
 
 struct Line : Object
 {
+  double rotation;
   double width;
   boost::optional<Color> color;
   boost::optional<Color> gapColor;
 
   Line()
-    : width(0), color(), gapColor()
+    : rotation(0), width(1.0), color(), gapColor()
   { }
 };
 
