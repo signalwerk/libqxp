@@ -197,12 +197,12 @@ CharFormat QXP4Parser::parseCharFormat(const std::shared_ptr<librevenge::RVNGInp
 
   skip(stream, 4);
 
-  unsigned colorId = readU16(stream, be);
-  result.color = getColor(colorId);
+  const unsigned colorId = readU16(stream, be);
 
   skip(stream, 2);
 
-  result.shade = readFraction(stream, be);
+  const double shade = readFraction(stream, be);
+  result.color = getColor(colorId).applyShade(shade);
 
   skip(stream, 36);
 

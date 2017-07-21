@@ -123,12 +123,12 @@ CharFormat QXP33Parser::parseCharFormat(const std::shared_ptr<librevenge::RVNGIn
 
   skip(stream, 4);
 
-  unsigned colorId = readU8(stream);
-  result.color = getColor(colorId);
+  const unsigned colorId = readU8(stream);
 
   skip(stream, 1);
 
-  result.shade = readFraction(stream, be);
+  const double shade = readFraction(stream, be);
+  result.color = getColor(colorId).applyShade(shade);
 
   skip(stream, 26);
 

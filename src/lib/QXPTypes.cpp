@@ -19,6 +19,11 @@ librevenge::RVNGString Color::toString() const
   return colorStr;
 }
 
+Color Color::applyShade(double shade) const
+{
+  return *this;
+}
+
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
