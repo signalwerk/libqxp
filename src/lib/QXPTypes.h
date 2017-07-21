@@ -12,10 +12,32 @@
 
 #include "libqxp_utils.h"
 #include <boost/optional.hpp>
+#include <boost/variant.hpp>
 #include <vector>
 
 namespace libqxp
 {
+
+struct Point
+{
+  double x;
+  double y;
+
+  Point()
+    : x(0.0), y(0.0)
+  { }
+
+  Point(double xVal, double yVal)
+    : x(xVal), y(yVal)
+  { }
+
+  Point move(double dx, double dy) const;
+
+  double distance(const Point &p2) const;
+};
+
+bool operator==(const Point &lhs, const Point &rhs);
+bool operator!=(const Point &lhs, const Point &rhs);
 
 struct Rect
 {
@@ -24,23 +46,15 @@ struct Rect
   double bottom;
   double left;
 
-  Rect()
-    : top(0.0), right(0.0), bottom(0.0), left(0.0)
-  { }
+  Rect();
+  Rect(double t, double r, double b, double l);
 
-  Rect(double t, double r, double b, double l)
-    : top(t), right(r), bottom(b), left(l)
-  { }
+  double width() const;
+  double height() const;
 
-  double width() const
-  {
-    return right - left;
-  }
-
-  double height() const
-  {
-    return bottom - top;
-  }
+  Point center() const;
+  Point topLeft() const;
+  Point bottomRight() const;
 };
 
 struct Color
@@ -61,6 +75,30 @@ struct Color
 
   Color applyShade(double shade) const;
 };
+
+enum class GradientType
+{
+  LINEAR,
+  MIDLINEAR,
+  RECTANGULAR,
+  DIAMOND,
+  CIRCULAR,
+  FULLCIRCULAR
+};
+
+struct Gradient
+{
+  GradientType type;
+  Color color1;
+  Color color2;
+  double angle;
+
+  Gradient()
+    : type(), color1(), color2(), angle(0.0)
+  { }
+};
+
+typedef boost::variant<Color, Gradient> Fill;
 
 struct CharFormat
 {
@@ -152,6 +190,36 @@ struct ParagraphFormat
     : alignment(HorizontalAlignment::LEFT), margin(), firstLineIndent(0), leading(0),
       ruleAbove(), ruleBelow(), tabStops()
   {  }
+};
+
+enum class ContentType
+{
+  UNKNOWN,
+  OBJECTS, // group
+  NONE,
+  TEXT,
+  PICTURE
+};
+
+struct Object
+{
+  Rect boundingBox;
+
+protected:
+  Object()
+    : boundingBox()
+  { }
+};
+
+struct Line : Object
+{
+  double width;
+  boost::optional<Color> color;
+  boost::optional<Color> gapColor;
+
+  Line()
+    : width(0), color(), gapColor()
+  { }
 };
 
 struct PageSettings

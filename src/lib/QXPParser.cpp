@@ -316,6 +316,16 @@ uint8_t QXPParser::readColorComp(const std::shared_ptr<librevenge::RVNGInputStre
   return uint8_t(std::round(255 * readFloat16(stream, be)));
 }
 
+Rect QXPParser::readObjectBBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  Rect bbox;
+  bbox.top = readFraction(stream, be);
+  bbox.left = readFraction(stream, be);
+  bbox.bottom = readFraction(stream, be);
+  bbox.right = readFraction(stream, be);
+  return bbox;
+}
+
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

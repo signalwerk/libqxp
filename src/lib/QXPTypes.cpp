@@ -9,8 +9,63 @@
 
 #include "QXPTypes.h"
 
+#include <boost/math/constants/constants.hpp>
+
 namespace libqxp
 {
+
+bool operator==(const Point &lhs, const Point &rhs)
+{
+  return lhs.x == rhs.x && lhs.y == rhs.y;
+}
+
+bool operator!=(const Point &lhs, const Point &rhs)
+{
+  return !(lhs == rhs);
+}
+
+Point Point::move(double dx, double dy) const
+{
+  return Point(x + dx, y + dy);
+}
+
+double Point::distance(const Point &p2) const
+{
+  return std::hypot(p2.x - x, p2.y - y);
+}
+
+Rect::Rect()
+  : top(0.0), right(0.0), bottom(0.0), left(0.0)
+{ }
+
+Rect::Rect(double t, double r, double b, double l)
+  : top(t), right(r), bottom(b), left(l)
+{ }
+
+double Rect::width() const
+{
+  return right - left;
+}
+
+double Rect::height() const
+{
+  return bottom - top;
+}
+
+Point Rect::center() const
+{
+  return topLeft().move(width() / 2, height() / 2);
+}
+
+Point Rect::topLeft() const
+{
+  return Point(left, top);
+}
+
+Point Rect::bottomRight() const
+{
+  return Point(right, bottom);
+}
 
 librevenge::RVNGString Color::toString() const
 {

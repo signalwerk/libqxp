@@ -31,6 +31,8 @@ public:
 
   virtual void startPage(const Page &) { }
   virtual void endPage() { }
+
+  virtual void collectLine(const Line &) { }
 };
 
 class QXPDummyCollector : public QXPCollector

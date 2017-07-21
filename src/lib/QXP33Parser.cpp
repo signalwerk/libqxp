@@ -73,6 +73,7 @@ bool QXP33Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> 
 
     for (unsigned i = 0; i < page.objectsCount; ++i)
     {
+      parseObject(stream, deobfuscator, coll);
       deobfuscator.next();
     }
 
@@ -162,6 +163,128 @@ Page QXP33Parser::parsePage(const std::shared_ptr<librevenge::RVNGInputStream> &
   page.pageSettings = parsePageSettings(stream);
   page.objectsCount = readU32(stream, be);
   return page;
+}
+
+void QXP33Parser::parseObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP33Deobfuscator &deobfuscator, QXPCollector &collector)
+{
+  const auto &header = parseObjectHeader(stream, deobfuscator);
+
+  switch (header.shapeType)
+  {
+  case ShapeType::LINE:
+  case ShapeType::ORTHOGONAL_LINE:
+    parseLine(stream, header, collector);
+    break;
+  default:
+    QXP_DEBUG_MSG(("Unsupported shape\n"));
+    throw GenericException();
+  }
+}
+
+QXP33Parser::ObjectHeader QXP33Parser::parseObjectHeader(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP33Deobfuscator &deobfuscator)
+{
+  ObjectHeader result;
+
+  skip(stream, 1);
+
+  const unsigned colorId = readU8(stream);
+  const double shade = readFraction(stream, be);
+
+  result.contentIndex = deobfuscator(uint16_t(readU32(stream, be) & 0xffff));
+
+  const uint8_t flags = readU8(stream);
+  const bool noColor = flags & 0x1;
+  if (!noColor)
+  {
+    result.fill = getColor(colorId).applyShade(shade);
+  }
+
+  skip(stream, 1);
+
+  result.rotation = readFraction(stream, be);
+  result.skew = readFraction(stream, be);
+
+  result.linkId = readU32(stream, be);
+  result.gradientId = readU32(stream, be);
+
+  skip(stream, 6);
+
+  const uint8_t contentType = readU8(stream);
+  switch (contentType)
+  {
+  case 1:
+    result.contentType = ContentType::OBJECTS;
+    break;
+  case 2:
+  case 4:
+    result.contentType = ContentType::NONE;
+    break;
+  case 3:
+    result.contentType = ContentType::TEXT;
+    break;
+  case 5:
+    result.contentType = ContentType::PICTURE;
+    break;
+  default:
+    QXP_DEBUG_MSG(("Unknown content type %u\n", contentType));
+    throw ParseError();
+  }
+
+  const uint8_t shapeType = readU8(stream);
+  switch (shapeType)
+  {
+  case 0:
+    result.shapeType = ShapeType::LINE;
+    break;
+  case 1:
+    result.shapeType = ShapeType::ORTHOGONAL_LINE;
+    break;
+  case 2:
+    result.shapeType = ShapeType::RECTANGLE;
+    break;
+  case 3:
+    result.shapeType = ShapeType::CORNERED_DRECTANGLE;
+    break;
+  case 4:
+    result.shapeType = ShapeType::OVAL;
+    break;
+  case 5:
+    result.shapeType = ShapeType::POLYGON;
+    break;
+  default:
+    QXP_DEBUG_MSG(("Unknown shape type %u\n", shapeType));
+    throw ParseError();
+  }
+
+  result.cornerRadius = readFraction(stream, be);
+
+  if (result.gradientId != 0)
+  {
+    //result.fill = ...;
+  }
+
+  result.boundingBox = readObjectBBox(stream);
+
+  return result;
+}
+
+void QXP33Parser::parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP33Parser::ObjectHeader &header, QXPCollector &collector)
+{
+  Line line;
+  line.boundingBox = header.boundingBox;
+  if (header.fill.is_initialized())
+  {
+    if (header.fill.get().type() == typeid(Color))
+    {
+      line.color = boost::get<Color>(header.fill.get());
+    }
+    else
+    {
+      QXP_DEBUG_MSG(("Unsupported line fill type\n"));
+    }
+  }
+
+  collector.collectLine(line);
 }
 
 std::string QXP33Parser::readName(const std::shared_ptr<librevenge::RVNGInputStream> &stream)

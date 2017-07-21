@@ -28,6 +28,46 @@ public:
               const QXPHeader &commonHeader);
 
 private:
+  enum class ShapeType
+  {
+    UNKNOWN,
+    LINE,
+    ORTHOGONAL_LINE,
+    RECTANGLE,
+    CORNERED_DRECTANGLE,
+    OVAL,
+    POLYGON
+  };
+
+  struct ObjectHeader
+  {
+    boost::optional<Fill> fill;
+
+    unsigned contentIndex;
+    unsigned linkId;
+    unsigned gradientId;
+
+    double rotation;
+    double skew;
+
+    bool hflip;
+    bool vflip;
+    bool beveled;
+    bool concave;
+    double cornerRadius;
+
+    ContentType contentType;
+    ShapeType shapeType;
+
+    Rect boundingBox;
+
+    ObjectHeader()
+      : fill(), contentIndex(0), linkId(0), gradientId(0),
+        rotation(0), skew(0), hflip(false), vflip(false), beveled(false), concave(false),
+        cornerRadius(0), contentType(ContentType::UNKNOWN), shapeType(ShapeType::UNKNOWN), boundingBox()
+    { }
+  };
+
   QXP33Header m_header;
 
   bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) override;
@@ -38,6 +78,10 @@ private:
   ParagraphFormat parseParagraphFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) override;
 
   Page parsePage(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
+
+  void parseObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP33Deobfuscator &deobfuscator, QXPCollector &collector);
+  ObjectHeader parseObjectHeader(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP33Deobfuscator &deobfuscator);
+  void parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ObjectHeader &header, QXPCollector &collector);
 
   std::string readName(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
 };

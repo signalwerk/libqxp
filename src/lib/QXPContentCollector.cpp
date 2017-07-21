@@ -74,6 +74,11 @@ void QXPContentCollector::endPage()
   m_isPageStarted = false;
 }
 
+void QXPContentCollector::collectLine(const Line &line)
+{
+
+}
+
 
 
 }

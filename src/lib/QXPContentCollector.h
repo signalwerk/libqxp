@@ -32,6 +32,8 @@ public:
   void startPage(const Page &page) override;
   void endPage() override;
 
+  void collectLine(const Line &line) override;
+
 private:
   librevenge::RVNGDrawingInterface *m_painter;
 
