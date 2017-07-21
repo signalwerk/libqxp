@@ -10,6 +10,7 @@
 #include "QXPTypes.h"
 
 #include <boost/math/constants/constants.hpp>
+#include <cmath>
 
 namespace libqxp
 {
@@ -76,7 +77,15 @@ librevenge::RVNGString Color::toString() const
 
 Color Color::applyShade(double shade) const
 {
-  return *this;
+  if (shade < 0.0 || shade > 1.0)
+  {
+    QXP_DEBUG_MSG(("Invalid shade %lf\n", shade));
+    return *this;
+  }
+  const double tint = 1 - shade;
+  return Color(uint8_t(std::round(red + (255 - red) * tint)),
+               uint8_t(std::round(green + (255 - green) * tint)),
+               uint8_t(std::round(blue + (255 - blue) * tint)));
 }
 
 }
