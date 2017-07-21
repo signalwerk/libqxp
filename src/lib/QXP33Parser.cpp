@@ -284,6 +284,9 @@ void QXP33Parser::parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &
     }
   }
 
+  line.width = readFraction(stream, be);
+  skip(stream, 2);
+
   collector.collectLine(line);
 }
 
