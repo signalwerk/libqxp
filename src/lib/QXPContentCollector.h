@@ -12,6 +12,7 @@
 
 #include "libqxp_utils.h"
 #include "QXPCollector.h"
+#include <vector>
 
 namespace libqxp
 {
@@ -36,10 +37,26 @@ public:
   void collectGroup(const Group &group) override;
 
 private:
+  struct CollectedPage
+  {
+    const PageSettings settings;
+    std::vector<Group> groups;
+
+    CollectedPage(const PageSettings &pageSettings)
+      : settings(pageSettings), groups()
+    { }
+  };
+
   librevenge::RVNGDrawingInterface *m_painter;
 
   bool m_isDocumentStarted;
-  bool m_isPageStarted;
+  bool m_isCollectingFacingPage;
+
+  std::vector<CollectedPage> m_unprocessedPages;
+
+  CollectedPage &getInsertionPage(const Object &obj);
+
+  void draw();
 };
 
 }

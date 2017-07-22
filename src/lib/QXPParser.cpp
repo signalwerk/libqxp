@@ -256,7 +256,7 @@ std::vector<PageSettings> QXPParser::parsePageSettings(const std::shared_ptr<lib
 {
   skip(stream, 6);
   const unsigned count = readU16(stream, be);
-  if (count > 2)
+  if (count == 0 || count > 2)
   {
     QXP_DEBUG_MSG(("Invalid page settings blocks count %u\n", count));
     throw ParseError();
