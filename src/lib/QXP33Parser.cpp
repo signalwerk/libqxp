@@ -73,7 +73,7 @@ bool QXP33Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> 
 
     for (unsigned i = 0; i < page.objectsCount; ++i)
     {
-      parseObject(stream, deobfuscator, coll);
+      parseObject(stream, deobfuscator, coll, page);
       deobfuscator.next();
     }
 
@@ -165,7 +165,7 @@ Page QXP33Parser::parsePage(const std::shared_ptr<librevenge::RVNGInputStream> &
   return page;
 }
 
-void QXP33Parser::parseObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP33Deobfuscator &deobfuscator, QXPCollector &collector)
+void QXP33Parser::parseObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP33Deobfuscator &deobfuscator, QXPCollector &collector, const Page &page)
 {
   const auto &header = parseObjectHeader(stream, deobfuscator);
 
@@ -196,7 +196,7 @@ void QXP33Parser::parseObject(const std::shared_ptr<librevenge::RVNGInputStream>
     parseTextBox(stream, header, collector);
     break;
   case ContentType::OBJECTS:
-    parseGroup(stream, header, collector);
+    parseGroup(stream, header, collector, page);
     break;
   default:
     QXP_DEBUG_MSG(("Unsupported content\n"));
@@ -330,8 +330,33 @@ void QXP33Parser::parseEmptyBox(const std::shared_ptr<librevenge::RVNGInputStrea
 
 }
 
-void QXP33Parser::parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP33Parser::ObjectHeader &header, QXPCollector &collector)
+void QXP33Parser::parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP33Parser::ObjectHeader &header, QXPCollector &collector, const Page &page)
 {
+  skip(stream, 10);
+  const unsigned count = readU16(stream, be);
+  if (count >= page.objectsCount - 1)
+  {
+    QXP_DEBUG_MSG(("Invalid group elements count %u\n", count));
+    throw ParseError();
+  }
+  skip(stream, 6);
+
+  Group group;
+  group.boundingBox = header.boundingBox;
+
+  group.objectsIndexes.resize(count);
+  for (unsigned &ind : group.objectsIndexes)
+  {
+    ind = readU32(stream, be);
+    if (ind >= page.objectsCount)
+    {
+      QXP_DEBUG_MSG(("Invalid group element index %u\n", ind));
+      throw ParseError();
+    }
+  }
+
+  collector.collectGroup(group);
+}
 
 }
 

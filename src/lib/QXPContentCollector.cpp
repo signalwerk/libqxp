@@ -79,6 +79,10 @@ void QXPContentCollector::collectLine(const Line &line)
 
 }
 
+void QXPContentCollector::collectGroup(const Group &group)
+{
+
+}
 
 
 }

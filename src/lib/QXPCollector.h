@@ -33,6 +33,7 @@ public:
   virtual void endPage() { }
 
   virtual void collectLine(const Line &) { }
+  virtual void collectGroup(const Group &) { }
 };
 
 class QXPDummyCollector : public QXPCollector

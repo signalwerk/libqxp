@@ -33,6 +33,7 @@ public:
   void endPage() override;
 
   void collectLine(const Line &line) override;
+  void collectGroup(const Group &group) override;
 
 private:
   librevenge::RVNGDrawingInterface *m_painter;

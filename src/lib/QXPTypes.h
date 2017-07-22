@@ -223,6 +223,15 @@ struct Line : Object
   { }
 };
 
+struct Group : Object
+{
+  std::vector<unsigned> objectsIndexes;
+
+  Group()
+    : objectsIndexes()
+  { }
+};
+
 struct PageSettings
 {
   Rect offset;
