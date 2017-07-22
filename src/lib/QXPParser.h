@@ -72,6 +72,7 @@ protected:
   uint32_t readRecordEndOffset(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   uint8_t readColorComp(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   Rect readObjectBBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
+  Gradient readGradient(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const Color &color1);
 
 private:
   QXPHeader &m_header;

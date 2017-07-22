@@ -311,6 +311,59 @@ Rect QXPParser::readObjectBBox(const std::shared_ptr<librevenge::RVNGInputStream
   return bbox;
 }
 
+Gradient QXPParser::readGradient(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const Color &color1)
+{
+  Gradient gradient;
+  gradient.color1 = color1;
+
+  skip(stream, m_header.version() >= QXP_4 ? 20 : 14);
+
+  const uint8_t type = readU16(stream, be) & 0xff;
+  switch (type)
+  {
+  default:
+    QXP_DEBUG_MSG(("Unknown gradient type %u\n", type));
+  // fall-through intended: pick a default
+  case 0x10:
+    gradient.type = GradientType::LINEAR;
+    break;
+  case 0x18:
+    gradient.type = GradientType::MIDLINEAR;
+    break;
+  case 0x19:
+    gradient.type = GradientType::RECTANGULAR;
+    break;
+  case 0x1a:
+    gradient.type = GradientType::DIAMOND;
+    break;
+  case 0x1b:
+    gradient.type = GradientType::CIRCULAR;
+    break;
+  case 0x1c:
+    gradient.type = GradientType::FULLCIRCULAR;
+    break;
+  }
+  skip(stream, 4);
+
+  unsigned colorId;
+  if (m_header.version() >= QXP_4)
+  {
+    colorId = readU16(stream, be);
+  }
+  else
+  {
+    colorId = readU8(stream);
+    skip(stream, 1);
+  }
+  const double shade = readFraction(stream, be);
+  gradient.color2 = getColor(colorId).applyShade(shade);
+
+  gradient.angle = readFraction(stream, be);
+  skip(stream, 4);
+
+  return gradient;
+}
+
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

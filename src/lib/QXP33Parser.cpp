@@ -212,6 +212,7 @@ QXP33Parser::ObjectHeader QXP33Parser::parseObjectHeader(const std::shared_ptr<l
 
   const unsigned colorId = readU8(stream);
   const double shade = readFraction(stream, be);
+  const auto color = getColor(colorId).applyShade(shade);
 
   result.contentIndex = deobfuscator(uint16_t(readU32(stream, be) & 0xffff));
 
@@ -219,7 +220,7 @@ QXP33Parser::ObjectHeader QXP33Parser::parseObjectHeader(const std::shared_ptr<l
   const bool noColor = flags & 0x1;
   if (!noColor)
   {
-    result.fill = getColor(colorId).applyShade(shade);
+    result.fill = color;
   }
 
   skip(stream, 1);
@@ -283,7 +284,7 @@ QXP33Parser::ObjectHeader QXP33Parser::parseObjectHeader(const std::shared_ptr<l
 
   if (result.gradientId != 0)
   {
-    //result.fill = ...;
+    result.fill = readGradient(stream, color);
   }
 
   result.boundingBox = readObjectBBox(stream);
