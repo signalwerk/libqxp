@@ -232,6 +232,37 @@ struct Group : Object
   { }
 };
 
+struct CharFormatSpec
+{
+  std::shared_ptr<CharFormat> format;
+  unsigned length;
+
+  CharFormatSpec(const std::shared_ptr<CharFormat> &f, unsigned len)
+    : format(f), length(len)
+  { }
+};
+
+struct ParagraphSpec
+{
+  std::shared_ptr<ParagraphFormat> format;
+  unsigned length;
+
+  ParagraphSpec(const std::shared_ptr<ParagraphFormat> &f, unsigned len)
+    : format(f), length(len)
+  { }
+};
+
+struct Text
+{
+  librevenge::RVNGString text;
+  std::vector<ParagraphSpec> paragraphs;
+  std::vector<CharFormatSpec> charFormats;
+
+  Text()
+    : text(), paragraphs(), charFormats()
+  { }
+};
+
 struct PageSettings
 {
   Rect offset;

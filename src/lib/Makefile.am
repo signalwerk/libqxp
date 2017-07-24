@@ -51,6 +51,8 @@ libqxp_internal_la_SOURCES = \
 	QXP33Parser.h \
 	QXP4Parser.cpp \
 	QXP4Parser.h \
+	QXPTextParser.cpp \
+	QXPTextParser.h \
 	QXPTypes.cpp \
 	QXPTypes.h \
 	libqxp_utils.cpp \

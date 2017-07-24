@@ -34,6 +34,8 @@ public:
 
   virtual void collectLine(const Line &) { }
   virtual void collectGroup(const Group &) { }
+
+  virtual void collectText(const std::shared_ptr<Text> &, unsigned) { }
 };
 
 class QXPDummyCollector : public QXPCollector

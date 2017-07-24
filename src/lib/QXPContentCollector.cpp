@@ -21,6 +21,7 @@ QXPContentCollector::QXPContentCollector(librevenge::RVNGDrawingInterface *paint
   , m_isDocumentStarted(false)
   , m_isCollectingFacingPage(false)
   , m_unprocessedPages()
+  , m_linkTextMap()
 {
 }
 
@@ -81,6 +82,11 @@ void QXPContentCollector::collectLine(const Line &line)
 void QXPContentCollector::collectGroup(const Group &group)
 {
   getInsertionPage(group).groups.push_back(group);
+}
+
+void QXPContentCollector::collectText(const std::shared_ptr<Text> &text, unsigned linkId)
+{
+  m_linkTextMap[linkId] = text;
 }
 
 QXPContentCollector::CollectedPage &QXPContentCollector::getInsertionPage(const Object &obj)

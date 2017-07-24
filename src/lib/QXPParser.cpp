@@ -24,6 +24,7 @@ QXPParser::QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, 
   , m_painter(painter)
   , be(commonHeader.isBigEndian())
   , m_blockParser(input, commonHeader)
+  , m_textParser(input, commonHeader)
   , m_colors()
   , m_fonts()
   , m_charFormats()
@@ -132,7 +133,7 @@ void QXPParser::parseCharFormats(const std::shared_ptr<librevenge::RVNGInputStre
   m_charFormats.clear();
   parseCollection(stream, [=]()
   {
-    m_charFormats.emplace_back(parseCharFormat(stream));
+    m_charFormats.emplace_back(make_shared<CharFormat>(parseCharFormat(stream)));
   });
 }
 
@@ -208,7 +209,7 @@ void QXPParser::parseParagraphFormats(const std::shared_ptr<librevenge::RVNGInpu
   m_paragraphFormats.clear();
   parseCollection(stream, [=]()
   {
-    m_paragraphFormats.emplace_back(parseParagraphFormat(stream));
+    m_paragraphFormats.emplace_back(make_shared<ParagraphFormat>(parseParagraphFormat(stream)));
   });
 }
 
@@ -288,6 +289,21 @@ std::vector<PageSettings> QXPParser::parsePageSettings(const std::shared_ptr<lib
   skip(stream, nameLength);
 
   return pages;
+}
+
+std::shared_ptr<Text> QXPParser::parseText(unsigned index, unsigned linkId, QXPCollector &collector)
+{
+  try
+  {
+    auto text = m_textParser.parseText(index, m_charFormats, m_paragraphFormats);
+    collector.collectText(text, linkId);
+    return text;
+  }
+  catch (...)
+  {
+    QXP_DEBUG_MSG(("Failed to parse text %u\n", index));
+    return make_shared<Text>();
+  }
 }
 
 uint32_t QXPParser::readRecordEndOffset(const std::shared_ptr<librevenge::RVNGInputStream> &stream)

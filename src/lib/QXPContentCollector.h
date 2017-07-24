@@ -13,6 +13,8 @@
 #include "libqxp_utils.h"
 #include "QXPCollector.h"
 #include <vector>
+#include <unordered_map>
+#include <memory>
 
 namespace libqxp
 {
@@ -36,6 +38,8 @@ public:
   void collectLine(const Line &line) override;
   void collectGroup(const Group &group) override;
 
+  void collectText(const std::shared_ptr<Text> &text, unsigned linkId) override;
+
 private:
   struct CollectedPage
   {
@@ -53,6 +57,8 @@ private:
   bool m_isCollectingFacingPage;
 
   std::vector<CollectedPage> m_unprocessedPages;
+
+  std::unordered_map<unsigned, std::shared_ptr<Text>> m_linkTextMap;
 
   CollectedPage &getInsertionPage(const Object &obj);
 

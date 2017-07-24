@@ -25,6 +25,7 @@ test_SOURCES = \
 	test.cpp \
 	QXPBlockParserTest.cpp \
 	QXPDeobfuscatorTest.cpp \
+	QXPTextParserTest.cpp \
 	QXPTypesTest.cpp \
 	UtilsTest.cpp
 

@@ -14,6 +14,7 @@
 #include "QXPBlockParser.h"
 #include "QXPHeader.h"
 #include "QXPCollector.h"
+#include "QXPTextParser.h"
 #include "QXPTypes.h"
 #include <functional>
 #include <map>
@@ -41,11 +42,12 @@ protected:
   const bool be; // big endian
 
   QXPBlockParser m_blockParser;
+  QXPTextParser m_textParser;
 
   std::map<unsigned, Color> m_colors;
   std::map<int, std::string> m_fonts;
-  std::vector<CharFormat> m_charFormats;
-  std::vector<ParagraphFormat> m_paragraphFormats;
+  std::vector<std::shared_ptr<CharFormat>> m_charFormats;
+  std::vector<std::shared_ptr<ParagraphFormat>> m_paragraphFormats;
 
   Color getColor(unsigned id, Color defaultColor = Color(0, 0, 0)) const;
   std::string getFont(unsigned id, std::string defaultFont = "Arial") const;
@@ -68,6 +70,8 @@ protected:
   void parseCollection(const std::shared_ptr<librevenge::RVNGInputStream>stream, std::function<void()> itemHandler);
 
   std::vector<PageSettings> parsePageSettings(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
+
+  std::shared_ptr<Text> parseText(unsigned index, unsigned linkId, QXPCollector &collector);
 
   uint32_t readRecordEndOffset(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   uint8_t readColorComp(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
