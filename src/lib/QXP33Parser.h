@@ -87,6 +87,8 @@ private:
   void parseEmptyBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ObjectHeader &header, QXPCollector &collector);
   void parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ObjectHeader &header, QXPCollector &collector, const Page &page);
 
+  Frame readFrame(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
+
   std::string readName(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
 };
 

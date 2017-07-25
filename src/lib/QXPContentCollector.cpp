@@ -22,6 +22,7 @@ QXPContentCollector::QXPContentCollector(librevenge::RVNGDrawingInterface *paint
   , m_isCollectingFacingPage(false)
   , m_unprocessedPages()
   , m_linkTextMap()
+  , m_linkTextBoxMap()
 {
 }
 
@@ -79,12 +80,27 @@ void QXPContentCollector::collectLine(const Line &line)
 
 }
 
+void QXPContentCollector::collectBox(const Box &box)
+{
+
+}
+
+void QXPContentCollector::collectTextBox(const TextBox &box)
+{
+  if (0 == box.settings.linkId)
+  {
+    QXP_DEBUG_MSG(("Collected textbox with link ID 0"));
+  }
+
+  m_linkTextBoxMap[box.settings.linkId].push_back(box);
+}
+
 void QXPContentCollector::collectGroup(const Group &group)
 {
   getInsertionPage(group).groups.push_back(group);
 }
 
-void QXPContentCollector::collectText(const std::shared_ptr<Text> &text, unsigned linkId)
+void QXPContentCollector::collectText(const std::shared_ptr<Text> &text, const unsigned linkId)
 {
   m_linkTextMap[linkId] = text;
 }

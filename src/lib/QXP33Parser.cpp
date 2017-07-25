@@ -317,7 +317,56 @@ void QXP33Parser::parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &
 
 void QXP33Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP33Parser::ObjectHeader &header, QXPCollector &collector)
 {
+  TextBox textbox;
+  textbox.boundingBox = header.boundingBox;
+  textbox.fill = header.fill;
+  textbox.cornerRadius = header.cornerRadius;
+  textbox.settings.linkId = header.linkId;
 
+  textbox.frame = readFrame(stream);
+  skip(stream, 4);
+  const unsigned runaroundId = readU32(stream, be);
+
+  if (header.contentIndex == 0)
+  {
+    skip(stream, 82);
+    collector.collectBox(textbox);
+  }
+  else
+  {
+    textbox.settings.offsetIntoText = readU32(stream, be);
+    skip(stream, 4);
+    textbox.settings.gutterWidth = readFraction(stream, be);
+    textbox.settings.inset.top = readFraction(stream, be);
+    textbox.settings.inset.left = readFraction(stream, be);
+    textbox.settings.inset.right = readFraction(stream, be);
+    textbox.settings.inset.bottom = readFraction(stream, be);
+    textbox.settings.rotation = readFraction(stream, be);
+    textbox.settings.skew = readFraction(stream, be);
+    textbox.settings.columnsCount = readU8(stream);
+    textbox.settings.verticalAlignment = readVertAlign(stream);
+    skip(stream, 8);
+    textbox.settings.nextLinkedIndex = readU16(stream, be);
+    skip(stream, 10);
+
+    if (textbox.settings.offsetIntoText > 0)
+    {
+      textbox.settings.linkedIndex = header.contentIndex;
+    }
+    else
+    {
+      textbox.text = parseText(header.contentIndex, header.linkId, collector);
+      skip(stream, 12);
+    }
+
+    collector.collectTextBox(textbox);
+  }
+
+  if (runaroundId != 0)
+  {
+    const unsigned length = readU32(stream, be);
+    skip(stream, length);
+  }
 }
 
 void QXP33Parser::parsePictureBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP33Parser::ObjectHeader &header, QXPCollector &collector)
@@ -358,6 +407,15 @@ void QXP33Parser::parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> 
   collector.collectGroup(group);
 }
 
+Frame QXP33Parser::readFrame(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  Frame frame;
+  frame.width = readFraction(stream, be);
+  const double shade = readFraction(stream, be);
+  const unsigned colorId = readU8(stream);
+  frame.color = getColor(colorId).applyShade(shade);
+  skip(stream, 1);
+  return frame;
 }
 
 std::string QXP33Parser::readName(const std::shared_ptr<librevenge::RVNGInputStream> &stream)

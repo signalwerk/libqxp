@@ -36,9 +36,11 @@ public:
   void endPage() override;
 
   void collectLine(const Line &line) override;
+  void collectBox(const Box &box) override;
+  void collectTextBox(const TextBox &box) override;
   void collectGroup(const Group &group) override;
 
-  void collectText(const std::shared_ptr<Text> &text, unsigned linkId) override;
+  void collectText(const std::shared_ptr<Text> &text, const unsigned linkId) override;
 
 private:
   struct CollectedPage
@@ -59,6 +61,7 @@ private:
   std::vector<CollectedPage> m_unprocessedPages;
 
   std::unordered_map<unsigned, std::shared_ptr<Text>> m_linkTextMap;
+  std::unordered_map<unsigned, std::vector<TextBox>> m_linkTextBoxMap;
 
   CollectedPage &getInsertionPage(const Object &obj);
 

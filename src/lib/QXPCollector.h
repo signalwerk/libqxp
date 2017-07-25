@@ -33,9 +33,11 @@ public:
   virtual void endPage() { }
 
   virtual void collectLine(const Line &) { }
+  virtual void collectBox(const Box &) { }
+  virtual void collectTextBox(const TextBox &) { }
   virtual void collectGroup(const Group &) { }
 
-  virtual void collectText(const std::shared_ptr<Text> &, unsigned) { }
+  virtual void collectText(const std::shared_ptr<Text> &, const unsigned) { }
 };
 
 class QXPDummyCollector : public QXPCollector

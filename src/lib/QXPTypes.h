@@ -201,37 +201,6 @@ enum class ContentType
   PICTURE
 };
 
-struct Object
-{
-  Rect boundingBox;
-
-protected:
-  Object()
-    : boundingBox()
-  { }
-};
-
-struct Line : Object
-{
-  double rotation;
-  double width;
-  boost::optional<Color> color;
-  boost::optional<Color> gapColor;
-
-  Line()
-    : rotation(0), width(1.0), color(), gapColor()
-  { }
-};
-
-struct Group : Object
-{
-  std::vector<unsigned> objectsIndexes;
-
-  Group()
-    : objectsIndexes()
-  { }
-};
-
 struct CharFormatSpec
 {
   std::shared_ptr<CharFormat> format;
@@ -260,6 +229,105 @@ struct Text
 
   Text()
     : text(), paragraphs(), charFormats()
+  { }
+};
+
+struct Frame
+{
+  double width;
+  boost::optional<Color> color;
+  boost::optional<Color> gapColor;
+
+  Frame()
+    : width(1.0), color(), gapColor()
+  { }
+};
+
+struct TextSettings
+{
+  unsigned columnsCount;
+  double gutterWidth;
+  VerticalAlignment verticalAlignment;
+  Rect inset;
+  double rotation;
+  double skew;
+
+  // for linked textboxes
+  unsigned linkId;
+  unsigned offsetIntoText;
+  unsigned linkedIndex;
+  unsigned nextLinkedIndex;
+
+  TextSettings()
+    : columnsCount(1), gutterWidth(12.0), verticalAlignment(VerticalAlignment::TOP), inset(), rotation(0), skew(0),
+      linkId(0), offsetIntoText(0), linkedIndex(0), nextLinkedIndex(0)
+  { }
+};
+
+struct Object
+{
+  Rect boundingBox;
+
+protected:
+  Object()
+    : boundingBox()
+  { }
+};
+
+struct Line : Object
+{
+  double rotation;
+  double width;
+  boost::optional<Color> color;
+  boost::optional<Color> gapColor;
+
+  Line()
+    : rotation(0), width(1.0), color(), gapColor()
+  { }
+};
+
+enum class CornerType
+{
+  DEFAULT,
+  ROUNDED,
+  BEVELED,
+  CONCAVE
+};
+
+enum class BoxType
+{
+  RECTANGLE,
+  OVAL
+};
+
+struct Box : Object
+{
+  boost::optional<Fill> fill;
+  Frame frame;
+  CornerType cornerType;
+  double cornerRadius;
+
+  Box()
+    : fill(), frame(), cornerType(CornerType::DEFAULT), cornerRadius(0.0)
+  { }
+};
+
+struct TextBox : Box
+{
+  TextSettings settings;
+  boost::optional<std::shared_ptr<Text>> text;
+
+  TextBox()
+    : settings(), text()
+  { }
+};
+
+struct Group : Object
+{
+  std::vector<unsigned> objectsIndexes;
+
+  Group()
+    : objectsIndexes()
   { }
 };
 

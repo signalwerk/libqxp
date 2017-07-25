@@ -380,6 +380,25 @@ HorizontalAlignment QXPParser::readHorAlign(const std::shared_ptr<librevenge::RV
   }
 }
 
+VerticalAlignment QXPParser::readVertAlign(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  const uint8_t align = readU8(stream);
+  switch (align)
+  {
+  default:
+    QXP_DEBUG_MSG(("Unknown vert. align %u\n", align));
+  // fall-through intended: pick a default
+  case 0:
+    return VerticalAlignment::TOP;
+  case 1:
+    return VerticalAlignment::CENTER;
+  case 2:
+    return VerticalAlignment::BOTTOM;
+  case 3:
+    return VerticalAlignment::JUSTIFIED;
+  }
+}
+
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
