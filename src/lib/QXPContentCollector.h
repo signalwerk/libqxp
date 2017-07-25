@@ -35,10 +35,10 @@ public:
   void startPage(const Page &page) override;
   void endPage() override;
 
-  void collectLine(const Line &line) override;
-  void collectBox(const Box &box) override;
-  void collectTextBox(const TextBox &box) override;
-  void collectGroup(const Group &group) override;
+  void collectLine(const std::shared_ptr<Line> &line) override;
+  void collectBox(const std::shared_ptr<Box> &box) override;
+  void collectTextBox(const std::shared_ptr<TextBox> &box) override;
+  void collectGroup(const std::shared_ptr<Group> &group) override;
 
   void collectText(const std::shared_ptr<Text> &text, const unsigned linkId) override;
 
@@ -46,7 +46,7 @@ private:
   struct CollectedPage
   {
     const PageSettings settings;
-    std::vector<Group> groups;
+    std::vector<std::shared_ptr<Group>> groups;
 
     CollectedPage(const PageSettings &pageSettings)
       : settings(pageSettings), groups()
@@ -61,9 +61,9 @@ private:
   std::vector<CollectedPage> m_unprocessedPages;
 
   std::unordered_map<unsigned, std::shared_ptr<Text>> m_linkTextMap;
-  std::unordered_map<unsigned, std::vector<TextBox>> m_linkTextBoxMap;
+  std::unordered_map<unsigned, std::vector<std::shared_ptr<TextBox>>> m_linkTextBoxMap;
 
-  CollectedPage &getInsertionPage(const Object &obj);
+  CollectedPage &getInsertionPage(const std::shared_ptr<Object> &obj);
 
   void draw();
 };

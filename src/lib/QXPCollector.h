@@ -32,10 +32,10 @@ public:
   virtual void startPage(const Page &) { }
   virtual void endPage() { }
 
-  virtual void collectLine(const Line &) { }
-  virtual void collectBox(const Box &) { }
-  virtual void collectTextBox(const TextBox &) { }
-  virtual void collectGroup(const Group &) { }
+  virtual void collectLine(const std::shared_ptr<Line> &) { }
+  virtual void collectBox(const std::shared_ptr<Box> &) { }
+  virtual void collectTextBox(const std::shared_ptr<TextBox> &) { }
+  virtual void collectGroup(const std::shared_ptr<Group> &) { }
 
   virtual void collectText(const std::shared_ptr<Text> &, const unsigned) { }
 };

@@ -14,6 +14,8 @@ namespace libqxp
 {
 
 using librevenge::RVNGInputStream;
+using std::make_shared;
+using std::vector;
 
 QXP33Parser::QXP33Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter,
                          const QXPHeader &commonHeader)
@@ -294,14 +296,14 @@ QXP33Parser::ObjectHeader QXP33Parser::parseObjectHeader(const std::shared_ptr<l
 
 void QXP33Parser::parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP33Parser::ObjectHeader &header, QXPCollector &collector)
 {
-  Line line;
-  line.boundingBox = header.boundingBox;
-  line.rotation = header.rotation;
+  auto line = make_shared<Line>();
+  line->boundingBox = header.boundingBox;
+  line->rotation = header.rotation;
   if (auto fill = header.fill.get_ptr())
   {
     if (auto color = boost::get<Color>(fill))
     {
-      line.color = *color;
+      line->color = *color;
     }
     else
     {
@@ -309,7 +311,7 @@ void QXP33Parser::parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &
     }
   }
 
-  line.width = readFraction(stream, be);
+  line->width = readFraction(stream, be);
   skip(stream, 2);
 
   collector.collectLine(line);
@@ -317,13 +319,13 @@ void QXP33Parser::parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &
 
 void QXP33Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP33Parser::ObjectHeader &header, QXPCollector &collector)
 {
-  TextBox textbox;
-  textbox.boundingBox = header.boundingBox;
-  textbox.fill = header.fill;
-  textbox.cornerRadius = header.cornerRadius;
-  textbox.settings.linkId = header.linkId;
+  auto textbox = make_shared<TextBox>();
+  textbox->boundingBox = header.boundingBox;
+  textbox->fill = header.fill;
+  textbox->cornerRadius = header.cornerRadius;
+  textbox->settings.linkId = header.linkId;
 
-  textbox.frame = readFrame(stream);
+  textbox->frame = readFrame(stream);
   skip(stream, 4);
   const unsigned runaroundId = readU32(stream, be);
 
@@ -334,28 +336,28 @@ void QXP33Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream
   }
   else
   {
-    textbox.settings.offsetIntoText = readU32(stream, be);
+    textbox->settings.offsetIntoText = readU32(stream, be);
     skip(stream, 4);
-    textbox.settings.gutterWidth = readFraction(stream, be);
-    textbox.settings.inset.top = readFraction(stream, be);
-    textbox.settings.inset.left = readFraction(stream, be);
-    textbox.settings.inset.right = readFraction(stream, be);
-    textbox.settings.inset.bottom = readFraction(stream, be);
-    textbox.settings.rotation = readFraction(stream, be);
-    textbox.settings.skew = readFraction(stream, be);
-    textbox.settings.columnsCount = readU8(stream);
-    textbox.settings.verticalAlignment = readVertAlign(stream);
+    textbox->settings.gutterWidth = readFraction(stream, be);
+    textbox->settings.inset.top = readFraction(stream, be);
+    textbox->settings.inset.left = readFraction(stream, be);
+    textbox->settings.inset.right = readFraction(stream, be);
+    textbox->settings.inset.bottom = readFraction(stream, be);
+    textbox->settings.rotation = readFraction(stream, be);
+    textbox->settings.skew = readFraction(stream, be);
+    textbox->settings.columnsCount = readU8(stream);
+    textbox->settings.verticalAlignment = readVertAlign(stream);
     skip(stream, 8);
-    textbox.settings.nextLinkedIndex = readU16(stream, be);
+    textbox->settings.nextLinkedIndex = readU16(stream, be);
     skip(stream, 10);
 
-    if (textbox.settings.offsetIntoText > 0)
+    if (textbox->settings.offsetIntoText > 0)
     {
-      textbox.settings.linkedIndex = header.contentIndex;
+      textbox->settings.linkedIndex = header.contentIndex;
     }
     else
     {
-      textbox.text = parseText(header.contentIndex, header.linkId, collector);
+      textbox->text = parseText(header.contentIndex, header.linkId, collector);
       skip(stream, 12);
     }
 
@@ -390,11 +392,11 @@ void QXP33Parser::parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> 
   }
   skip(stream, 6);
 
-  Group group;
-  group.boundingBox = header.boundingBox;
+  auto group = make_shared<Group>();
+  group->boundingBox = header.boundingBox;
 
-  group.objectsIndexes.resize(count);
-  for (unsigned &ind : group.objectsIndexes)
+  group->objectsIndexes.resize(count);
+  for (unsigned &ind : group->objectsIndexes)
   {
     ind = readU32(stream, be);
     if (ind >= page.objectsCount)

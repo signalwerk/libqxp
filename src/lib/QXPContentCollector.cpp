@@ -75,27 +75,27 @@ void QXPContentCollector::endPage()
   draw();
 }
 
-void QXPContentCollector::collectLine(const Line &line)
+void QXPContentCollector::collectLine(const std::shared_ptr<Line> &line)
 {
 
 }
 
-void QXPContentCollector::collectBox(const Box &box)
+void QXPContentCollector::collectBox(const std::shared_ptr<Box> &box)
 {
 
 }
 
-void QXPContentCollector::collectTextBox(const TextBox &box)
+void QXPContentCollector::collectTextBox(const std::shared_ptr<TextBox> &box)
 {
-  if (0 == box.settings.linkId)
+  if (0 == box->settings.linkId)
   {
     QXP_DEBUG_MSG(("Collected textbox with link ID 0"));
   }
 
-  m_linkTextBoxMap[box.settings.linkId].push_back(box);
+  m_linkTextBoxMap[box->settings.linkId].push_back(box);
 }
 
-void QXPContentCollector::collectGroup(const Group &group)
+void QXPContentCollector::collectGroup(const std::shared_ptr<Group> &group)
 {
   getInsertionPage(group).groups.push_back(group);
 }
@@ -105,9 +105,9 @@ void QXPContentCollector::collectText(const std::shared_ptr<Text> &text, const u
   m_linkTextMap[linkId] = text;
 }
 
-QXPContentCollector::CollectedPage &QXPContentCollector::getInsertionPage(const Object &obj)
+QXPContentCollector::CollectedPage &QXPContentCollector::getInsertionPage(const std::shared_ptr<Object> &obj)
 {
-  if (m_isCollectingFacingPage && obj.boundingBox.center().x > m_unprocessedPages.back().settings.offset.left)
+  if (m_isCollectingFacingPage && obj->boundingBox.center().x > m_unprocessedPages.back().settings.offset.left)
   {
     return m_unprocessedPages[m_unprocessedPages.size() - 1];
   }
@@ -130,7 +130,7 @@ void QXPContentCollector::draw()
     {
       m_painter->openGroup(RVNGPropertyList());
 
-      for (const unsigned &ind : group.objectsIndexes)
+      for (const unsigned &ind : group->objectsIndexes)
       {
         processedObjects.insert(ind);
 
