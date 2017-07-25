@@ -266,7 +266,7 @@ ParagraphFormat QXP4Parser::parseParagraphFormat(const std::shared_ptr<libreveng
   ParagraphFormat result;
 
   skip(stream, 11);
-  result.alignment = parsekHorAlign(stream);
+  result.alignment = readHorAlign(stream);
 
   skip(stream, 8);
 

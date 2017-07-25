@@ -141,7 +141,7 @@ ParagraphFormat QXP33Parser::parseParagraphFormat(const std::shared_ptr<libreven
   ParagraphFormat result;
 
   skip(stream, 5);
-  result.alignment = parsekHorAlign(stream);
+  result.alignment = readHorAlign(stream);
 
   skip(stream, 8);
 
