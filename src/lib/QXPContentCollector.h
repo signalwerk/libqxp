@@ -15,6 +15,8 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
+#include <functional>
+#include <type_traits>
 
 namespace libqxp
 {
@@ -43,14 +45,53 @@ public:
   void collectText(const std::shared_ptr<Text> &text, const unsigned linkId) override;
 
 private:
+  struct CollectedPage;
+
+  template<typename T>
+  using ObjectHandler = std::function<void(const std::shared_ptr<T> &obj, const CollectedPage &)>;
+
+  template<typename T, typename TThis>
+  using ObjectHandlerMember = std::function<void(TThis *, const std::shared_ptr<T> &obj, const CollectedPage &)>;
+
+  class CollectedObjectInterface
+  {
+  public:
+    virtual ~CollectedObjectInterface() = default;
+
+    virtual void draw(const CollectedPage &page) const = 0;
+  };
+
+  template<typename T>
+  class CollectedObject : public CollectedObjectInterface
+  {
+    static_assert(std::is_base_of<Object, T>::value, "T is not Object");
+  public:
+    const std::shared_ptr<T> object;
+
+    CollectedObject(const std::shared_ptr<T> &obj, const ObjectHandler<T> &handler)
+      : object(obj), m_handler(handler)
+    { }
+
+    void draw(const CollectedPage &page) const override
+    {
+      m_handler(object, page);
+    }
+  private:
+    const ObjectHandler<T> m_handler;
+  };
+
   struct CollectedPage
   {
     const PageSettings settings;
     std::vector<std::shared_ptr<Group>> groups;
+    std::vector<std::unique_ptr<CollectedObjectInterface>> objects;
 
     CollectedPage(const PageSettings &pageSettings)
-      : settings(pageSettings), groups()
+      : settings(pageSettings), groups(), objects()
     { }
+
+    double getX(const std::shared_ptr<Object> &obj) const;
+    double getY(const std::shared_ptr<Object> &obj) const;
   };
 
   librevenge::RVNGDrawingInterface *m_painter;
@@ -65,7 +106,15 @@ private:
 
   CollectedPage &getInsertionPage(const std::shared_ptr<Object> &obj);
 
+  template<typename T>
+  void addObject(const std::shared_ptr<T> &obj, const ObjectHandlerMember<T, QXPContentCollector> &handler)
+  {
+    getInsertionPage(obj).objects.emplace_back(new CollectedObject<T>(obj, std::bind(handler, this, std::placeholders::_1, std::placeholders::_2)));
+  }
+
   void draw();
+
+  void drawBox(const std::shared_ptr<Box> &box, const CollectedPage &page);
 };
 
 }

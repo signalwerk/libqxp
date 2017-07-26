@@ -82,7 +82,7 @@ void QXPContentCollector::collectLine(const std::shared_ptr<Line> &line)
 
 void QXPContentCollector::collectBox(const std::shared_ptr<Box> &box)
 {
-
+  addObject<Box>(box, &QXPContentCollector::drawBox);
 }
 
 void QXPContentCollector::collectTextBox(const std::shared_ptr<TextBox> &box)
@@ -140,11 +140,34 @@ void QXPContentCollector::draw()
       m_painter->closeGroup();
     }
 
+    unsigned i = 0;
+    for (const auto &obj : page.objects)
+    {
+      if (processedObjects.find(i++) == processedObjects.end())
+      {
+        obj->draw(page);
+      }
+    }
 
     m_painter->endPage();
   }
 
   m_unprocessedPages.clear();
+}
+
+void QXPContentCollector::drawBox(const std::shared_ptr<Box> &box, const QXPContentCollector::CollectedPage &page)
+{
+
+}
+
+double QXPContentCollector::CollectedPage::getX(const std::shared_ptr<Object> &obj) const
+{
+  return obj->boundingBox.left - settings.offset.left;
+}
+
+double QXPContentCollector::CollectedPage::getY(const std::shared_ptr<Object> &obj) const
+{
+  return obj->boundingBox.top - settings.offset.top;
 }
 
 
