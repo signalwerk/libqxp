@@ -38,7 +38,8 @@ QXPDocument::Confidence checkSupport(librevenge::RVNGInputStream *const input, Q
 
   if (header.load(std::shared_ptr<RVNGInputStream>(input, QXPDummyDeleter())) && header.isSupported())
   {
-    *type = QXPDocument::TYPE_DOCUMENT;
+    if (type)
+      *type = QXPDocument::TYPE_DOCUMENT;
     return QXPDocument::CONFIDENCE_EXCELLENT;
   }
 
