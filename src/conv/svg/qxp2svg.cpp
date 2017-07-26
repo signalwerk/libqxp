@@ -80,8 +80,8 @@ int main(int argc, char *argv[])
 
   librevenge::RVNGStringVector vec;
   librevenge::RVNGSVGDrawingGenerator generator(vec, "");
-  bool result = QXPDocument::parse(&input, &generator);
-  if (!result || vec.empty() || vec[0].empty())
+  auto result = QXPDocument::parse(&input, &generator);
+  if (QXPDocument::RESULT_OK != result || vec.empty() || vec[0].empty())
   {
     std::cerr << "ERROR: SVG Generation failed!" << std::endl;
     return 1;
