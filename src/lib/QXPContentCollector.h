@@ -90,8 +90,11 @@ private:
       : settings(pageSettings), groups(), objects()
     { }
 
+    double getX(const double x) const;
     double getX(const std::shared_ptr<Object> &obj) const;
+    double getY(const double y) const;
     double getY(const std::shared_ptr<Object> &obj) const;
+    Point getPoint(const Point &p) const;
   };
 
   librevenge::RVNGDrawingInterface *m_painter;
@@ -115,6 +118,9 @@ private:
   void draw();
 
   void drawBox(const std::shared_ptr<Box> &box, const CollectedPage &page);
+
+  void writeFill(librevenge::RVNGPropertyList &propList, const boost::optional<Fill> &fill);
+  void writeFrame(librevenge::RVNGPropertyList &propList, const Frame &frame);
 };
 
 }

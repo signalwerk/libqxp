@@ -9,12 +9,67 @@
 
 #include "QXPContentCollector.h"
 #include <unordered_set>
+#include <boost/variant.hpp>
 
 namespace libqxp
 {
 
 using librevenge::RVNG_POINT;
 using librevenge::RVNGPropertyList;
+using librevenge::RVNGPropertyListVector;
+using std::vector;
+
+namespace
+{
+
+RVNGPropertyListVector createPath(const vector<Point> &points, bool closed)
+{
+  RVNGPropertyListVector path;
+
+  for (size_t i = 0; i < points.size(); i++)
+  {
+    librevenge::RVNGPropertyList pathPart;
+    pathPart.insert("librevenge:path-action", i == 0 ? "M" : "L");
+    pathPart.insert("svg:x", points[i].x, RVNG_POINT);
+    pathPart.insert("svg:y", points[i].y, RVNG_POINT);
+
+    path.append(pathPart);
+  }
+
+  if (closed)
+  {
+    librevenge::RVNGPropertyList pathPart;
+    pathPart.insert("librevenge:path-action", "Z");
+
+    path.append(pathPart);
+  }
+
+  return path;
+}
+
+class FillWriter : public boost::static_visitor<void>
+{
+public:
+  explicit FillWriter(RVNGPropertyList &propList)
+    : m_propList(propList)
+  { }
+
+  void operator()(const Color &color)
+  {
+    m_propList.insert("draw:fill", "solid");
+    m_propList.insert("draw:fill-color", color.toString());
+  }
+
+  void operator()(const Gradient &gradient)
+  {
+
+  }
+
+private:
+  librevenge::RVNGPropertyList &m_propList;
+};
+
+}
 
 QXPContentCollector::QXPContentCollector(librevenge::RVNGDrawingInterface *painter)
   : m_painter(painter)
@@ -157,17 +212,74 @@ void QXPContentCollector::draw()
 
 void QXPContentCollector::drawBox(const std::shared_ptr<Box> &box, const QXPContentCollector::CollectedPage &page)
 {
+  vector<Point> points =
+  {
+    page.getPoint(box->boundingBox.topLeft()),
+    page.getPoint(box->boundingBox.topRight()),
+    page.getPoint(box->boundingBox.bottomRight()),
+    page.getPoint(box->boundingBox.bottomLeft())
+  };
+  auto path = createPath(points, true);
 
+  RVNGPropertyList propList;
+
+  writeFrame(propList, box->frame);
+  writeFill(propList, box->fill);
+
+  m_painter->setStyle(propList);
+  propList.clear();
+
+  propList.insert("svg:d", path);
+
+  m_painter->drawPath(propList);
+}
+
+void QXPContentCollector::writeFill(librevenge::RVNGPropertyList &propList, const boost::optional<Fill> &fill)
+{
+  propList.insert("draw:fill", "none");
+
+  if (fill)
+  {
+    FillWriter fillWriter(propList);
+    boost::apply_visitor(fillWriter, fill.get());
+  }
+}
+
+void QXPContentCollector::writeFrame(librevenge::RVNGPropertyList &propList, const Frame &frame)
+{
+  propList.insert("draw:stroke", "none");
+
+  if (frame.color)
+  {
+    propList.insert("draw:stroke", "solid");
+    propList.insert("svg:stroke-color", frame.color->toString());
+    propList.insert("svg:stroke-width", frame.width, RVNG_POINT);
+  }
+}
+
+double QXPContentCollector::CollectedPage::getX(const double x) const
+{
+  return x - settings.offset.left;
 }
 
 double QXPContentCollector::CollectedPage::getX(const std::shared_ptr<Object> &obj) const
 {
-  return obj->boundingBox.left - settings.offset.left;
+  return getX(obj->boundingBox.left);
+}
+
+double QXPContentCollector::CollectedPage::getY(const double y) const
+{
+  return y - settings.offset.top;
 }
 
 double QXPContentCollector::CollectedPage::getY(const std::shared_ptr<Object> &obj) const
 {
-  return obj->boundingBox.top - settings.offset.top;
+  return getY(obj->boundingBox.top);
+}
+
+Point QXPContentCollector::CollectedPage::getPoint(const Point &p) const
+{
+  return Point(getX(p.x), getY(p.y));
 }
 
 

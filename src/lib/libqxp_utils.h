@@ -22,6 +22,9 @@
 #include <librevenge-stream/librevenge-stream.h>
 #include <librevenge/librevenge.h>
 
+#define QXP_EPSILON 1E-6
+#define QXP_ALMOST_ZERO(m) (std::fabs(m) <= QXP_EPSILON)
+
 #if defined(HAVE_FUNC_ATTRIBUTE_FORMAT)
 #define QXP_ATTRIBUTE_PRINTF(fmt, arg) __attribute__((format(printf, fmt, arg)))
 #else

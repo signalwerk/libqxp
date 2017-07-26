@@ -63,9 +63,19 @@ Point Rect::topLeft() const
   return Point(left, top);
 }
 
+Point Rect::topRight() const
+{
+  return Point(right, top);
+}
+
 Point Rect::bottomRight() const
 {
   return Point(right, bottom);
+}
+
+Point Rect::bottomLeft() const
+{
+  return Point(left, bottom);
 }
 
 librevenge::RVNGString Color::toString() const

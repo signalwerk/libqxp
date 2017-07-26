@@ -54,7 +54,9 @@ struct Rect
 
   Point center() const;
   Point topLeft() const;
+  Point topRight() const;
   Point bottomRight() const;
+  Point bottomLeft() const;
 };
 
 struct Color
