@@ -86,8 +86,6 @@ QXPAPI QXPDocument::Result QXPDocument::parse(librevenge::RVNGInputStream *const
   default:
     return RESULT_UNSUPPORTED_FORMAT;
   }
-
-  return RESULT_UNKNOWN_ERROR;
 }
 catch (const FileAccessError &)
 {
