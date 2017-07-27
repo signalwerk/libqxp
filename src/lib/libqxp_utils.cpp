@@ -316,6 +316,15 @@ EndOfStreamException::EndOfStreamException()
   QXP_DEBUG_MSG(("Throwing EndOfStreamException\n"));
 }
 
+double normalizeDegAngle(double degAngle)
+{
+  while (degAngle < 0.0)
+    degAngle += 360.0;
+  while (degAngle > 360.0)
+    degAngle -= 360.0;
+  return degAngle;
+}
+
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

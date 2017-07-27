@@ -101,6 +101,8 @@ void seekRelative(std::shared_ptr<librevenge::RVNGInputStream> input, long pos);
 
 unsigned long getLength(std::shared_ptr<librevenge::RVNGInputStream> input);
 
+double normalizeDegAngle(double degAngle);
+
 class EndOfStreamException
 {
 public:

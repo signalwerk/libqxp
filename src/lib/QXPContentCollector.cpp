@@ -62,7 +62,34 @@ public:
 
   void operator()(const Gradient &gradient)
   {
+    m_propList.insert("draw:fill", "gradient");
+    m_propList.insert("draw:start-color", gradient.color1.toString());
+    m_propList.insert("draw:end-color", gradient.color2.toString());
 
+    switch (gradient.type)
+    {
+    default:
+    case GradientType::LINEAR:
+      m_propList.insert("draw:style", "linear");
+      m_propList.insert("draw:angle", int(normalizeDegAngle(gradient.angle + 90)));
+      break;
+    case GradientType::CIRCULAR:
+    case GradientType::FULLCIRCULAR:
+      m_propList.insert("draw:style", "radial");
+      m_propList.insert("draw:cx", 0.5, librevenge::RVNG_PERCENT);
+      m_propList.insert("draw:cy", 0.5, librevenge::RVNG_PERCENT);
+      m_propList.insert("draw:border", GradientType::CIRCULAR == gradient.type ? 0.35 : 0.10, librevenge::RVNG_PERCENT);
+      m_propList.insert("draw:angle", int(normalizeDegAngle(gradient.angle)));
+      break;
+    case GradientType::RECTANGULAR:
+    case GradientType::DIAMOND:
+      m_propList.insert("draw:style", "square");
+      m_propList.insert("draw:cx", 0.5, librevenge::RVNG_PERCENT);
+      m_propList.insert("draw:cy", 0.5, librevenge::RVNG_PERCENT);
+      m_propList.insert("draw:border", 0.35, librevenge::RVNG_PERCENT);
+      m_propList.insert("draw:angle", int(normalizeDegAngle(gradient.angle)));
+      break;
+    }
   }
 
 private:
