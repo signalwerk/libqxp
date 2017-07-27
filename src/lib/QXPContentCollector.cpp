@@ -241,10 +241,10 @@ void QXPContentCollector::drawBox(const std::shared_ptr<Box> &box, const QXPCont
 {
   vector<Point> points =
   {
-    page.getPoint(box->boundingBox.topLeft()),
-    page.getPoint(box->boundingBox.topRight()),
-    page.getPoint(box->boundingBox.bottomRight()),
-    page.getPoint(box->boundingBox.bottomLeft())
+    page.getPoint(box->boundingBox.topLeft().move(box->frame.width / 2, box->frame.width / 2)),
+    page.getPoint(box->boundingBox.topRight().move(-box->frame.width / 2, box->frame.width / 2)),
+    page.getPoint(box->boundingBox.bottomRight().move(-box->frame.width / 2, -box->frame.width / 2)),
+    page.getPoint(box->boundingBox.bottomLeft().move(box->frame.width / 2, -box->frame.width / 2))
   };
 
   if (!QXP_ALMOST_ZERO(box->rotation))
