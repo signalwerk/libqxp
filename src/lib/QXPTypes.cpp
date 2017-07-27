@@ -30,6 +30,14 @@ Point Point::move(double dx, double dy) const
   return Point(x + dx, y + dy);
 }
 
+Point Point::rotateDeg(double rotationDeg, const Point &center) const
+{
+  const double rotation = deg2rad(rotationDeg);
+  const double rotatedX = (x - center.x) * std::cos(rotation) - (y - center.y) * std::sin(rotation) + center.x;
+  const double rotatedY = (y - center.y) * std::cos(rotation) + (x - center.x) * std::sin(rotation) + center.y;
+  return Point(rotatedX, rotatedY);
+}
+
 double Point::distance(const Point &p2) const
 {
   return std::hypot(p2.x - x, p2.y - y);

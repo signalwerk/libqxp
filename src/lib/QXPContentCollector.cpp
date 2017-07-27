@@ -246,6 +246,15 @@ void QXPContentCollector::drawBox(const std::shared_ptr<Box> &box, const QXPCont
     page.getPoint(box->boundingBox.bottomRight()),
     page.getPoint(box->boundingBox.bottomLeft())
   };
+
+  if (!QXP_ALMOST_ZERO(box->rotation))
+  {
+    for (auto &p : points)
+    {
+      p = p.rotateDeg(-box->rotation, page.getPoint(box->boundingBox.center()));
+    }
+  }
+
   auto path = createPath(points, true);
 
   RVNGPropertyList propList;

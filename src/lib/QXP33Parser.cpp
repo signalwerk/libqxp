@@ -323,6 +323,7 @@ void QXP33Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream
   textbox->boundingBox = header.boundingBox;
   textbox->fill = header.fill;
   textbox->cornerRadius = header.cornerRadius;
+  textbox->rotation = header.rotation;
   textbox->settings.linkId = header.linkId;
 
   textbox->frame = readFrame(stream);
@@ -382,6 +383,7 @@ void QXP33Parser::parseEmptyBox(const std::shared_ptr<librevenge::RVNGInputStrea
   box->boundingBox = header.boundingBox;
   box->fill = header.fill;
   box->cornerRadius = header.cornerRadius;
+  box->rotation = header.rotation;
 
   box->frame = readFrame(stream);
   skip(stream, 4);

@@ -14,6 +14,8 @@
 #include <cstdio>
 #endif
 
+#include <boost/math/constants/constants.hpp>
+
 using std::string;
 
 namespace libqxp
@@ -314,6 +316,22 @@ unsigned long getLength(const std::shared_ptr<librevenge::RVNGInputStream> input
 EndOfStreamException::EndOfStreamException()
 {
   QXP_DEBUG_MSG(("Throwing EndOfStreamException\n"));
+}
+
+double deg2rad(double value)
+{
+  using namespace boost::math::double_constants;
+
+  return normalizeDegAngle(value) * degree;
+}
+
+double normalizeRadAngle(double radAngle)
+{
+  using namespace boost::math::double_constants;
+  radAngle = std::fmod(radAngle, two_pi);
+  if (radAngle < 0)
+    radAngle += two_pi;
+  return radAngle;
 }
 
 double normalizeDegAngle(double degAngle)

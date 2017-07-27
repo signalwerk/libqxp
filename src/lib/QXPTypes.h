@@ -32,6 +32,7 @@ struct Point
   { }
 
   Point move(double dx, double dy) const;
+  Point rotateDeg(double rotationDeg, const Point &center) const;
 
   double distance(const Point &p2) const;
 };
@@ -308,9 +309,10 @@ struct Box : Object
   Frame frame;
   CornerType cornerType;
   double cornerRadius;
+  double rotation;
 
   Box()
-    : fill(), frame(), cornerType(CornerType::DEFAULT), cornerRadius(0.0)
+    : fill(), frame(), cornerType(CornerType::DEFAULT), cornerRadius(0.0), rotation(0)
   { }
 };
 
