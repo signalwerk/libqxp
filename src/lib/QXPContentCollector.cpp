@@ -285,7 +285,7 @@ void QXPContentCollector::writeFrame(librevenge::RVNGPropertyList &propList, con
 {
   propList.insert("draw:stroke", "none");
 
-  if (frame.color)
+  if (frame.color && !QXP_ALMOST_ZERO(frame.width))
   {
     propList.insert("draw:stroke", "solid");
     propList.insert("svg:stroke-color", frame.color->toString());
