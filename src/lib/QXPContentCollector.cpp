@@ -78,7 +78,7 @@ public:
       m_propList.insert("draw:style", "radial");
       m_propList.insert("draw:cx", 0.5, librevenge::RVNG_PERCENT);
       m_propList.insert("draw:cy", 0.5, librevenge::RVNG_PERCENT);
-      m_propList.insert("draw:border", GradientType::CIRCULAR == gradient.type ? 0.35 : 0.10, librevenge::RVNG_PERCENT);
+      m_propList.insert("draw:border", GradientType::CIRCULAR == gradient.type ? 0.25 : 0.0, librevenge::RVNG_PERCENT);
       m_propList.insert("draw:angle", int(normalizeDegAngle(gradient.angle)));
       break;
     case GradientType::RECTANGULAR:
@@ -86,7 +86,7 @@ public:
       m_propList.insert("draw:style", "square");
       m_propList.insert("draw:cx", 0.5, librevenge::RVNG_PERCENT);
       m_propList.insert("draw:cy", 0.5, librevenge::RVNG_PERCENT);
-      m_propList.insert("draw:border", 0.35, librevenge::RVNG_PERCENT);
+      m_propList.insert("draw:border", 0.0, librevenge::RVNG_PERCENT);
       m_propList.insert("draw:angle", int(normalizeDegAngle(gradient.angle)));
       break;
     }
