@@ -378,7 +378,24 @@ void QXP33Parser::parsePictureBox(const std::shared_ptr<librevenge::RVNGInputStr
 
 void QXP33Parser::parseEmptyBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP33Parser::ObjectHeader &header, QXPCollector &collector)
 {
+  auto box = make_shared<Box>();
+  box->boundingBox = header.boundingBox;
+  box->fill = header.fill;
+  box->cornerRadius = header.cornerRadius;
 
+  box->frame = readFrame(stream);
+  skip(stream, 4);
+  const unsigned runaroundId = readU32(stream, be);
+
+  skip(stream, 74);
+
+  if (runaroundId != 0)
+  {
+    const unsigned length = readU32(stream, be);
+    skip(stream, length);
+  }
+
+  collector.collectBox(box);
 }
 
 void QXP33Parser::parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP33Parser::ObjectHeader &header, QXPCollector &collector, const Page &page)
