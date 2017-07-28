@@ -117,6 +117,7 @@ private:
 
   void draw();
 
+  void drawLine(const std::shared_ptr<Line> &line, const CollectedPage &page);
   void drawBox(const std::shared_ptr<Box> &box, const CollectedPage &page);
 
   void writeFill(librevenge::RVNGPropertyList &propList, const boost::optional<Fill> &fill);

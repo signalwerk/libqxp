@@ -159,7 +159,7 @@ void QXPContentCollector::endPage()
 
 void QXPContentCollector::collectLine(const std::shared_ptr<Line> &line)
 {
-
+  addObject<Line>(line, &QXPContentCollector::drawLine);
 }
 
 void QXPContentCollector::collectBox(const std::shared_ptr<Box> &box)
@@ -235,6 +235,40 @@ void QXPContentCollector::draw()
   }
 
   m_unprocessedPages.clear();
+}
+
+void QXPContentCollector::drawLine(const std::shared_ptr<Line> &line, const QXPContentCollector::CollectedPage &page)
+{
+  vector<Point> points =
+  {
+    page.getPoint(line->boundingBox.topLeft()),
+    page.getPoint(line->boundingBox.bottomRight()),
+  };
+
+  if (!QXP_ALMOST_ZERO(line->rotation))
+  {
+    for (auto &p : points)
+    {
+      p = p.rotateDeg(-line->rotation, page.getPoint(line->boundingBox.center()));
+    }
+  }
+
+  auto path = createPath(points, true);
+
+  RVNGPropertyList propList;
+
+  Frame frame;
+  frame.width = line->width;
+  frame.color = line->color;
+  frame.gapColor = line->gapColor;
+  writeFrame(propList, frame);
+
+  m_painter->setStyle(propList);
+  propList.clear();
+
+  propList.insert("svg:d", path);
+
+  m_painter->drawPath(propList);
 }
 
 void QXPContentCollector::drawBox(const std::shared_ptr<Box> &box, const QXPContentCollector::CollectedPage &page)
