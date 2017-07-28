@@ -58,7 +58,7 @@ private:
   public:
     virtual ~CollectedObjectInterface() = default;
 
-    virtual void draw(const CollectedPage &page) const = 0;
+    virtual void draw(const CollectedPage &page) = 0;
   };
 
   template<typename T>
@@ -69,22 +69,27 @@ private:
     const std::shared_ptr<T> object;
 
     CollectedObject(const std::shared_ptr<T> &obj, const ObjectHandler<T> &handler)
-      : object(obj), m_handler(handler)
+      : object(obj), m_handler(handler), m_isProcessed(false)
     { }
 
-    void draw(const CollectedPage &page) const override
+    void draw(const CollectedPage &page) override
     {
-      m_handler(object, page);
+      if (!m_isProcessed)
+      {
+        m_handler(object, page);
+      }
+      m_isProcessed = true;
     }
   private:
     const ObjectHandler<T> m_handler;
+    bool m_isProcessed;
   };
 
   struct CollectedPage
   {
     const PageSettings settings;
-    std::vector<std::shared_ptr<Group>> groups;
-    std::vector<std::unique_ptr<CollectedObjectInterface>> objects;
+    std::vector<std::shared_ptr<CollectedObject<Group>>> groups;
+    std::vector<std::shared_ptr<CollectedObjectInterface>> objects;
 
     CollectedPage(const PageSettings &pageSettings)
       : settings(pageSettings), groups(), objects()
@@ -110,15 +115,18 @@ private:
   CollectedPage &getInsertionPage(const std::shared_ptr<Object> &obj);
 
   template<typename T>
-  void addObject(const std::shared_ptr<T> &obj, const ObjectHandlerMember<T, QXPContentCollector> &handler)
+  std::shared_ptr<CollectedObject<T>> addObject(const std::shared_ptr<T> &obj, const ObjectHandlerMember<T, QXPContentCollector> &handler)
   {
-    getInsertionPage(obj).objects.emplace_back(new CollectedObject<T>(obj, std::bind(handler, this, std::placeholders::_1, std::placeholders::_2)));
+    auto collectedObj = std::make_shared<CollectedObject<T>>(obj, std::bind(handler, this, std::placeholders::_1, std::placeholders::_2));
+    getInsertionPage(obj).objects.emplace_back(collectedObj);
+    return collectedObj;
   }
 
   void draw();
 
   void drawLine(const std::shared_ptr<Line> &line, const CollectedPage &page);
   void drawBox(const std::shared_ptr<Box> &box, const CollectedPage &page);
+  void drawGroup(const std::shared_ptr<Group> &group, const CollectedPage &page);
 
   void writeFill(librevenge::RVNGPropertyList &propList, const boost::optional<Fill> &fill);
   void writeFrame(librevenge::RVNGPropertyList &propList, const Frame &frame);

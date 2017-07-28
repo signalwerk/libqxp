@@ -8,7 +8,6 @@
  */
 
 #include "QXPContentCollector.h"
-#include <unordered_set>
 #include <boost/variant.hpp>
 
 namespace libqxp
@@ -179,7 +178,9 @@ void QXPContentCollector::collectTextBox(const std::shared_ptr<TextBox> &box)
 
 void QXPContentCollector::collectGroup(const std::shared_ptr<Group> &group)
 {
-  getInsertionPage(group).groups.push_back(group);
+  auto collectedObj = addObject<Group>(group, &QXPContentCollector::drawGroup);
+
+  getInsertionPage(group).groups.push_back(collectedObj);
 }
 
 void QXPContentCollector::collectText(const std::shared_ptr<Text> &text, const unsigned linkId)
@@ -207,28 +208,16 @@ void QXPContentCollector::draw()
     propList.insert("svg:height", page.settings.offset.height(), RVNG_POINT);
     m_painter->startPage(propList);
 
-    std::unordered_set<unsigned> processedObjects;
+    // handle groups first
+    // afaik groups that are part of other group never go before that group
     for (const auto &group : page.groups)
     {
-      m_painter->openGroup(RVNGPropertyList());
-
-      for (const unsigned &ind : group->objectsIndexes)
-      {
-        processedObjects.insert(ind);
-
-
-      }
-
-      m_painter->closeGroup();
+      group->draw(page);
     }
 
-    unsigned i = 0;
-    for (const auto &obj : page.objects)
+    for (auto &obj : page.objects)
     {
-      if (processedObjects.find(i++) == processedObjects.end())
-      {
-        obj->draw(page);
-      }
+      obj->draw(page);
     }
 
     m_painter->endPage();
@@ -302,6 +291,25 @@ void QXPContentCollector::drawBox(const std::shared_ptr<Box> &box, const QXPCont
   propList.insert("svg:d", path);
 
   m_painter->drawPath(propList);
+}
+
+void QXPContentCollector::drawGroup(const std::shared_ptr<Group> &group, const QXPContentCollector::CollectedPage &page)
+{
+  m_painter->openGroup(RVNGPropertyList());
+
+  for (const unsigned &ind : group->objectsIndexes)
+  {
+    if (ind >= page.objects.size())
+    {
+      QXP_DEBUG_MSG(("Group element %u not found\n", ind));
+      continue;
+    }
+    const auto &obj = page.objects[ind];
+
+    obj->draw(page);
+  }
+
+  m_painter->closeGroup();
 }
 
 void QXPContentCollector::writeFill(librevenge::RVNGPropertyList &propList, const boost::optional<Fill> &fill)
