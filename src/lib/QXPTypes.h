@@ -270,10 +270,11 @@ struct TextSettings
 struct Object
 {
   Rect boundingBox;
+  unsigned zIndex;
 
 protected:
   Object()
-    : boundingBox()
+    : boundingBox(), zIndex(0)
   { }
 };
 

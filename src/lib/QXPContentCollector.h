@@ -59,6 +59,9 @@ private:
     virtual ~CollectedObjectInterface() = default;
 
     virtual void draw(const CollectedPage &page) = 0;
+
+    virtual unsigned zIndex() const = 0;
+    virtual void setZIndex(unsigned value) = 0;
   };
 
   template<typename T>
@@ -80,6 +83,17 @@ private:
       }
       m_isProcessed = true;
     }
+
+    unsigned zIndex() const override
+    {
+      return object->zIndex;
+    }
+
+    void setZIndex(unsigned value) override
+    {
+      object->zIndex = value;
+    }
+
   private:
     const ObjectHandler<T> m_handler;
     bool m_isProcessed;

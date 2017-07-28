@@ -8,6 +8,7 @@
  */
 
 #include "QXPContentCollector.h"
+#include <boost/range/adaptor/reversed.hpp>
 #include <boost/variant.hpp>
 
 namespace libqxp
@@ -44,6 +45,11 @@ RVNGPropertyListVector createPath(const vector<Point> &points, bool closed)
   }
 
   return path;
+}
+
+void writeZIndex(librevenge::RVNGPropertyList &propList, unsigned value)
+{
+  propList.insert("draw:z-index", static_cast<int>(value));
 }
 
 class FillWriter : public boost::static_visitor<void>
@@ -208,6 +214,17 @@ void QXPContentCollector::draw()
     propList.insert("svg:height", page.settings.offset.height(), RVNG_POINT);
     m_painter->startPage(propList);
 
+    {
+      unsigned i = 0;
+      for (auto &obj : boost::adaptors::reverse(page.objects))
+      {
+        obj->setZIndex(i);
+        // we can't just increment by 1 because some objects may need to create several elements (such as box + text)
+        // also we can't just have a counter instead of this field because groups may not be consecutive
+        i += 100;
+      }
+    }
+
     // handle groups first
     // afaik groups that are part of other group never go before that group
     for (const auto &group : page.groups)
@@ -256,6 +273,7 @@ void QXPContentCollector::drawLine(const std::shared_ptr<Line> &line, const QXPC
   propList.clear();
 
   propList.insert("svg:d", path);
+  writeZIndex(propList, line->zIndex);
 
   m_painter->drawPath(propList);
 }
@@ -289,13 +307,14 @@ void QXPContentCollector::drawBox(const std::shared_ptr<Box> &box, const QXPCont
   propList.clear();
 
   propList.insert("svg:d", path);
+  writeZIndex(propList, box->zIndex);
 
   m_painter->drawPath(propList);
 }
 
 void QXPContentCollector::drawGroup(const std::shared_ptr<Group> &group, const QXPContentCollector::CollectedPage &page)
 {
-  m_painter->openGroup(RVNGPropertyList());
+  bool groupOpened = false;
 
   for (const unsigned &ind : group->objectsIndexes)
   {
@@ -306,10 +325,22 @@ void QXPContentCollector::drawGroup(const std::shared_ptr<Group> &group, const Q
     }
     const auto &obj = page.objects[ind];
 
+    if (!groupOpened)
+    {
+      RVNGPropertyList propList;
+      writeZIndex(propList, obj->zIndex() - 1);
+      m_painter->openGroup(propList);
+
+      groupOpened = true;
+    }
+
     obj->draw(page);
   }
 
-  m_painter->closeGroup();
+  if (groupOpened)
+  {
+    m_painter->closeGroup();
+  }
 }
 
 void QXPContentCollector::writeFill(librevenge::RVNGPropertyList &propList, const boost::optional<Fill> &fill)
