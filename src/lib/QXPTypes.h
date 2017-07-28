@@ -58,6 +58,8 @@ struct Rect
   Point topRight() const;
   Point bottomRight() const;
   Point bottomLeft() const;
+
+  Rect shrink(const double diff) const;
 };
 
 struct Color

@@ -86,6 +86,11 @@ Point Rect::bottomLeft() const
   return Point(left, bottom);
 }
 
+Rect Rect::shrink(const double diff) const
+{
+  return Rect(top + diff, right - diff, bottom - diff, left + diff);
+}
+
 librevenge::RVNGString Color::toString() const
 {
   librevenge::RVNGString colorStr;

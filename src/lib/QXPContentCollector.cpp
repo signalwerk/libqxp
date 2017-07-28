@@ -280,12 +280,13 @@ void QXPContentCollector::drawLine(const std::shared_ptr<Line> &line, const QXPC
 
 void QXPContentCollector::drawBox(const std::shared_ptr<Box> &box, const QXPContentCollector::CollectedPage &page)
 {
+  const auto bbox = box->boundingBox.shrink(box->frame.width / 2);
   vector<Point> points =
   {
-    page.getPoint(box->boundingBox.topLeft().move(box->frame.width / 2, box->frame.width / 2)),
-    page.getPoint(box->boundingBox.topRight().move(-box->frame.width / 2, box->frame.width / 2)),
-    page.getPoint(box->boundingBox.bottomRight().move(-box->frame.width / 2, -box->frame.width / 2)),
-    page.getPoint(box->boundingBox.bottomLeft().move(box->frame.width / 2, -box->frame.width / 2))
+    page.getPoint(bbox.topLeft()),
+    page.getPoint(bbox.topRight()),
+    page.getPoint(bbox.bottomRight()),
+    page.getPoint(bbox.bottomLeft())
   };
 
   if (!QXP_ALMOST_ZERO(box->rotation))
