@@ -39,11 +39,7 @@ std::shared_ptr<Text> QXPTextParser::parseText(unsigned index,
       const unsigned blockIndex = readU32(infoStream, be);
       const unsigned length = m_header.version() >= QXP_4 ? readU32(infoStream, be) : readU16(infoStream, be);
       auto blockStream = m_blockParser.getBlock(blockIndex);
-      auto textBytes = readNBytes(blockStream, length);
-      for (unsigned i = 0; i < length; ++i)
-      {
-        text->text.append(char(textBytes[i]));
-      }
+      text->text += readString(blockStream, length);
     }
   }
 

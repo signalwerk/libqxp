@@ -226,7 +226,7 @@ struct ParagraphSpec
 
 struct Text
 {
-  librevenge::RVNGString text;
+  std::string text;
   std::vector<ParagraphSpec> paragraphs;
   std::vector<CharFormatSpec> charFormats;
 

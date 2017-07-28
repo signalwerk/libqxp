@@ -100,7 +100,7 @@ void QXPTextParserTest::testParseText()
 
     auto parser = createParser(name);
     auto text = parser->parseText(index, charFormats, paragraphFormats);
-    CPPUNIT_ASSERT_EQUAL_MESSAGE(name, expectedText, string(text->text.cstr()));
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(name, expectedText, text->text);
     CPPUNIT_ASSERT_EQUAL_MESSAGE(name, 258u, text->charFormats[0].length);
     CPPUNIT_ASSERT_EQUAL_MESSAGE(name, charFormats[0].get(), text->charFormats[0].format.get());
     CPPUNIT_ASSERT_EQUAL_MESSAGE(name, 258u, text->paragraphs[0].length);
