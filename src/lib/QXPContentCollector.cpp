@@ -17,7 +17,9 @@ namespace libqxp
 using librevenge::RVNG_POINT;
 using librevenge::RVNGPropertyList;
 using librevenge::RVNGPropertyListVector;
+using librevenge::RVNGString;
 using std::vector;
+using std::string;
 
 namespace
 {
@@ -50,6 +52,59 @@ RVNGPropertyListVector createPath(const vector<Point> &points, bool closed)
 void writeZIndex(librevenge::RVNGPropertyList &propList, unsigned value)
 {
   propList.insert("draw:z-index", static_cast<int>(value));
+}
+
+void flushText(librevenge::RVNGDrawingInterface *painter, string &text)
+{
+  if (!text.empty())
+  {
+    painter->insertText(RVNGString(text.c_str()));
+    text.clear();
+  }
+}
+
+void insertText(librevenge::RVNGDrawingInterface *painter,  const RVNGString &text)
+{
+  bool wasSpace = false;
+  std::string curText;
+
+  RVNGString::Iter iter(text);
+  iter.rewind();
+  while (iter.next())
+  {
+    const char *const utf8Char = iter();
+    switch (utf8Char[0])
+    {
+    case '\r':
+      break;
+    case '\n':
+      flushText(painter, curText);
+      painter->insertLineBreak();
+      break;
+    case '\t':
+      flushText(painter, curText);
+      painter->insertTab();
+      break;
+    case ' ':
+      if (wasSpace)
+      {
+        flushText(painter, curText);
+        painter->insertSpace();
+      }
+      else
+      {
+        wasSpace = true;
+        curText.push_back(' ');
+      }
+      break;
+    default:
+      wasSpace = false;
+      curText.append(utf8Char);
+      break;
+    }
+  }
+
+  flushText(painter, curText);
 }
 
 class FillWriter : public boost::static_visitor<void>
@@ -172,14 +227,16 @@ void QXPContentCollector::collectBox(const std::shared_ptr<Box> &box)
   addObject<Box>(box, &QXPContentCollector::drawBox);
 }
 
-void QXPContentCollector::collectTextBox(const std::shared_ptr<TextBox> &box)
+void QXPContentCollector::collectTextBox(const std::shared_ptr<TextBox> &textbox)
 {
-  if (0 == box->settings.linkId)
+  if (0 == textbox->settings.linkId)
   {
     QXP_DEBUG_MSG(("Collected textbox with link ID 0"));
   }
 
-  m_linkTextBoxMap[box->settings.linkId].push_back(box);
+  m_linkTextBoxMap[textbox->settings.linkId].push_back(textbox);
+
+  addObject<TextBox>(textbox, &QXPContentCollector::drawTextBox);
 }
 
 void QXPContentCollector::collectGroup(const std::shared_ptr<Group> &group)
@@ -311,6 +368,138 @@ void QXPContentCollector::drawBox(const std::shared_ptr<Box> &box, const QXPCont
   writeZIndex(propList, box->zIndex);
 
   m_painter->drawPath(propList);
+}
+
+void QXPContentCollector::drawTextBox(const std::shared_ptr<TextBox> &textbox, const QXPContentCollector::CollectedPage &page)
+{
+  drawBox(textbox, page);
+
+  const auto bbox = textbox->boundingBox.shrink(textbox->frame.width / 2);
+
+  librevenge::RVNGPropertyList textObjPropList;
+
+  textObjPropList.insert("svg:x", page.getX(bbox.left), RVNG_POINT);
+  textObjPropList.insert("svg:y", page.getY(bbox.top), RVNG_POINT);
+  textObjPropList.insert("svg:width", bbox.width(), RVNG_POINT);
+  textObjPropList.insert("svg:height", bbox.height(), RVNG_POINT);
+
+  switch (textbox->settings.verticalAlignment)
+  {
+  case VerticalAlignment::TOP:
+    textObjPropList.insert("draw:textarea-vertical-align", "top");
+    break;
+  case VerticalAlignment::CENTER:
+    textObjPropList.insert("draw:textarea-vertical-align", "middle");
+    break;
+  case VerticalAlignment::BOTTOM:
+    textObjPropList.insert("draw:textarea-vertical-align", "bottom");
+    break;
+  case VerticalAlignment::JUSTIFIED:
+    textObjPropList.insert("draw:textarea-vertical-align", "justify");
+    break;
+  }
+  if (!QXP_ALMOST_ZERO(textbox->rotation))
+  {
+    textObjPropList.insert("librevenge:rotate", -textbox->rotation);
+  }
+
+  writeZIndex(textObjPropList, textbox->zIndex + 1);
+
+  m_painter->startTextObject(textObjPropList);
+
+  if (textbox->text)
+  {
+    drawText(textbox->text.get());
+  }
+
+  m_painter->endTextObject();
+}
+
+void QXPContentCollector::drawText(const std::shared_ptr<Text> &text)
+{
+  unsigned long spanTextStart = 0;
+
+  for (auto &paragraph : text->paragraphs)
+  {
+    librevenge::RVNGPropertyList paragraphPropList;
+
+    paragraphPropList.insert("fo:margin-top", paragraph.format->margin.top, RVNG_POINT);
+    paragraphPropList.insert("fo:margin-right", paragraph.format->margin.right, RVNG_POINT);
+    paragraphPropList.insert("fo:margin-bottom", paragraph.format->margin.bottom, RVNG_POINT);
+    paragraphPropList.insert("fo:margin-left", paragraph.format->margin.left, RVNG_POINT);
+
+    paragraphPropList.insert("fo:text-indent", paragraph.format->firstLineIndent, RVNG_POINT);
+
+    switch (paragraph.format->alignment)
+    {
+    case HorizontalAlignment::LEFT:
+      paragraphPropList.insert("fo:text-align", "left");
+      break;
+    case HorizontalAlignment::RIGHT:
+      paragraphPropList.insert("fo:text-align", "end");
+      break;
+    case HorizontalAlignment::CENTER:
+      paragraphPropList.insert("fo:text-align", "center");
+      break;
+    case HorizontalAlignment::JUSTIFIED:
+    case HorizontalAlignment::FORCED:
+      paragraphPropList.insert("fo:text-align", "justify");
+      break;
+    }
+
+    m_painter->openParagraph(paragraphPropList);
+
+    for (auto &charFormat : text->charFormats)
+    {
+      if (charFormat.startIndex > paragraph.endIndex() || paragraph.startIndex > charFormat.endIndex())
+      {
+        continue;
+      }
+
+      if (spanTextStart >= text->text.length())
+      {
+        QXP_DEBUG_MSG(("Span start %lu out of range\n", spanTextStart));
+        break;
+      }
+
+      const unsigned long spanTextEnd = std::min<unsigned long>({ charFormat.afterEndIndex(), paragraph.afterEndIndex(), text->text.length() });
+
+      librevenge::RVNGPropertyList spanPropList;
+
+      spanPropList.insert("style:font-name", charFormat.format->fontName);
+      spanPropList.insert("fo:font-size", charFormat.format->fontSize, librevenge::RVNG_POINT);
+      spanPropList.insert("fo:font-weight", charFormat.format->bold ? "bold" : "normal");
+      spanPropList.insert("fo:font-style", charFormat.format->italic ? "italic" : "normal");
+      if (charFormat.format->underline)
+      {
+        spanPropList.insert("style:text-underline-type", "single");
+        spanPropList.insert("style:text-underline-style", "solid");
+      }
+      if (charFormat.format->strike)
+      {
+        spanPropList.insert("style:text-line-through-type", "single");
+        spanPropList.insert("style:text-line-through-style", "solid");
+      }
+      spanPropList.insert("fo:font-variant", charFormat.format->smallCaps ? "small-caps" : "normal");
+      spanPropList.insert("style:text-outline", charFormat.format->outline);
+      spanPropList.insert("fo:color", charFormat.format->color.toString());
+
+      m_painter->openSpan(spanPropList);
+
+      insertText(m_painter, RVNGString(text->text.substr(spanTextStart, spanTextEnd - spanTextStart).c_str()));
+
+      m_painter->closeSpan();
+
+      spanTextStart = spanTextEnd;
+
+      if (spanTextStart > paragraph.endIndex())
+      {
+        break;
+      }
+    }
+
+    m_painter->closeParagraph();
+  }
 }
 
 void QXPContentCollector::drawGroup(const std::shared_ptr<Group> &group, const QXPContentCollector::CollectedPage &page)

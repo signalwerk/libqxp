@@ -50,6 +50,7 @@ std::shared_ptr<Text> QXPTextParser::parseText(unsigned index,
     {
       const unsigned charFormatIndex = m_header.version() >= QXP_4 ? readU32(infoStream, be) : readU16(infoStream, be);
       const unsigned length = readU32(infoStream, be);
+      const unsigned startIndex = text->charFormats.empty() ? 0 : text->charFormats.back().afterEndIndex();
 
       std::shared_ptr<CharFormat> charFormat;
       if (charFormatIndex >= charFormats.size())
@@ -64,7 +65,7 @@ std::shared_ptr<Text> QXPTextParser::parseText(unsigned index,
       {
         charFormat = charFormats[charFormatIndex];
       }
-      text->charFormats.emplace_back(CharFormatSpec(charFormat, length));
+      text->charFormats.emplace_back(CharFormatSpec(charFormat, startIndex, length));
     }
   }
 
@@ -75,6 +76,7 @@ std::shared_ptr<Text> QXPTextParser::parseText(unsigned index,
     {
       const unsigned paragraphFormatIndex = m_header.version() >= QXP_4 ? readU32(infoStream, be) : readU16(infoStream, be);
       const unsigned length = readU32(infoStream, be);
+      const unsigned startIndex = text->paragraphs.empty() ? 0 : text->paragraphs.back().afterEndIndex();
 
       std::shared_ptr<ParagraphFormat> paragraphFormat;
       if (paragraphFormatIndex >= paragraphFormats.size())
@@ -89,7 +91,7 @@ std::shared_ptr<Text> QXPTextParser::parseText(unsigned index,
       {
         paragraphFormat = paragraphFormats[paragraphFormatIndex];
       }
-      text->paragraphs.emplace_back(ParagraphSpec(paragraphFormat, length));
+      text->paragraphs.emplace_back(ParagraphSpec(paragraphFormat, startIndex, length));
     }
   }
 

@@ -206,23 +206,42 @@ enum class ContentType
   PICTURE
 };
 
-struct CharFormatSpec
+struct TextSpec
 {
-  std::shared_ptr<CharFormat> format;
-  unsigned length;
+  const unsigned startIndex;
+  const unsigned length;
 
-  CharFormatSpec(const std::shared_ptr<CharFormat> &f, unsigned len)
-    : format(f), length(len)
+  unsigned endIndex() const
+  {
+    return startIndex + length - 1;
+  }
+
+  unsigned afterEndIndex() const
+  {
+    return startIndex + length;
+  }
+
+protected:
+  TextSpec(unsigned start, unsigned len)
+    : startIndex(start), length(len)
   { }
 };
 
-struct ParagraphSpec
+struct CharFormatSpec : public TextSpec
+{
+  std::shared_ptr<CharFormat> format;
+
+  CharFormatSpec(const std::shared_ptr<CharFormat> &f, unsigned start, unsigned len)
+    : TextSpec(start, len), format(f)
+  { }
+};
+
+struct ParagraphSpec : public TextSpec
 {
   std::shared_ptr<ParagraphFormat> format;
-  unsigned length;
 
-  ParagraphSpec(const std::shared_ptr<ParagraphFormat> &f, unsigned len)
-    : format(f), length(len)
+  ParagraphSpec(const std::shared_ptr<ParagraphFormat> &f, unsigned start, unsigned len)
+    : TextSpec(start, len), format(f)
   { }
 };
 
