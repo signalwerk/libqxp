@@ -33,7 +33,7 @@ std::shared_ptr<Text> QXPTextParser::parseText(unsigned index,
 
   {
     const unsigned blocksSpecLength = readU32(infoStream, be);
-    const unsigned end = infoStream->tell() + blocksSpecLength;
+    const long end = infoStream->tell() + blocksSpecLength;
     while (infoStream->tell() < end)
     {
       const unsigned blockIndex = readU32(infoStream, be);
@@ -45,7 +45,7 @@ std::shared_ptr<Text> QXPTextParser::parseText(unsigned index,
 
   {
     const unsigned charSpecLength = readU32(infoStream, be);
-    const unsigned end = infoStream->tell() + charSpecLength;
+    const long end = infoStream->tell() + charSpecLength;
     while (infoStream->tell() < end)
     {
       const unsigned charFormatIndex = m_header.version() >= QXP_4 ? readU32(infoStream, be) : readU16(infoStream, be);
@@ -70,7 +70,7 @@ std::shared_ptr<Text> QXPTextParser::parseText(unsigned index,
 
   {
     const unsigned paragraphSpecLength = readU32(infoStream, be);
-    const unsigned end = infoStream->tell() + paragraphSpecLength;
+    const long end = infoStream->tell() + paragraphSpecLength;
     while (infoStream->tell() < end)
     {
       const unsigned paragraphFormatIndex = m_header.version() >= QXP_4 ? readU32(infoStream, be) : readU16(infoStream, be);
