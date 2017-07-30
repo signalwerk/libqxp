@@ -350,6 +350,21 @@ struct TextBox : Box
   { }
 };
 
+struct PictureBox : Box
+{
+  double pictureRotation;
+  double pictureSkew;
+  double offsetLeft;
+  double offsetTop;
+  double scaleHor;
+  double scaleVert;
+
+  PictureBox()
+    : pictureRotation(0.0), pictureSkew(0.0),
+      offsetLeft(0.0), offsetTop(0.0), scaleHor(0.0), scaleVert(0.0)
+  { }
+};
+
 struct Group : Object
 {
   std::vector<unsigned> objectsIndexes;
