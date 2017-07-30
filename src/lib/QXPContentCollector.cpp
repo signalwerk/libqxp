@@ -337,6 +337,20 @@ void QXPContentCollector::drawLine(const std::shared_ptr<Line> &line, const QXPC
 
 void QXPContentCollector::drawBox(const std::shared_ptr<Box> &box, const QXPContentCollector::CollectedPage &page)
 {
+  switch (box->boxType)
+  {
+  default:
+  case BoxType::RECTANGLE:
+    drawRectangle(box, page);
+    break;
+  case BoxType::OVAL:
+    drawOval(box, page);
+    break;
+  }
+}
+
+void QXPContentCollector::drawRectangle(const std::shared_ptr<Box> &box, const QXPContentCollector::CollectedPage &page)
+{
   const auto bbox = box->boundingBox.shrink(box->frame.width / 2);
   vector<Point> points =
   {
@@ -368,6 +382,30 @@ void QXPContentCollector::drawBox(const std::shared_ptr<Box> &box, const QXPCont
   writeZIndex(propList, box->zIndex);
 
   m_painter->drawPath(propList);
+}
+
+void QXPContentCollector::drawOval(const std::shared_ptr<Box> &oval, const QXPContentCollector::CollectedPage &page)
+{
+  librevenge::RVNGPropertyList propList;
+
+  writeFrame(propList, oval->frame);
+  writeFill(propList, oval->fill);
+
+  m_painter->setStyle(propList);
+  propList.clear();
+
+  propList.insert("svg:cx", page.getX(oval->boundingBox.center().x), RVNG_POINT);
+  propList.insert("svg:cy", page.getY(oval->boundingBox.center().y), RVNG_POINT);
+  propList.insert("svg:rx", oval->boundingBox.width() / 2 - oval->frame.width / 2, RVNG_POINT);
+  propList.insert("svg:ry", oval->boundingBox.height() / 2 - oval->frame.width / 2, RVNG_POINT);
+  if (!QXP_ALMOST_ZERO(oval->rotation))
+  {
+    propList.insert("librevenge:rotate", oval->rotation);
+  }
+
+  writeZIndex(propList, oval->zIndex);
+
+  m_painter->drawEllipse(propList);
 }
 
 void QXPContentCollector::drawTextBox(const std::shared_ptr<TextBox> &textbox, const QXPContentCollector::CollectedPage &page)

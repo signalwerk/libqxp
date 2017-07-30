@@ -321,6 +321,7 @@ enum class CornerType
 
 enum class BoxType
 {
+  UNKNOWN,
   RECTANGLE,
   OVAL
 };
@@ -329,12 +330,13 @@ struct Box : Object
 {
   boost::optional<Fill> fill;
   Frame frame;
+  BoxType boxType;
   CornerType cornerType;
   double cornerRadius;
   double rotation;
 
   Box()
-    : fill(), frame(), cornerType(CornerType::DEFAULT), cornerRadius(0.0), rotation(0)
+    : fill(), frame(), boxType(BoxType::UNKNOWN), cornerType(CornerType::DEFAULT), cornerRadius(0.0), rotation(0)
   { }
 };
 

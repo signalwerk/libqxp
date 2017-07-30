@@ -140,6 +140,8 @@ private:
 
   void drawLine(const std::shared_ptr<Line> &line, const CollectedPage &page);
   void drawBox(const std::shared_ptr<Box> &box, const CollectedPage &page);
+  void drawRectangle(const std::shared_ptr<Box> &box, const CollectedPage &page);
+  void drawOval(const std::shared_ptr<Box> &oval, const CollectedPage &page);
   void drawTextBox(const std::shared_ptr<TextBox> &textbox, const CollectedPage &page);
   void drawText(const std::shared_ptr<Text> &text);
   void drawGroup(const std::shared_ptr<Group> &group, const CollectedPage &page);

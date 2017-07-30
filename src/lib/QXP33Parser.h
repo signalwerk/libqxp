@@ -61,10 +61,13 @@ private:
 
     Rect boundingBox;
 
+    BoxType boxType;
+
     ObjectHeader()
       : fill(), contentIndex(0), linkId(0), gradientId(0),
         rotation(0), skew(0), hflip(false), vflip(false), beveled(false), concave(false),
-        cornerRadius(0), contentType(ContentType::UNKNOWN), shapeType(ShapeType::UNKNOWN), boundingBox()
+        cornerRadius(0), contentType(ContentType::UNKNOWN), shapeType(ShapeType::UNKNOWN), boundingBox(),
+        boxType(BoxType::UNKNOWN)
     { }
   };
 

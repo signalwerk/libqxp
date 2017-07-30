@@ -267,12 +267,15 @@ QXP33Parser::ObjectHeader QXP33Parser::parseObjectHeader(const std::shared_ptr<l
     break;
   case 2:
     result.shapeType = ShapeType::RECTANGLE;
+    result.boxType = BoxType::RECTANGLE;
     break;
   case 3:
     result.shapeType = ShapeType::CORNERED_RECTANGLE;
+    result.boxType = BoxType::RECTANGLE;
     break;
   case 4:
     result.shapeType = ShapeType::OVAL;
+    result.boxType = BoxType::OVAL;
     break;
   case 5:
     result.shapeType = ShapeType::POLYGON;
@@ -321,6 +324,7 @@ void QXP33Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream
 {
   auto textbox = make_shared<TextBox>();
   textbox->boundingBox = header.boundingBox;
+  textbox->boxType = header.boxType;
   textbox->fill = header.fill;
   textbox->cornerRadius = header.cornerRadius;
   textbox->rotation = header.rotation;
@@ -381,6 +385,7 @@ void QXP33Parser::parseEmptyBox(const std::shared_ptr<librevenge::RVNGInputStrea
 {
   auto box = make_shared<Box>();
   box->boundingBox = header.boundingBox;
+  box->boxType = header.boxType;
   box->fill = header.fill;
   box->cornerRadius = header.cornerRadius;
   box->rotation = header.rotation;
