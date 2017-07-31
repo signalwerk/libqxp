@@ -253,9 +253,9 @@ void QXPContentCollector::collectText(const std::shared_ptr<Text> &text, const u
 
 QXPContentCollector::CollectedPage &QXPContentCollector::getInsertionPage(const std::shared_ptr<Object> &obj)
 {
-  if (m_isCollectingFacingPage && obj->boundingBox.center().x > m_unprocessedPages.back().settings.offset.left)
+  if (m_isCollectingFacingPage && obj->boundingBox.left < m_unprocessedPages.back().settings.offset.left)
   {
-    return m_unprocessedPages[m_unprocessedPages.size() - 1];
+    return m_unprocessedPages[m_unprocessedPages.size() - 2];
   }
   return m_unprocessedPages.back();
 }
