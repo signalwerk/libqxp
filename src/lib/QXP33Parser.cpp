@@ -480,7 +480,7 @@ Frame QXP33Parser::readFrame(const std::shared_ptr<librevenge::RVNGInputStream> 
 
 std::string QXP33Parser::readName(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
 {
-  unsigned start = stream->tell();
+  const long start = stream->tell();
   auto name = readPlatformString(stream, be);
   if ((stream->tell() - start) % 2 == 1)
   {
