@@ -335,28 +335,33 @@ void QXP33Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream
   skip(stream, 4);
   const unsigned runaroundId = readU32(stream, be);
 
+  textbox->settings.offsetIntoText = readU32(stream, be);
+  skip(stream, 4);
+  textbox->settings.gutterWidth = readFraction(stream, be);
+  textbox->settings.inset.top = readFraction(stream, be);
+  textbox->settings.inset.left = readFraction(stream, be);
+  textbox->settings.inset.right = readFraction(stream, be);
+  textbox->settings.inset.bottom = readFraction(stream, be);
+  textbox->settings.rotation = readFraction(stream, be);
+  textbox->settings.skew = readFraction(stream, be);
+  textbox->settings.columnsCount = readU8(stream);
+  textbox->settings.verticalAlignment = readVertAlign(stream);
+  skip(stream, 8);
+  textbox->settings.nextLinkedIndex = readU16(stream, be);
+  skip(stream, 10);
+
+  if (header.shapeType == ShapeType::POLYGON)
+  {
+    textbox->customPoints = readPolygonData(stream);
+  }
+
   if (header.contentIndex == 0)
   {
-    skip(stream, 82);
+    skip(stream, 24);
     collector.collectBox(textbox);
   }
   else
   {
-    textbox->settings.offsetIntoText = readU32(stream, be);
-    skip(stream, 4);
-    textbox->settings.gutterWidth = readFraction(stream, be);
-    textbox->settings.inset.top = readFraction(stream, be);
-    textbox->settings.inset.left = readFraction(stream, be);
-    textbox->settings.inset.right = readFraction(stream, be);
-    textbox->settings.inset.bottom = readFraction(stream, be);
-    textbox->settings.rotation = readFraction(stream, be);
-    textbox->settings.skew = readFraction(stream, be);
-    textbox->settings.columnsCount = readU8(stream);
-    textbox->settings.verticalAlignment = readVertAlign(stream);
-    skip(stream, 8);
-    textbox->settings.nextLinkedIndex = readU16(stream, be);
-    skip(stream, 10);
-
     if (textbox->settings.offsetIntoText > 0)
     {
       textbox->settings.linkedIndex = header.contentIndex;
@@ -435,6 +440,11 @@ void QXP33Parser::parseEmptyBox(const std::shared_ptr<librevenge::RVNGInputStrea
   const unsigned runaroundId = readU32(stream, be);
 
   skip(stream, 74);
+
+  if (header.shapeType == ShapeType::POLYGON)
+  {
+    box->customPoints = readPolygonData(stream);
+  }
 
   if (runaroundId != 0)
   {
