@@ -279,6 +279,7 @@ QXP33Parser::ObjectHeader QXP33Parser::parseObjectHeader(const std::shared_ptr<l
     break;
   case 5:
     result.shapeType = ShapeType::POLYGON;
+    result.boxType = BoxType::POLYGON;
     break;
   default:
     QXP_DEBUG_MSG(("Unknown shape type %u\n", shapeType));
@@ -400,6 +401,11 @@ void QXP33Parser::parsePictureBox(const std::shared_ptr<librevenge::RVNGInputStr
   picturebox->scaleVert = readFraction(stream, be);
   skip(stream, 30);
 
+  if (header.shapeType == ShapeType::POLYGON)
+  {
+    picturebox->customPoints = readPolygonData(stream);
+  }
+
   if (runaroundId != 0)
   {
     const unsigned rlength = readU32(stream, be);
@@ -476,6 +482,27 @@ Frame QXP33Parser::readFrame(const std::shared_ptr<librevenge::RVNGInputStream> 
   frame.color = getColor(colorId).applyShade(shade);
   skip(stream, 1);
   return frame;
+}
+
+std::vector<Point> QXP33Parser::readPolygonData(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  const unsigned length = readU32(stream, be);
+  if (length > getLength(stream))
+  {
+    QXP_DEBUG_MSG(("Invalid polygon data length %u\n", length));
+    throw ParseError();
+  }
+  skip(stream, 18);
+
+  const unsigned count = (length - 18) / 8;
+  std::vector<Point> points;
+  points.resize(count);
+  for (auto &p : points)
+  {
+    p = readYX(stream);
+  }
+
+  return points;
 }
 
 std::string QXP33Parser::readName(const std::shared_ptr<librevenge::RVNGInputStream> &stream)

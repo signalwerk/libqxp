@@ -399,6 +399,14 @@ VerticalAlignment QXPParser::readVertAlign(const std::shared_ptr<librevenge::RVN
   }
 }
 
+Point QXPParser::readYX(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  Point p;
+  p.y = readFraction(stream, be);
+  p.x = readFraction(stream, be);
+  return p;
+}
+
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

@@ -346,6 +346,9 @@ void QXPContentCollector::drawBox(const std::shared_ptr<Box> &box, const QXPCont
   case BoxType::OVAL:
     drawOval(box, page);
     break;
+  case BoxType::POLYGON:
+    drawPolygon(box, page);
+    break;
   }
 }
 
@@ -406,6 +409,32 @@ void QXPContentCollector::drawOval(const std::shared_ptr<Box> &oval, const QXPCo
   writeZIndex(propList, oval->zIndex);
 
   m_painter->drawEllipse(propList);
+}
+
+void QXPContentCollector::drawPolygon(const std::shared_ptr<Box> &polygon, const QXPContentCollector::CollectedPage &page)
+{
+  vector<Point> points;
+  points.reserve(polygon->customPoints.size());
+  std::transform(polygon->customPoints.begin(), polygon->customPoints.end(), std::back_inserter(points),
+                 [page, &polygon](const Point &p)
+  {
+    return page.getPoint(p.rotateDeg(-polygon->rotation, polygon->boundingBox.center()));
+  });
+
+  auto path = createPath(points, true);
+
+  RVNGPropertyList propList;
+
+  writeFrame(propList, polygon->frame);
+  writeFill(propList, polygon->fill);
+
+  m_painter->setStyle(propList);
+  propList.clear();
+
+  propList.insert("svg:d", path);
+  writeZIndex(propList, polygon->zIndex);
+
+  m_painter->drawPath(propList);
 }
 
 void QXPContentCollector::drawTextBox(const std::shared_ptr<TextBox> &textbox, const QXPContentCollector::CollectedPage &page)

@@ -78,6 +78,7 @@ protected:
   Gradient readGradient(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const Color &color1);
   HorizontalAlignment readHorAlign(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   VerticalAlignment readVertAlign(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
+  Point readYX(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
 
 private:
   QXPHeader &m_header;

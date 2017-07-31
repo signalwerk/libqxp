@@ -323,7 +323,8 @@ enum class BoxType
 {
   UNKNOWN,
   RECTANGLE,
-  OVAL
+  OVAL,
+  POLYGON
 };
 
 struct Box : Object
@@ -334,9 +335,11 @@ struct Box : Object
   CornerType cornerType;
   double cornerRadius;
   double rotation;
+  std::vector<Point> customPoints;
 
   Box()
-    : fill(), frame(), boxType(BoxType::UNKNOWN), cornerType(CornerType::DEFAULT), cornerRadius(0.0), rotation(0)
+    : fill(), frame(), boxType(BoxType::UNKNOWN), cornerType(CornerType::DEFAULT), cornerRadius(0.0), rotation(0),
+      customPoints()
   { }
 };
 
