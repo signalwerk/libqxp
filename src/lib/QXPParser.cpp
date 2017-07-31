@@ -258,7 +258,12 @@ std::vector<PageSettings> QXPParser::parsePageSettings(const std::shared_ptr<lib
     page.margin.right = readFraction(stream, be);
     skip(stream, m_header.version() >= QXP_4 ? 12 : 8);
   }
-  skip(stream, count * 12 + 12);
+
+  for (unsigned i = 0; i <= count; ++i)
+  {
+    const unsigned length = readU32(stream, be);
+    skip(stream, length + 4);
+  }
 
   if (!be)
   {
