@@ -169,7 +169,7 @@ Page QXP33Parser::parsePage(const std::shared_ptr<librevenge::RVNGInputStream> &
 
 void QXP33Parser::parseObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP33Deobfuscator &deobfuscator, QXPCollector &collector, const Page &page)
 {
-  const auto &header = parseObjectHeader(stream, deobfuscator);
+  const auto header = parseObjectHeader(stream, deobfuscator);
 
   switch (header.contentType)
   {
