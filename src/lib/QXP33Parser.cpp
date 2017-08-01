@@ -347,8 +347,8 @@ void QXP33Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream
   textbox->settings.columnsCount = readU8(stream);
   textbox->settings.verticalAlignment = readVertAlign(stream);
   skip(stream, 8);
-  textbox->settings.nextLinkedIndex = readU16(stream, be);
-  skip(stream, 10);
+  textbox->settings.nextLinkedIndex = readU32(stream, be);
+  skip(stream, 8);
 
   if (header.shapeType == ShapeType::POLYGON)
   {
