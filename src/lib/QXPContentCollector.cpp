@@ -441,7 +441,7 @@ void QXPContentCollector::drawTextBox(const std::shared_ptr<TextBox> &textbox, c
 {
   drawBox(textbox, page);
 
-  const auto bbox = textbox->boundingBox.shrink(textbox->frame.width / 2);
+  const auto bbox = textbox->boundingBox.shrink(textbox->frame.width);
 
   librevenge::RVNGPropertyList textObjPropList;
 
@@ -449,6 +449,11 @@ void QXPContentCollector::drawTextBox(const std::shared_ptr<TextBox> &textbox, c
   textObjPropList.insert("svg:y", page.getY(bbox.top), RVNG_POINT);
   textObjPropList.insert("svg:width", bbox.width(), RVNG_POINT);
   textObjPropList.insert("svg:height", bbox.height(), RVNG_POINT);
+
+  textObjPropList.insert("fo:padding-top", 0, RVNG_POINT);
+  textObjPropList.insert("fo:padding-right", 0, RVNG_POINT);
+  textObjPropList.insert("fo:padding-bottom", 0, RVNG_POINT);
+  textObjPropList.insert("fo:padding-left", 3, RVNG_POINT);
 
   switch (textbox->settings.verticalAlignment)
   {
