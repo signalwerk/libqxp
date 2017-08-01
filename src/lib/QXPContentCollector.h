@@ -103,10 +103,11 @@ private:
   {
     const PageSettings settings;
     std::vector<std::shared_ptr<CollectedObject<Group>>> groups;
+    std::vector<std::shared_ptr<TextBox>> linkedTextBoxes;
     std::vector<std::shared_ptr<CollectedObjectInterface>> objects;
 
     CollectedPage(const PageSettings &pageSettings)
-      : settings(pageSettings), groups(), objects()
+      : settings(pageSettings), groups(), linkedTextBoxes(), objects()
     { }
 
     double getX(const double x) const;
@@ -124,7 +125,7 @@ private:
   std::vector<CollectedPage> m_unprocessedPages;
 
   std::unordered_map<unsigned, std::shared_ptr<Text>> m_linkTextMap;
-  std::unordered_map<unsigned, std::vector<std::shared_ptr<TextBox>>> m_linkTextBoxMap;
+  std::unordered_map<unsigned, std::unordered_map<unsigned, std::shared_ptr<TextBox>>> m_linkIndexedTextBoxesMap;
 
   CollectedPage &getInsertionPage(const std::shared_ptr<Object> &obj);
 
@@ -136,7 +137,10 @@ private:
     return collectedObj;
   }
 
-  void draw();
+  void draw(bool force = false);
+
+  void updateLinkedTexts();
+  bool hasUnfinishedLinkedTexts();
 
   void drawLine(const std::shared_ptr<Line> &line, const CollectedPage &page);
   void drawBox(const std::shared_ptr<Box> &box, const CollectedPage &page);
@@ -144,7 +148,7 @@ private:
   void drawOval(const std::shared_ptr<Box> &oval, const CollectedPage &page);
   void drawPolygon(const std::shared_ptr<Box> &polygon, const CollectedPage &page);
   void drawTextBox(const std::shared_ptr<TextBox> &textbox, const CollectedPage &page);
-  void drawText(const std::shared_ptr<Text> &text);
+  void drawText(const std::shared_ptr<Text> &text, const TextSettings &settings);
   void drawGroup(const std::shared_ptr<Group> &group, const CollectedPage &page);
 
   void writeFill(librevenge::RVNGPropertyList &propList, const boost::optional<Fill> &fill);

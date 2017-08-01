@@ -281,10 +281,11 @@ struct TextSettings
   unsigned offsetIntoText;
   unsigned linkedIndex;
   unsigned nextLinkedIndex;
+  boost::optional<unsigned> textLength;
 
   TextSettings()
     : columnsCount(1), gutterWidth(12.0), verticalAlignment(VerticalAlignment::TOP), inset(), rotation(0), skew(0),
-      linkId(0), offsetIntoText(0), linkedIndex(0), nextLinkedIndex(0)
+      linkId(0), offsetIntoText(0), linkedIndex(0), nextLinkedIndex(0), textLength()
   { }
 };
 

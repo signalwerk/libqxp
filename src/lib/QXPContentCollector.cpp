@@ -164,7 +164,7 @@ QXPContentCollector::QXPContentCollector(librevenge::RVNGDrawingInterface *paint
   , m_isCollectingFacingPage(false)
   , m_unprocessedPages()
   , m_linkTextMap()
-  , m_linkTextBoxMap()
+  , m_linkIndexedTextBoxesMap()
 {
 }
 
@@ -193,6 +193,9 @@ void QXPContentCollector::endDocument()
 
   if (!m_unprocessedPages.empty())
     endPage();
+
+  if (!m_unprocessedPages.empty())
+    draw(true);
 
   m_painter->endDocument();
 
@@ -229,14 +232,31 @@ void QXPContentCollector::collectBox(const std::shared_ptr<Box> &box)
 
 void QXPContentCollector::collectTextBox(const std::shared_ptr<TextBox> &textbox)
 {
+  addObject<TextBox>(textbox, &QXPContentCollector::drawTextBox);
+
   if (0 == textbox->settings.linkId)
   {
     QXP_DEBUG_MSG(("Collected textbox with link ID 0"));
   }
 
-  m_linkTextBoxMap[textbox->settings.linkId].push_back(textbox);
+  if (textbox->settings.linkedIndex > 0)
+  {
+    m_linkIndexedTextBoxesMap[textbox->settings.linkId][textbox->settings.linkedIndex] = textbox;
+  }
 
-  addObject<TextBox>(textbox, &QXPContentCollector::drawTextBox);
+  if (textbox->settings.linkedIndex > 0 || textbox->settings.nextLinkedIndex > 0)
+  {
+    getInsertionPage(textbox).linkedTextBoxes.push_back(textbox);
+  }
+
+  if (!textbox->text)
+  {
+    auto textIt = m_linkTextMap.find(textbox->settings.linkId);
+    if (textIt != m_linkTextMap.end())
+    {
+      textbox->text = textIt->second;
+    }
+  }
 }
 
 void QXPContentCollector::collectGroup(const std::shared_ptr<Group> &group)
@@ -249,6 +269,18 @@ void QXPContentCollector::collectGroup(const std::shared_ptr<Group> &group)
 void QXPContentCollector::collectText(const std::shared_ptr<Text> &text, const unsigned linkId)
 {
   m_linkTextMap[linkId] = text;
+
+  auto it = m_linkIndexedTextBoxesMap.find(linkId);
+  if (it != m_linkIndexedTextBoxesMap.end())
+  {
+    for (const auto &indexTextbox : it->second)
+    {
+      if (!indexTextbox.second->text)
+      {
+        indexTextbox.second->text = text;
+      }
+    }
+  }
 }
 
 QXPContentCollector::CollectedPage &QXPContentCollector::getInsertionPage(const std::shared_ptr<Object> &obj)
@@ -260,9 +292,18 @@ QXPContentCollector::CollectedPage &QXPContentCollector::getInsertionPage(const 
   return m_unprocessedPages.back();
 }
 
-void QXPContentCollector::draw()
+void QXPContentCollector::draw(bool force)
 {
-  // TODO: check that all linked textboxes have text?
+  updateLinkedTexts();
+
+  if (hasUnfinishedLinkedTexts())
+  {
+    if (!force)
+    {
+      return;
+    }
+    QXP_DEBUG_MSG(("Drawing with unfinished linked texts\n"));
+  }
 
   for (auto &page : m_unprocessedPages)
   {
@@ -298,6 +339,41 @@ void QXPContentCollector::draw()
   }
 
   m_unprocessedPages.clear();
+}
+
+void QXPContentCollector::updateLinkedTexts()
+{
+  for (const auto &page : m_unprocessedPages)
+  {
+    for (const auto &textbox : page.linkedTextBoxes)
+    {
+      if (textbox->settings.nextLinkedIndex > 0 && !textbox->settings.textLength)
+      {
+        const auto textboxes = m_linkIndexedTextBoxesMap.at(textbox->settings.linkId);
+        const auto nextTextboxIt = textboxes.find(textbox->settings.nextLinkedIndex);
+        if (nextTextboxIt != textboxes.end())
+        {
+          textbox->settings.textLength = nextTextboxIt->second->settings.offsetIntoText - textbox->settings.offsetIntoText;
+        }
+      }
+    }
+  }
+}
+
+bool QXPContentCollector::hasUnfinishedLinkedTexts()
+{
+  for (const auto &page : m_unprocessedPages)
+  {
+    for (const auto &textbox : page.linkedTextBoxes)
+    {
+      if (!textbox->text || (textbox->settings.nextLinkedIndex > 0 && !textbox->settings.textLength))
+      {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 void QXPContentCollector::drawLine(const std::shared_ptr<Line> &line, const QXPContentCollector::CollectedPage &page)
@@ -481,18 +557,28 @@ void QXPContentCollector::drawTextBox(const std::shared_ptr<TextBox> &textbox, c
 
   if (textbox->text)
   {
-    drawText(textbox->text.get());
+    drawText(textbox->text.get(), textbox->settings);
   }
 
   m_painter->endTextObject();
 }
 
-void QXPContentCollector::drawText(const std::shared_ptr<Text> &text)
+void QXPContentCollector::drawText(const std::shared_ptr<Text> &text, const TextSettings &settings)
 {
-  unsigned long spanTextStart = 0;
+  unsigned long spanTextStart = settings.offsetIntoText;
+  const unsigned long textEnd = settings.textLength ? (spanTextStart + settings.textLength.get()) : text->text.length();
 
   for (auto &paragraph : text->paragraphs)
   {
+    if (paragraph.startIndex >= textEnd)
+    {
+      break;
+    }
+    if (spanTextStart > paragraph.endIndex())
+    {
+      continue;
+    }
+
     librevenge::RVNGPropertyList paragraphPropList;
 
     paragraphPropList.insert("fo:margin-top", paragraph.format->margin.top, RVNG_POINT);
@@ -523,7 +609,12 @@ void QXPContentCollector::drawText(const std::shared_ptr<Text> &text)
 
     for (auto &charFormat : text->charFormats)
     {
-      if (charFormat.startIndex > paragraph.endIndex() || paragraph.startIndex > charFormat.endIndex())
+      if (spanTextStart > paragraph.endIndex() || spanTextStart >= textEnd || charFormat.startIndex > paragraph.endIndex() || charFormat.startIndex >= textEnd)
+      {
+        break;
+      }
+
+      if (spanTextStart > charFormat.endIndex())
       {
         continue;
       }
@@ -534,7 +625,7 @@ void QXPContentCollector::drawText(const std::shared_ptr<Text> &text)
         break;
       }
 
-      const unsigned long spanTextEnd = std::min<unsigned long>({ charFormat.afterEndIndex(), paragraph.afterEndIndex(), text->text.length() });
+      const unsigned long spanTextEnd = std::min<unsigned long>({ charFormat.afterEndIndex(), paragraph.afterEndIndex(), text->text.length(), textEnd });
 
       librevenge::RVNGPropertyList spanPropList;
 
@@ -563,11 +654,6 @@ void QXPContentCollector::drawText(const std::shared_ptr<Text> &text)
       m_painter->closeSpan();
 
       spanTextStart = spanTextEnd;
-
-      if (spanTextStart > paragraph.endIndex())
-      {
-        break;
-      }
     }
 
     m_painter->closeParagraph();
