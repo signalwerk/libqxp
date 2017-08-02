@@ -233,7 +233,26 @@ QXP33Parser::ObjectHeader QXP33Parser::parseObjectHeader(const std::shared_ptr<l
   result.linkId = readU32(stream, be);
   result.gradientId = readU32(stream, be);
 
-  skip(stream, 6);
+  skip(stream, 4);
+
+  const bool boxFlag1 = readU8(stream);
+  const bool boxFlag2 = readU8(stream);
+  bool beveled;
+  bool concave;
+  if (be)
+  {
+    result.hflip = boxFlag1 & 0x80;
+    result.vflip = boxFlag2 & 0x80;
+    beveled = boxFlag2 & 0x20;
+    concave = boxFlag2 & 0x40;
+  }
+  else
+  {
+    result.hflip = boxFlag1 & 0x1;
+    result.vflip = boxFlag2 & 0x1;
+    beveled = boxFlag2 & 0x2;
+    concave = boxFlag2 & 0x4;
+  }
 
   const uint8_t contentType = readU8(stream);
   switch (contentType)
@@ -272,6 +291,15 @@ QXP33Parser::ObjectHeader QXP33Parser::parseObjectHeader(const std::shared_ptr<l
   case 3:
     result.shapeType = ShapeType::CORNERED_RECTANGLE;
     result.boxType = BoxType::RECTANGLE;
+    result.cornerType = CornerType::ROUNDED;
+    if (beveled)
+    {
+      result.cornerType = CornerType::BEVELED;
+    }
+    if (concave)
+    {
+      result.cornerType = CornerType::CONCAVE;
+    }
     break;
   case 4:
     result.shapeType = ShapeType::OVAL;
@@ -327,6 +355,7 @@ void QXP33Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream
   textbox->boundingBox = header.boundingBox;
   textbox->boxType = header.boxType;
   textbox->fill = header.fill;
+  textbox->cornerType = header.cornerType;
   textbox->cornerRadius = header.cornerRadius;
   textbox->rotation = header.rotation;
   textbox->settings.linkId = header.linkId;
@@ -388,6 +417,7 @@ void QXP33Parser::parsePictureBox(const std::shared_ptr<librevenge::RVNGInputStr
   picturebox->boundingBox = header.boundingBox;
   picturebox->boxType = header.boxType;
   picturebox->fill = header.fill;
+  picturebox->cornerType = header.cornerType;
   picturebox->cornerRadius = header.cornerRadius;
   picturebox->rotation = header.rotation;
 
@@ -432,6 +462,7 @@ void QXP33Parser::parseEmptyBox(const std::shared_ptr<librevenge::RVNGInputStrea
   box->boundingBox = header.boundingBox;
   box->boxType = header.boxType;
   box->fill = header.fill;
+  box->cornerType = header.cornerType;
   box->cornerRadius = header.cornerRadius;
   box->rotation = header.rotation;
 

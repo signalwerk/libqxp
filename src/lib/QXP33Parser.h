@@ -52,8 +52,7 @@ private:
 
     bool hflip;
     bool vflip;
-    bool beveled;
-    bool concave;
+    CornerType cornerType;
     double cornerRadius;
 
     ContentType contentType;
@@ -65,7 +64,7 @@ private:
 
     ObjectHeader()
       : fill(), contentIndex(0), linkId(0), gradientId(0),
-        rotation(0), skew(0), hflip(false), vflip(false), beveled(false), concave(false),
+        rotation(0), skew(0), hflip(false), vflip(false), cornerType(CornerType::DEFAULT),
         cornerRadius(0), contentType(ContentType::UNKNOWN), shapeType(ShapeType::UNKNOWN), boundingBox(),
         boxType(BoxType::UNKNOWN)
     { }
