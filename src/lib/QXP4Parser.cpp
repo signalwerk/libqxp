@@ -84,6 +84,7 @@ bool QXP4Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &
 
     for (unsigned i = 0; i < page.objectsCount; ++i)
     {
+      parseObject(stream, deobfuscator, coll, page);
     }
 
     coll.endPage();
@@ -303,6 +304,128 @@ Page QXP4Parser::parsePage(const std::shared_ptr<librevenge::RVNGInputStream> &s
   page.pageSettings = parsePageSettings(stream);
   page.objectsCount = deobfuscator(uint16_t(readU32(stream, be) & 0xffff));
   return page;
+}
+
+void QXP4Parser::parseObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP4Deobfuscator &deobfuscator, QXPCollector &collector, const Page &page)
+{
+  const auto header = parseObjectHeader(stream, deobfuscator);
+
+
+
+  deobfuscator.next(uint16_t(header.contentIndex));
+}
+
+QXP4Parser::ObjectHeader QXP4Parser::parseObjectHeader(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP4Deobfuscator &deobfuscator)
+{
+  ObjectHeader result;
+
+  skip(stream, 1);
+
+  bool noColor;
+  readObjectFlags(stream, noColor);
+
+  const unsigned colorId = readU16(stream, be);
+  const double shade = readFraction(stream, be);
+  if (!noColor)
+  {
+    result.fillColor = getColor(colorId).applyShade(shade);
+  }
+
+  skip(stream, 4);
+
+  const uint16_t contentIndexObf = uint16_t(readU32(stream, be) & 0xffff);
+
+  result.rotation = readFraction(stream, be);
+  result.skew = readFraction(stream, be);
+
+  result.linkId = readU32(stream, be);
+  result.oleId = readU32(stream, be);
+  result.gradientId = readU32(stream, be);
+
+  skip(stream, 4);
+
+  const bool boxFlag1 = readU8(stream);
+  const bool boxFlag2 = readU8(stream);
+  if (be)
+  {
+    result.hflip = boxFlag1 & 0x80;
+    result.vflip = boxFlag2 & 0x80;
+  }
+  else
+  {
+    result.hflip = boxFlag1 & 0x1;
+    result.vflip = boxFlag2 & 0x1;
+  }
+
+  const uint8_t contentType = deobfuscator(readU8(stream));
+  deobfuscator.nextShift(contentType);
+
+  result.contentIndex = deobfuscator(contentIndexObf);
+
+  const uint8_t shapeType = deobfuscator(readU8(stream));
+
+  switch (contentType)
+  {
+  case 0:
+    result.contentType = ContentType::NONE;
+    break;
+  case 2:
+    result.contentType = ContentType::OBJECTS;
+    break;
+  case 3:
+    result.contentType = ContentType::TEXT;
+    break;
+  case 4:
+    result.contentType = ContentType::PICTURE;
+    break;
+  default:
+    QXP_DEBUG_MSG(("Unknown content type %u\n", contentType));
+    throw ParseError();
+  }
+
+  switch (shapeType)
+  {
+  case 1:
+    result.shapeType = ShapeType::LINE;
+    break;
+  case 2:
+    result.shapeType = ShapeType::ORTHOGONAL_LINE;
+    break;
+  case 4:
+    result.shapeType = ShapeType::BEZIER_LINE;
+    break;
+  case 5:
+    result.shapeType = ShapeType::RECTANGLE;
+    result.boxType = BoxType::RECTANGLE;
+    break;
+  case 6:
+    result.shapeType = ShapeType::ROUNDED_RECTANGLE;
+    result.boxType = BoxType::RECTANGLE;
+    result.cornerType = CornerType::ROUNDED;
+    break;
+  case 7:
+    result.shapeType = ShapeType::CONCAVE_RECTANGLE;
+    result.boxType = BoxType::RECTANGLE;
+    result.cornerType = CornerType::CONCAVE;
+    break;
+  case 8:
+    result.shapeType = ShapeType::BEVELED_RECTANGLE;
+    result.boxType = BoxType::RECTANGLE;
+    result.cornerType = CornerType::BEVELED;
+    break;
+  case 9:
+    result.shapeType = ShapeType::OVAL;
+    result.boxType = BoxType::OVAL;
+    break;
+  case 11:
+    result.shapeType = ShapeType::BEZIER_BOX;
+    break;
+  default:
+    QXP_DEBUG_MSG(("Unknown shape type %u\n", shapeType));
+    throw ParseError();
+  }
+
+  return result;
 }
 
 }

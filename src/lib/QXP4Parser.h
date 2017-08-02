@@ -36,6 +36,49 @@ private:
     { }
   };
 
+  enum class ShapeType
+  {
+    UNKNOWN,
+    LINE,
+    ORTHOGONAL_LINE,
+    BEZIER_LINE,
+    RECTANGLE,
+    ROUNDED_RECTANGLE,
+    CONCAVE_RECTANGLE,
+    BEVELED_RECTANGLE,
+    OVAL,
+    BEZIER_BOX
+  };
+
+  struct ObjectHeader
+  {
+    boost::optional<Color> fillColor;
+
+    unsigned contentIndex;
+    unsigned linkId;
+    unsigned oleId;
+    unsigned gradientId;
+
+    double rotation;
+    double skew;
+
+    bool hflip;
+    bool vflip;
+
+    ContentType contentType;
+    ShapeType shapeType;
+
+    BoxType boxType;
+    CornerType cornerType;
+
+    ObjectHeader()
+      : fillColor(), contentIndex(0), linkId(0), oleId(0), gradientId(0),
+        rotation(0), skew(0), hflip(false), vflip(false),
+        contentType(ContentType::UNKNOWN), shapeType(ShapeType::UNKNOWN),
+        boxType(BoxType::UNKNOWN), cornerType(CornerType::DEFAULT)
+    { }
+  };
+
   QXP4Header m_header;
 
   std::vector<std::vector<TabStop>> m_paragraphTabStops;
@@ -53,6 +96,9 @@ private:
   ParagraphFormat parseParagraphFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) override;
 
   Page parsePage(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP4Deobfuscator &deobfuscator);
+
+  void parseObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP4Deobfuscator &deobfuscator, QXPCollector &collector, const Page &page);
+  ObjectHeader parseObjectHeader(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP4Deobfuscator &deobfuscator);
 };
 
 }
