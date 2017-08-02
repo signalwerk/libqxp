@@ -412,6 +412,19 @@ Point QXPParser::readYX(const std::shared_ptr<librevenge::RVNGInputStream> &stre
   return p;
 }
 
+void QXPParser::readObjectFlags(const std::shared_ptr<librevenge::RVNGInputStream> &stream, bool &noColor)
+{
+  const uint8_t flags = readU8(stream);
+  if (be)
+  {
+    noColor = flags & 0x80;
+  }
+  else
+  {
+    noColor = flags & 0x1;
+  }
+}
+
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

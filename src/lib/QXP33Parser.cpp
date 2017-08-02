@@ -218,8 +218,8 @@ QXP33Parser::ObjectHeader QXP33Parser::parseObjectHeader(const std::shared_ptr<l
 
   result.contentIndex = deobfuscator(uint16_t(readU32(stream, be) & 0xffff));
 
-  const uint8_t flags = readU8(stream);
-  const bool noColor = flags & 0x1;
+  bool noColor;
+  readObjectFlags(stream, noColor);
   if (!noColor)
   {
     result.fill = color;

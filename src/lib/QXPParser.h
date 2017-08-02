@@ -79,6 +79,7 @@ protected:
   HorizontalAlignment readHorAlign(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   VerticalAlignment readVertAlign(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   Point readYX(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
+  void readObjectFlags(const std::shared_ptr<librevenge::RVNGInputStream> &stream, bool &noColor);
 
 private:
   QXPHeader &m_header;
