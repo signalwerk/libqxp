@@ -310,7 +310,83 @@ void QXP4Parser::parseObject(const std::shared_ptr<librevenge::RVNGInputStream> 
 {
   const auto header = parseObjectHeader(stream, deobfuscator);
 
-
+  switch (header.contentType)
+  {
+  case ContentType::NONE:
+    switch (header.shapeType)
+    {
+    case ShapeType::LINE:
+    case ShapeType::ORTHOGONAL_LINE:
+      parseLine(stream, header, collector);
+      break;
+    case ShapeType::BEZIER_LINE:
+      parseBezierLine(stream, header, collector);
+      break;
+    case ShapeType::BEZIER_BOX:
+      parseBezierEmptyBox(stream, header, collector);
+      break;
+    case ShapeType::RECTANGLE:
+    case ShapeType::ROUNDED_RECTANGLE:
+    case ShapeType::CONCAVE_RECTANGLE:
+    case ShapeType::BEVELED_RECTANGLE:
+    case ShapeType::OVAL:
+      parseEmptyBox(stream, header, collector);
+      break;
+    default:
+      QXP_DEBUG_MSG(("Unsupported shape\n"));
+      throw GenericException();
+    }
+    break;
+  case ContentType::PICTURE:
+    switch (header.shapeType)
+    {
+    case ShapeType::BEZIER_BOX:
+      parseBezierPictureBox(stream, header, collector);
+      break;
+    case ShapeType::RECTANGLE:
+    case ShapeType::ROUNDED_RECTANGLE:
+    case ShapeType::CONCAVE_RECTANGLE:
+    case ShapeType::BEVELED_RECTANGLE:
+    case ShapeType::OVAL:
+      parsePictureBox(stream, header, collector);
+      break;
+    default:
+      QXP_DEBUG_MSG(("Unsupported shape\n"));
+      throw GenericException();
+    }
+    break;
+  case ContentType::TEXT:
+    switch (header.shapeType)
+    {
+    case ShapeType::LINE:
+    case ShapeType::ORTHOGONAL_LINE:
+      parseLineText(stream, header, collector);
+      break;
+    case ShapeType::BEZIER_LINE:
+      parseBezierText(stream, header, collector);
+      break;
+    case ShapeType::BEZIER_BOX:
+      parseBezierTextBox(stream, header, collector);
+      break;
+    case ShapeType::RECTANGLE:
+    case ShapeType::ROUNDED_RECTANGLE:
+    case ShapeType::CONCAVE_RECTANGLE:
+    case ShapeType::BEVELED_RECTANGLE:
+    case ShapeType::OVAL:
+      parseTextBox(stream, header, collector);
+      break;
+    default:
+      QXP_DEBUG_MSG(("Unsupported shape\n"));
+      throw GenericException();
+    }
+    break;
+  case ContentType::OBJECTS:
+    parseGroup(stream, header, collector, page);
+    break;
+  default:
+    QXP_DEBUG_MSG(("Unsupported content\n"));
+    throw GenericException();
+  }
 
   deobfuscator.next(uint16_t(header.contentIndex));
 }
@@ -426,6 +502,61 @@ QXP4Parser::ObjectHeader QXP4Parser::parseObjectHeader(const std::shared_ptr<lib
   }
 
   return result;
+}
+
+void QXP4Parser::parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
+{
+
+}
+
+void QXP4Parser::parseBezierLine(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
+{
+
+}
+
+void QXP4Parser::parseBezierEmptyBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
+{
+
+}
+
+void QXP4Parser::parseEmptyBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
+{
+
+}
+
+void QXP4Parser::parseBezierPictureBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
+{
+
+}
+
+void QXP4Parser::parsePictureBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
+{
+
+}
+
+void QXP4Parser::parseLineText(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
+{
+
+}
+
+void QXP4Parser::parseBezierText(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
+{
+
+}
+
+void QXP4Parser::parseBezierTextBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
+{
+
+}
+
+void QXP4Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
+{
+
+}
+
+void QXP4Parser::parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector, const Page &page)
+{
+
 }
 
 }
