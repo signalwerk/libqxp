@@ -587,7 +587,53 @@ void QXP4Parser::parseBezierTextBox(const std::shared_ptr<librevenge::RVNGInputS
 
 void QXP4Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
 {
+  auto textbox = make_shared<TextBox>();
+  textbox->cornerType = header.cornerType;
+  textbox->boxType = header.boxType;
+  textbox->rotation = header.rotation;
+  textbox->fill = header.fillColor;
+  textbox->settings.linkId = header.linkId;
 
+  textbox->frame = readFrame(stream);
+
+  skip(stream, 48);
+
+  textbox->boundingBox = readObjectBBox(stream);
+
+  textbox->cornerRadius = readFraction(stream, be);
+
+  skip(stream, 20);
+
+  if (header.gradientId != 0)
+  {
+    textbox->fill = readGradient(stream, header.color);
+  }
+
+  textbox->settings.offsetIntoText = readU32(stream, be);
+  skip(stream, 2);
+  readTextSettings(stream, textbox->settings);
+  readLinkedTextSettings(stream, textbox->settings);
+  skip(stream, 12);
+
+  if (header.contentIndex == 0)
+  {
+    skip(stream, 28);
+    collector.collectBox(textbox);
+  }
+  else
+  {
+    if (textbox->settings.offsetIntoText > 0)
+    {
+      textbox->settings.linkedIndex = header.contentIndex;
+    }
+    else
+    {
+      textbox->text = parseText(header.contentIndex, header.linkId, collector);
+      skip(stream, 12);
+    }
+
+    collector.collectTextBox(textbox);
+  }
 }
 
 void QXP4Parser::parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &, QXPCollector &collector, const Page &page)
@@ -634,6 +680,27 @@ Frame QXP4Parser::readFrame(const std::shared_ptr<librevenge::RVNGInputStream> &
   frame.gapColor = getColor(gapColorId).applyShade(gapShade);
   skip(stream, 4);
   return frame;
+}
+
+void QXP4Parser::readLinkedTextSettings(const std::shared_ptr<librevenge::RVNGInputStream> &stream, TextSettings &settings)
+{
+  settings.offsetIntoText = readU32(stream, be);
+  skip(stream, 4);
+}
+
+void QXP4Parser::readTextSettings(const std::shared_ptr<librevenge::RVNGInputStream> &stream, TextSettings &settings)
+{
+  skip(stream, 2);
+  settings.gutterWidth = readFraction(stream, be);
+  settings.inset.top = readFraction(stream, be);
+  settings.inset.left = readFraction(stream, be);
+  settings.inset.right = readFraction(stream, be);
+  settings.inset.bottom = readFraction(stream, be);
+  settings.rotation = readFraction(stream, be);
+  settings.skew = readFraction(stream, be);
+  settings.columnsCount = readU8(stream);
+  settings.verticalAlignment = readVertAlign(stream);
+  skip(stream, 10);
 }
 
 }
