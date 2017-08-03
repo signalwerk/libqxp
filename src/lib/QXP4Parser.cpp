@@ -402,9 +402,10 @@ QXP4Parser::ObjectHeader QXP4Parser::parseObjectHeader(const std::shared_ptr<lib
 
   const unsigned colorId = readU16(stream, be);
   const double shade = readFraction(stream, be);
+  result.color = getColor(colorId).applyShade(shade);
   if (!noColor)
   {
-    result.fillColor = getColor(colorId).applyShade(shade);
+    result.fillColor = result.color;
   }
 
   skip(stream, 4);
@@ -535,7 +536,28 @@ void QXP4Parser::parseBezierEmptyBox(const std::shared_ptr<librevenge::RVNGInput
 
 void QXP4Parser::parseEmptyBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
 {
+  auto box = make_shared<Box>();
+  box->cornerType = header.cornerType;
+  box->boxType = header.boxType;
+  box->rotation = header.rotation;
+  box->fill = header.fillColor;
 
+  box->frame = readFrame(stream);
+
+  skip(stream, 48);
+
+  box->boundingBox = readObjectBBox(stream);
+
+  box->cornerRadius = readFraction(stream, be);
+
+  skip(stream, 20);
+
+  if (header.gradientId != 0)
+  {
+    box->fill = readGradient(stream, header.color);
+  }
+
+  collector.collectBox(box);
 }
 
 void QXP4Parser::parseBezierPictureBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)

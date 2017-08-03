@@ -53,6 +53,7 @@ private:
   struct ObjectHeader
   {
     boost::optional<Color> fillColor;
+    Color color;
 
     unsigned contentIndex;
     unsigned linkId;
