@@ -506,7 +506,21 @@ QXP4Parser::ObjectHeader QXP4Parser::parseObjectHeader(const std::shared_ptr<lib
 
 void QXP4Parser::parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
 {
+  auto line = make_shared<Line>();
+  line->rotation = header.rotation;
 
+  auto frame = readFrame(stream);
+  line->width = frame.width;
+  line->color = frame.color;
+  line->gapColor = frame.gapColor;
+
+  skip(stream, 48);
+
+  line->boundingBox = readObjectBBox(stream);
+
+  skip(stream, 24);
+
+  collector.collectLine(line);
 }
 
 void QXP4Parser::parseBezierLine(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
@@ -557,6 +571,20 @@ void QXP4Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream>
 void QXP4Parser::parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector, const Page &page)
 {
 
+}
+
+Frame QXP4Parser::readFrame(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  Frame frame;
+  frame.width = readFraction(stream, be);
+  const double shade = readFraction(stream, be);
+  const unsigned colorId = readU16(stream, be);
+  frame.color = getColor(colorId).applyShade(shade);
+  const unsigned gapColorId = readU16(stream, be);
+  const double gapShade = readFraction(stream, be);
+  frame.gapColor = getColor(gapColorId).applyShade(gapShade);
+  skip(stream, 4);
+  return frame;
 }
 
 }
