@@ -568,9 +568,36 @@ void QXP4Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream>
 
 }
 
-void QXP4Parser::parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector, const Page &page)
+void QXP4Parser::parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &, QXPCollector &collector, const Page &page)
 {
+  auto group = make_shared<Group>();
 
+  skip(stream, 68);
+
+  group->boundingBox = readObjectBBox(stream);
+
+  skip(stream, 24);
+
+  const unsigned count = readU16(stream, be);
+  if (count > page.objectsCount - 1)
+  {
+    QXP_DEBUG_MSG(("Invalid group elements count %u\n", count));
+    throw ParseError();
+  }
+  skip(stream, 10);
+
+  group->objectsIndexes.resize(count);
+  for (unsigned &ind : group->objectsIndexes)
+  {
+    ind = readU32(stream, be);
+    if (ind >= page.objectsCount)
+    {
+      QXP_DEBUG_MSG(("Invalid group element index %u\n", ind));
+      throw ParseError();
+    }
+  }
+
+  collector.collectGroup(group);
 }
 
 Frame QXP4Parser::readFrame(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
