@@ -490,7 +490,7 @@ void QXP33Parser::parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> 
 {
   skip(stream, 10);
   const unsigned count = readU16(stream, be);
-  if (count >= page.objectsCount - 1)
+  if (count > page.objectsCount - 1)
   {
     QXP_DEBUG_MSG(("Invalid group elements count %u\n", count));
     throw ParseError();
