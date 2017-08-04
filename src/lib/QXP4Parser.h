@@ -73,7 +73,7 @@ private:
     CornerType cornerType;
 
     ObjectHeader()
-      : fillColor(), contentIndex(0), linkId(0), oleId(0), gradientId(0),
+      : fillColor(), color(), contentIndex(0), linkId(0), oleId(0), gradientId(0),
         rotation(0), skew(0), hflip(false), vflip(false),
         contentType(ContentType::UNKNOWN), shapeType(ShapeType::UNKNOWN),
         boxType(BoxType::UNKNOWN), cornerType(CornerType::DEFAULT)
