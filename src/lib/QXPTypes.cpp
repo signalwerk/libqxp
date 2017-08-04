@@ -111,6 +111,11 @@ Color Color::applyShade(double shade) const
                uint8_t(std::round(blue + (255 - blue) * tint)));
 }
 
+bool TextObject::isLinked() const
+{
+  return linkSettings.linkedIndex > 0 || linkSettings.nextLinkedIndex > 0;
+}
+
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

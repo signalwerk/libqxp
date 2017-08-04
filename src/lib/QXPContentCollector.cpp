@@ -164,7 +164,7 @@ QXPContentCollector::QXPContentCollector(librevenge::RVNGDrawingInterface *paint
   , m_isCollectingFacingPage(false)
   , m_unprocessedPages()
   , m_linkTextMap()
-  , m_linkIndexedTextBoxesMap()
+  , m_linkIndexedTextObjectsMap()
 {
 }
 
@@ -239,24 +239,7 @@ void QXPContentCollector::collectTextBox(const std::shared_ptr<TextBox> &textbox
     QXP_DEBUG_MSG(("Collected textbox with link ID 0"));
   }
 
-  if (textbox->linkSettings.linkedIndex > 0)
-  {
-    m_linkIndexedTextBoxesMap[textbox->linkSettings.linkId][textbox->linkSettings.linkedIndex] = textbox;
-  }
-
-  if (textbox->linkSettings.linkedIndex > 0 || textbox->linkSettings.nextLinkedIndex > 0)
-  {
-    getInsertionPage(textbox).linkedTextBoxes.push_back(textbox);
-  }
-
-  if (!textbox->text)
-  {
-    auto textIt = m_linkTextMap.find(textbox->linkSettings.linkId);
-    if (textIt != m_linkTextMap.end())
-    {
-      textbox->text = textIt->second;
-    }
-  }
+  collectTextObject(textbox, getInsertionPage(textbox));
 }
 
 void QXPContentCollector::collectGroup(const std::shared_ptr<Group> &group)
@@ -270,8 +253,8 @@ void QXPContentCollector::collectText(const std::shared_ptr<Text> &text, const u
 {
   m_linkTextMap[linkId] = text;
 
-  auto it = m_linkIndexedTextBoxesMap.find(linkId);
-  if (it != m_linkIndexedTextBoxesMap.end())
+  auto it = m_linkIndexedTextObjectsMap.find(linkId);
+  if (it != m_linkIndexedTextObjectsMap.end())
   {
     for (const auto &indexTextbox : it->second)
     {
@@ -341,19 +324,41 @@ void QXPContentCollector::draw(bool force)
   m_unprocessedPages.clear();
 }
 
+void QXPContentCollector::collectTextObject(const std::shared_ptr<TextObject> &textObj, CollectedPage &page)
+{
+  if (textObj->linkSettings.linkedIndex > 0)
+  {
+    m_linkIndexedTextObjectsMap[textObj->linkSettings.linkId][textObj->linkSettings.linkedIndex] = textObj;
+  }
+
+  if (textObj->isLinked())
+  {
+    page.linkedTextObjects.push_back(textObj);
+  }
+
+  if (!textObj->text)
+  {
+    auto textIt = m_linkTextMap.find(textObj->linkSettings.linkId);
+    if (textIt != m_linkTextMap.end())
+    {
+      textObj->text = textIt->second;
+    }
+  }
+}
+
 void QXPContentCollector::updateLinkedTexts()
 {
   for (const auto &page : m_unprocessedPages)
   {
-    for (const auto &textbox : page.linkedTextBoxes)
+    for (const auto &textObj : page.linkedTextObjects)
     {
-      if (textbox->linkSettings.nextLinkedIndex > 0 && !textbox->linkSettings.textLength)
+      if (textObj->linkSettings.nextLinkedIndex > 0 && !textObj->linkSettings.textLength)
       {
-        const auto textboxes = m_linkIndexedTextBoxesMap.at(textbox->linkSettings.linkId);
-        const auto nextTextboxIt = textboxes.find(textbox->linkSettings.nextLinkedIndex);
-        if (nextTextboxIt != textboxes.end())
+        const auto textObjects = m_linkIndexedTextObjectsMap.at(textObj->linkSettings.linkId);
+        const auto nextTextObjectIt = textObjects.find(textObj->linkSettings.nextLinkedIndex);
+        if (nextTextObjectIt != textObjects.end())
         {
-          textbox->linkSettings.textLength = nextTextboxIt->second->linkSettings.offsetIntoText - textbox->linkSettings.offsetIntoText;
+          textObj->linkSettings.textLength = nextTextObjectIt->second->linkSettings.offsetIntoText - textObj->linkSettings.offsetIntoText;
         }
       }
     }
@@ -364,9 +369,9 @@ bool QXPContentCollector::hasUnfinishedLinkedTexts()
 {
   for (const auto &page : m_unprocessedPages)
   {
-    for (const auto &textbox : page.linkedTextBoxes)
+    for (const auto &textObj : page.linkedTextObjects)
     {
-      if (!textbox->text || (textbox->linkSettings.nextLinkedIndex > 0 && !textbox->linkSettings.textLength))
+      if (!textObj->text || (textObj->linkSettings.nextLinkedIndex > 0 && !textObj->linkSettings.textLength))
       {
         return true;
       }

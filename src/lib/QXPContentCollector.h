@@ -103,11 +103,11 @@ private:
   {
     const PageSettings settings;
     std::vector<std::shared_ptr<CollectedObject<Group>>> groups;
-    std::vector<std::shared_ptr<TextBox>> linkedTextBoxes;
+    std::vector<std::shared_ptr<TextObject>> linkedTextObjects;
     std::vector<std::shared_ptr<CollectedObjectInterface>> objects;
 
     CollectedPage(const PageSettings &pageSettings)
-      : settings(pageSettings), groups(), linkedTextBoxes(), objects()
+      : settings(pageSettings), groups(), linkedTextObjects(), objects()
     { }
 
     double getX(const double x) const;
@@ -125,7 +125,7 @@ private:
   std::vector<CollectedPage> m_unprocessedPages;
 
   std::unordered_map<unsigned, std::shared_ptr<Text>> m_linkTextMap;
-  std::unordered_map<unsigned, std::unordered_map<unsigned, std::shared_ptr<TextBox>>> m_linkIndexedTextBoxesMap;
+  std::unordered_map<unsigned, std::unordered_map<unsigned, std::shared_ptr<TextObject>>> m_linkIndexedTextObjectsMap;
 
   CollectedPage &getInsertionPage(const std::shared_ptr<Object> &obj);
 
@@ -139,6 +139,7 @@ private:
 
   void draw(bool force = false);
 
+  void collectTextObject(const std::shared_ptr<TextObject> &textObj, CollectedPage &page);
   void updateLinkedTexts();
   bool hasUnfinishedLinkedTexts();
 

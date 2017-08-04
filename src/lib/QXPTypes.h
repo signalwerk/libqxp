@@ -280,6 +280,18 @@ struct LinkedTextSettings
   { }
 };
 
+struct TextObject
+{
+  LinkedTextSettings linkSettings;
+  boost::optional<std::shared_ptr<Text>> text;
+
+  TextObject()
+    : linkSettings(), text()
+  { }
+
+  bool isLinked() const;
+};
+
 struct TextSettings
 {
   unsigned columnsCount;
@@ -349,14 +361,12 @@ struct Box : Object
   { }
 };
 
-struct TextBox : Box
+struct TextBox : Box, TextObject
 {
   TextSettings settings;
-  LinkedTextSettings linkSettings;
-  boost::optional<std::shared_ptr<Text>> text;
 
   TextBox()
-    : settings(), linkSettings(), text()
+    : settings()
   { }
 };
 
