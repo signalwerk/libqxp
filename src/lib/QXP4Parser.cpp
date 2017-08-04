@@ -567,7 +567,39 @@ void QXP4Parser::parseBezierPictureBox(const std::shared_ptr<librevenge::RVNGInp
 
 void QXP4Parser::parsePictureBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
 {
+  auto picturebox = make_shared<PictureBox>();
+  picturebox->cornerType = header.cornerType;
+  picturebox->boxType = header.boxType;
+  picturebox->rotation = header.rotation;
+  picturebox->fill = header.fillColor;
 
+  picturebox->frame = readFrame(stream);
+
+  skip(stream, 48);
+
+  picturebox->boundingBox = readObjectBBox(stream);
+
+  picturebox->cornerRadius = readFraction(stream, be);
+
+  skip(stream, 16);
+
+  readOleObject(stream);
+
+  if (header.gradientId != 0)
+  {
+    picturebox->fill = readGradient(stream, header.color);
+  }
+
+  readPictureSettings(stream, picturebox);
+
+  skip(stream, 76);
+
+  if (header.contentIndex != 0 && header.oleId == 0)
+  {
+    readImageData(stream);
+  }
+
+  collector.collectBox(picturebox);
 }
 
 void QXP4Parser::parseLineText(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
@@ -701,6 +733,29 @@ void QXP4Parser::readTextSettings(const std::shared_ptr<librevenge::RVNGInputStr
   settings.columnsCount = readU8(stream);
   settings.verticalAlignment = readVertAlign(stream);
   skip(stream, 10);
+}
+
+void QXP4Parser::readOleObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  const unsigned length = readU32(stream, be);
+  skip(stream, length);
+}
+
+void QXP4Parser::readPictureSettings(const std::shared_ptr<librevenge::RVNGInputStream> &stream, std::shared_ptr<PictureBox> &picturebox)
+{
+  skip(stream, 24);
+  picturebox->pictureRotation = readFraction(stream, be);
+  picturebox->pictureSkew = readFraction(stream, be);
+  picturebox->offsetLeft = readFraction(stream, be);
+  picturebox->offsetTop = readFraction(stream, be);
+  picturebox->scaleHor = readFraction(stream, be);
+  picturebox->scaleVert = readFraction(stream, be);
+}
+
+void QXP4Parser::readImageData(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  const unsigned length = readU32(stream, be);
+  skip(stream, length);
 }
 
 }
