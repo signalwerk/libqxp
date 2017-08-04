@@ -40,6 +40,7 @@ public:
   void collectLine(const std::shared_ptr<Line> &line) override;
   void collectBox(const std::shared_ptr<Box> &box) override;
   void collectTextBox(const std::shared_ptr<TextBox> &box) override;
+  void collectTextPath(const std::shared_ptr<TextPath> &textPath) override;
   void collectGroup(const std::shared_ptr<Group> &group) override;
 
   void collectText(const std::shared_ptr<Text> &text, const unsigned linkId) override;
@@ -149,6 +150,7 @@ private:
   void drawOval(const std::shared_ptr<Box> &oval, const CollectedPage &page);
   void drawPolygon(const std::shared_ptr<Box> &polygon, const CollectedPage &page);
   void drawTextBox(const std::shared_ptr<TextBox> &textbox, const CollectedPage &page);
+  void drawTextPath(const std::shared_ptr<TextPath> &textPath, const CollectedPage &page);
   void drawText(const std::shared_ptr<Text> &text, const LinkedTextSettings &linkSettings);
   void drawGroup(const std::shared_ptr<Group> &group, const CollectedPage &page);
 

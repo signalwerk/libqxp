@@ -306,6 +306,33 @@ struct TextSettings
   { }
 };
 
+enum class TextPathAlignment
+{
+  ASCENT,
+  CENTER,
+  BASELINE,
+  DESCENT
+};
+
+enum class TextPathLineAlignment
+{
+  TOP,
+  CENTER,
+  BOTTOM
+};
+
+struct TextPathSettings
+{
+  bool rotate;
+  bool skew;
+  TextPathAlignment alignment;
+  TextPathLineAlignment lineAlignment;
+
+  TextPathSettings()
+    : rotate(false), skew(false), alignment(TextPathAlignment::BASELINE), lineAlignment(TextPathLineAlignment::TOP)
+  { }
+};
+
 struct Object
 {
   Rect boundingBox;
@@ -326,6 +353,15 @@ struct Line : Object
 
   Line()
     : rotation(0), width(1.0), color(), gapColor()
+  { }
+};
+
+struct TextPath : Line, TextObject
+{
+  TextPathSettings settings;
+
+  TextPath()
+    : settings()
   { }
 };
 

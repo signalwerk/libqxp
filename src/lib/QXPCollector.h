@@ -35,6 +35,7 @@ public:
   virtual void collectLine(const std::shared_ptr<Line> &) { }
   virtual void collectBox(const std::shared_ptr<Box> &) { }
   virtual void collectTextBox(const std::shared_ptr<TextBox> &) { }
+  virtual void collectTextPath(const std::shared_ptr<TextPath> &) { }
   virtual void collectGroup(const std::shared_ptr<Group> &) { }
 
   virtual void collectText(const std::shared_ptr<Text> &, const unsigned) { }

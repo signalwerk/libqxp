@@ -115,6 +115,7 @@ private:
   Frame readFrame(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   void readLinkedTextSettings(const std::shared_ptr<librevenge::RVNGInputStream> &stream, LinkedTextSettings &settings);
   void readTextSettings(const std::shared_ptr<librevenge::RVNGInputStream> &stream, TextSettings &settings);
+  void readTextPathSettings(const std::shared_ptr<librevenge::RVNGInputStream> &stream, TextPathSettings &settings);
   void readOleObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   void readPictureSettings(const std::shared_ptr<librevenge::RVNGInputStream> &stream, std::shared_ptr<PictureBox> &picturebox);
   void readImageData(const std::shared_ptr<librevenge::RVNGInputStream> &stream);

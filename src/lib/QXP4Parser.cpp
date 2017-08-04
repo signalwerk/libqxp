@@ -604,7 +604,47 @@ void QXP4Parser::parsePictureBox(const std::shared_ptr<librevenge::RVNGInputStre
 
 void QXP4Parser::parseLineText(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
 {
+  auto textpath = make_shared<TextPath>();
+  textpath->rotation = header.rotation;
+  textpath->linkSettings.linkId = header.linkId;
 
+  auto frame = readFrame(stream);
+  textpath->width = frame.width;
+  textpath->color = frame.color;
+  textpath->gapColor = frame.gapColor;
+
+  skip(stream, 48);
+
+  textpath->boundingBox = readObjectBBox(stream);
+
+  skip(stream, 24);
+
+  textpath->linkSettings.offsetIntoText = readU32(stream, be);
+  skip(stream, 44);
+  readLinkedTextSettings(stream, textpath->linkSettings);
+  skip(stream, 4);
+  readTextPathSettings(stream, textpath->settings);
+  skip(stream, 4);
+
+  if (header.contentIndex == 0)
+  {
+    skip(stream, 28);
+    collector.collectLine(textpath);
+  }
+  else
+  {
+    if (textpath->linkSettings.offsetIntoText > 0)
+    {
+      textpath->linkSettings.linkedIndex = header.contentIndex;
+    }
+    else
+    {
+      textpath->text = parseText(header.contentIndex, header.linkId, collector);
+      skip(stream, 12);
+    }
+
+    collector.collectTextPath(textpath);
+  }
 }
 
 void QXP4Parser::parseBezierText(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
@@ -733,6 +773,47 @@ void QXP4Parser::readTextSettings(const std::shared_ptr<librevenge::RVNGInputStr
   settings.columnsCount = readU8(stream);
   settings.verticalAlignment = readVertAlign(stream);
   skip(stream, 10);
+}
+
+void QXP4Parser::readTextPathSettings(const std::shared_ptr<librevenge::RVNGInputStream> &stream, TextPathSettings &settings)
+{
+  settings.skew = readU8(stream) == 1;
+  settings.rotate = readU8(stream) == 1;
+  const uint8_t align = readU8(stream);
+  switch (align)
+  {
+  default:
+    QXP_DEBUG_MSG(("Unknown text path align %u\n", align));
+  // fall-through intended: pick a default
+  case 2:
+    settings.alignment = TextPathAlignment::BASELINE;
+    break;
+  case 0:
+    settings.alignment = TextPathAlignment::ASCENT;
+    break;
+  case 1:
+    settings.alignment = TextPathAlignment::CENTER;
+    break;
+  case 3:
+    settings.alignment = TextPathAlignment::DESCENT;
+    break;
+  }
+  const uint8_t lineAlign = readU8(stream);
+  switch (lineAlign)
+  {
+  default:
+    QXP_DEBUG_MSG(("Unknown text path line align %u\n", lineAlign));
+  // fall-through intended: pick a default
+  case 0:
+    settings.lineAlignment = TextPathLineAlignment::TOP;
+    break;
+  case 1:
+    settings.lineAlignment = TextPathLineAlignment::CENTER;
+    break;
+  case 2:
+    settings.lineAlignment = TextPathLineAlignment::BOTTOM;
+    break;
+  }
 }
 
 void QXP4Parser::readOleObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream)

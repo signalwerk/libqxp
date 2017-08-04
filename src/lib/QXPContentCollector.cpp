@@ -242,6 +242,18 @@ void QXPContentCollector::collectTextBox(const std::shared_ptr<TextBox> &textbox
   collectTextObject(textbox, getInsertionPage(textbox));
 }
 
+void QXPContentCollector::collectTextPath(const std::shared_ptr<TextPath> &textPath)
+{
+  addObject<TextPath>(textPath, &QXPContentCollector::drawTextPath);
+
+  if (0 == textPath->linkSettings.linkId)
+  {
+    QXP_DEBUG_MSG(("Collected text path with link ID 0"));
+  }
+
+  collectTextObject(textPath, getInsertionPage(textPath));
+}
+
 void QXPContentCollector::collectGroup(const std::shared_ptr<Group> &group)
 {
   auto collectedObj = addObject<Group>(group, &QXPContentCollector::drawGroup);
@@ -566,6 +578,11 @@ void QXPContentCollector::drawTextBox(const std::shared_ptr<TextBox> &textbox, c
   }
 
   m_painter->endTextObject();
+}
+
+void QXPContentCollector::drawTextPath(const std::shared_ptr<TextPath> &textPath, const QXPContentCollector::CollectedPage &page)
+{
+  drawLine(textPath, page);
 }
 
 void QXPContentCollector::drawText(const std::shared_ptr<Text> &text, const LinkedTextSettings &linkSettings)
