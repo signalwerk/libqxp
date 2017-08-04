@@ -624,7 +624,7 @@ void QXP4Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream>
   textbox->boxType = header.boxType;
   textbox->rotation = header.rotation;
   textbox->fill = header.fillColor;
-  textbox->settings.linkId = header.linkId;
+  textbox->linkSettings.linkId = header.linkId;
 
   textbox->frame = readFrame(stream);
 
@@ -641,10 +641,10 @@ void QXP4Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream>
     textbox->fill = readGradient(stream, header.color);
   }
 
-  textbox->settings.offsetIntoText = readU32(stream, be);
+  textbox->linkSettings.offsetIntoText = readU32(stream, be);
   skip(stream, 2);
   readTextSettings(stream, textbox->settings);
-  readLinkedTextSettings(stream, textbox->settings);
+  readLinkedTextSettings(stream, textbox->linkSettings);
   skip(stream, 12);
 
   if (header.contentIndex == 0)
@@ -654,9 +654,9 @@ void QXP4Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream>
   }
   else
   {
-    if (textbox->settings.offsetIntoText > 0)
+    if (textbox->linkSettings.offsetIntoText > 0)
     {
-      textbox->settings.linkedIndex = header.contentIndex;
+      textbox->linkSettings.linkedIndex = header.contentIndex;
     }
     else
     {
@@ -714,7 +714,7 @@ Frame QXP4Parser::readFrame(const std::shared_ptr<librevenge::RVNGInputStream> &
   return frame;
 }
 
-void QXP4Parser::readLinkedTextSettings(const std::shared_ptr<librevenge::RVNGInputStream> &stream, TextSettings &settings)
+void QXP4Parser::readLinkedTextSettings(const std::shared_ptr<librevenge::RVNGInputStream> &stream, LinkedTextSettings &settings)
 {
   settings.offsetIntoText = readU32(stream, be);
   skip(stream, 4);

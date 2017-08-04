@@ -358,13 +358,13 @@ void QXP33Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream
   textbox->cornerType = header.cornerType;
   textbox->cornerRadius = header.cornerRadius;
   textbox->rotation = header.rotation;
-  textbox->settings.linkId = header.linkId;
+  textbox->linkSettings.linkId = header.linkId;
 
   textbox->frame = readFrame(stream);
   skip(stream, 4);
   const unsigned runaroundId = readU32(stream, be);
 
-  textbox->settings.offsetIntoText = readU32(stream, be);
+  textbox->linkSettings.offsetIntoText = readU32(stream, be);
   skip(stream, 4);
   textbox->settings.gutterWidth = readFraction(stream, be);
   textbox->settings.inset.top = readFraction(stream, be);
@@ -376,7 +376,7 @@ void QXP33Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream
   textbox->settings.columnsCount = readU8(stream);
   textbox->settings.verticalAlignment = readVertAlign(stream);
   skip(stream, 8);
-  textbox->settings.nextLinkedIndex = readU32(stream, be);
+  textbox->linkSettings.nextLinkedIndex = readU32(stream, be);
   skip(stream, 8);
 
   if (header.shapeType == ShapeType::POLYGON)
@@ -391,9 +391,9 @@ void QXP33Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream
   }
   else
   {
-    if (textbox->settings.offsetIntoText > 0)
+    if (textbox->linkSettings.offsetIntoText > 0)
     {
-      textbox->settings.linkedIndex = header.contentIndex;
+      textbox->linkSettings.linkedIndex = header.contentIndex;
     }
     else
     {

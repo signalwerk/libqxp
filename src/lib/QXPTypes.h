@@ -267,6 +267,19 @@ struct Frame
   { }
 };
 
+struct LinkedTextSettings
+{
+  unsigned linkId;
+  unsigned offsetIntoText;
+  unsigned linkedIndex;
+  unsigned nextLinkedIndex;
+  boost::optional<unsigned> textLength;
+
+  LinkedTextSettings()
+    : linkId(0), offsetIntoText(0), linkedIndex(0), nextLinkedIndex(0), textLength()
+  { }
+};
+
 struct TextSettings
 {
   unsigned columnsCount;
@@ -276,16 +289,8 @@ struct TextSettings
   double rotation;
   double skew;
 
-  // for linked textboxes
-  unsigned linkId;
-  unsigned offsetIntoText;
-  unsigned linkedIndex;
-  unsigned nextLinkedIndex;
-  boost::optional<unsigned> textLength;
-
   TextSettings()
-    : columnsCount(1), gutterWidth(12.0), verticalAlignment(VerticalAlignment::TOP), inset(), rotation(0), skew(0),
-      linkId(0), offsetIntoText(0), linkedIndex(0), nextLinkedIndex(0), textLength()
+    : columnsCount(1), gutterWidth(12.0), verticalAlignment(VerticalAlignment::TOP), inset(), rotation(0), skew(0)
   { }
 };
 
@@ -347,10 +352,11 @@ struct Box : Object
 struct TextBox : Box
 {
   TextSettings settings;
+  LinkedTextSettings linkSettings;
   boost::optional<std::shared_ptr<Text>> text;
 
   TextBox()
-    : settings(), text()
+    : settings(), linkSettings(), text()
   { }
 };
 

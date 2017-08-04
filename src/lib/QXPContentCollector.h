@@ -148,7 +148,7 @@ private:
   void drawOval(const std::shared_ptr<Box> &oval, const CollectedPage &page);
   void drawPolygon(const std::shared_ptr<Box> &polygon, const CollectedPage &page);
   void drawTextBox(const std::shared_ptr<TextBox> &textbox, const CollectedPage &page);
-  void drawText(const std::shared_ptr<Text> &text, const TextSettings &settings);
+  void drawText(const std::shared_ptr<Text> &text, const LinkedTextSettings &linkSettings);
   void drawGroup(const std::shared_ptr<Group> &group, const CollectedPage &page);
 
   void writeFill(librevenge::RVNGPropertyList &propList, const boost::optional<Fill> &fill);

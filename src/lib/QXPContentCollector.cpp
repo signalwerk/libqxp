@@ -234,24 +234,24 @@ void QXPContentCollector::collectTextBox(const std::shared_ptr<TextBox> &textbox
 {
   addObject<TextBox>(textbox, &QXPContentCollector::drawTextBox);
 
-  if (0 == textbox->settings.linkId)
+  if (0 == textbox->linkSettings.linkId)
   {
     QXP_DEBUG_MSG(("Collected textbox with link ID 0"));
   }
 
-  if (textbox->settings.linkedIndex > 0)
+  if (textbox->linkSettings.linkedIndex > 0)
   {
-    m_linkIndexedTextBoxesMap[textbox->settings.linkId][textbox->settings.linkedIndex] = textbox;
+    m_linkIndexedTextBoxesMap[textbox->linkSettings.linkId][textbox->linkSettings.linkedIndex] = textbox;
   }
 
-  if (textbox->settings.linkedIndex > 0 || textbox->settings.nextLinkedIndex > 0)
+  if (textbox->linkSettings.linkedIndex > 0 || textbox->linkSettings.nextLinkedIndex > 0)
   {
     getInsertionPage(textbox).linkedTextBoxes.push_back(textbox);
   }
 
   if (!textbox->text)
   {
-    auto textIt = m_linkTextMap.find(textbox->settings.linkId);
+    auto textIt = m_linkTextMap.find(textbox->linkSettings.linkId);
     if (textIt != m_linkTextMap.end())
     {
       textbox->text = textIt->second;
@@ -347,13 +347,13 @@ void QXPContentCollector::updateLinkedTexts()
   {
     for (const auto &textbox : page.linkedTextBoxes)
     {
-      if (textbox->settings.nextLinkedIndex > 0 && !textbox->settings.textLength)
+      if (textbox->linkSettings.nextLinkedIndex > 0 && !textbox->linkSettings.textLength)
       {
-        const auto textboxes = m_linkIndexedTextBoxesMap.at(textbox->settings.linkId);
-        const auto nextTextboxIt = textboxes.find(textbox->settings.nextLinkedIndex);
+        const auto textboxes = m_linkIndexedTextBoxesMap.at(textbox->linkSettings.linkId);
+        const auto nextTextboxIt = textboxes.find(textbox->linkSettings.nextLinkedIndex);
         if (nextTextboxIt != textboxes.end())
         {
-          textbox->settings.textLength = nextTextboxIt->second->settings.offsetIntoText - textbox->settings.offsetIntoText;
+          textbox->linkSettings.textLength = nextTextboxIt->second->linkSettings.offsetIntoText - textbox->linkSettings.offsetIntoText;
         }
       }
     }
@@ -366,7 +366,7 @@ bool QXPContentCollector::hasUnfinishedLinkedTexts()
   {
     for (const auto &textbox : page.linkedTextBoxes)
     {
-      if (!textbox->text || (textbox->settings.nextLinkedIndex > 0 && !textbox->settings.textLength))
+      if (!textbox->text || (textbox->linkSettings.nextLinkedIndex > 0 && !textbox->linkSettings.textLength))
       {
         return true;
       }
@@ -557,16 +557,16 @@ void QXPContentCollector::drawTextBox(const std::shared_ptr<TextBox> &textbox, c
 
   if (textbox->text)
   {
-    drawText(textbox->text.get(), textbox->settings);
+    drawText(textbox->text.get(), textbox->linkSettings);
   }
 
   m_painter->endTextObject();
 }
 
-void QXPContentCollector::drawText(const std::shared_ptr<Text> &text, const TextSettings &settings)
+void QXPContentCollector::drawText(const std::shared_ptr<Text> &text, const LinkedTextSettings &linkSettings)
 {
-  unsigned long spanTextStart = settings.offsetIntoText;
-  const unsigned long textEnd = settings.textLength ? (spanTextStart + settings.textLength.get()) : text->text.length();
+  unsigned long spanTextStart = linkSettings.offsetIntoText;
+  const unsigned long textEnd = linkSettings.textLength ? (spanTextStart + linkSettings.textLength.get()) : text->text.length();
 
   for (auto &paragraph : text->paragraphs)
   {
