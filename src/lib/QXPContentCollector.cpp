@@ -400,7 +400,7 @@ void QXPContentCollector::drawLine(const std::shared_ptr<Line> &line, const QXPC
   frame.width = line->width;
   frame.color = line->color;
   frame.gapColor = line->gapColor;
-  writeFrame(propList, frame);
+  writeFrame(propList, frame, true);
 
   m_painter->setStyle(propList);
   propList.clear();
@@ -702,11 +702,11 @@ void QXPContentCollector::writeFill(librevenge::RVNGPropertyList &propList, cons
   }
 }
 
-void QXPContentCollector::writeFrame(librevenge::RVNGPropertyList &propList, const Frame &frame)
+void QXPContentCollector::writeFrame(librevenge::RVNGPropertyList &propList, const Frame &frame, bool allowHairline)
 {
   propList.insert("draw:stroke", "none");
 
-  if (frame.color && !QXP_ALMOST_ZERO(frame.width))
+  if (frame.color && (allowHairline || !QXP_ALMOST_ZERO(frame.width)))
   {
     propList.insert("draw:stroke", "solid");
     propList.insert("svg:stroke-color", frame.color->toString());

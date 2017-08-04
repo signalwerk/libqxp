@@ -152,7 +152,7 @@ private:
   void drawGroup(const std::shared_ptr<Group> &group, const CollectedPage &page);
 
   void writeFill(librevenge::RVNGPropertyList &propList, const boost::optional<Fill> &fill);
-  void writeFrame(librevenge::RVNGPropertyList &propList, const Frame &frame);
+  void writeFrame(librevenge::RVNGPropertyList &propList, const Frame &frame, bool allowHairline = true);
 };
 
 }
