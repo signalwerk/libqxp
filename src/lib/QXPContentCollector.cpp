@@ -589,6 +589,11 @@ void QXPContentCollector::drawTextPath(const std::shared_ptr<TextPath> &textPath
 {
   drawLine(textPath, page);
 
+  if (!textPath->text || textPath->text.get()->charFormats.empty())
+  {
+    return;
+  }
+
   double lineY;
   switch (textPath->settings.lineAlignment)
   {
@@ -648,10 +653,7 @@ void QXPContentCollector::drawTextPath(const std::shared_ptr<TextPath> &textPath
 
   m_painter->startTextObject(textObjPropList);
 
-  if (textPath->text)
-  {
-    drawText(textPath->text.get(), textPath->linkSettings);
-  }
+  drawText(textPath->text.get(), textPath->linkSettings);
 
   m_painter->endTextObject();
 }
