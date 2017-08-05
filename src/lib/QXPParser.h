@@ -50,7 +50,7 @@ protected:
   std::vector<std::shared_ptr<ParagraphFormat>> m_paragraphFormats;
 
   Color getColor(unsigned id, Color defaultColor = Color(0, 0, 0)) const;
-  std::string getFont(unsigned id, std::string defaultFont = "Arial") const;
+  std::string getFont(int id, std::string defaultFont = "Arial") const;
 
   virtual bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) = 0;
   virtual bool parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXPCollector &collector) = 0;

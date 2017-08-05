@@ -75,12 +75,12 @@ Color QXPParser::getColor(unsigned id, Color defaultColor) const
   return (*it).second;
 }
 
-std::string QXPParser::getFont(unsigned id, std::string defaultFont) const
+std::string QXPParser::getFont(int id, std::string defaultFont) const
 {
   auto it = m_fonts.find(id);
   if (it == m_fonts.end())
   {
-    QXP_DEBUG_MSG(("Font %u not found\n", id));
+    QXP_DEBUG_MSG(("Font %d not found\n", id));
     return defaultFont;
   }
   return (*it).second;
