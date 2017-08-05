@@ -756,7 +756,7 @@ Frame QXP4Parser::readFrame(const std::shared_ptr<librevenge::RVNGInputStream> &
 
 void QXP4Parser::readLinkedTextSettings(const std::shared_ptr<librevenge::RVNGInputStream> &stream, LinkedTextSettings &settings)
 {
-  settings.offsetIntoText = readU32(stream, be);
+  settings.nextLinkedIndex = readU32(stream, be);
   skip(stream, 4);
 }
 
