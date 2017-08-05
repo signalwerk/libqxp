@@ -53,6 +53,10 @@ saved_CPPFLAGS="${CPPFLAGS}"
 CPPFLAGS="${BOOST_CFLAGS} ${CPPFLAGS}"
 AC_CHECK_HEADERS(
         boost/cstdint.hpp \
+        boost/math/constants/constants.hpp \
+        boost/optional.hpp \
+        boost/range/adaptor/reversed.hpp \
+        boost/variant.hpp \
         ,
     [],
     [AC_MSG_ERROR([Required boost headers not found.])],
