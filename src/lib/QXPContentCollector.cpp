@@ -8,6 +8,7 @@
  */
 
 #include "QXPContentCollector.h"
+#include <algorithm>
 #include <boost/range/adaptor/reversed.hpp>
 #include <boost/variant.hpp>
 
@@ -583,6 +584,72 @@ void QXPContentCollector::drawTextBox(const std::shared_ptr<TextBox> &textbox, c
 void QXPContentCollector::drawTextPath(const std::shared_ptr<TextPath> &textPath, const QXPContentCollector::CollectedPage &page)
 {
   drawLine(textPath, page);
+
+  double lineY;
+  switch (textPath->settings.lineAlignment)
+  {
+  default:
+  case TextPathLineAlignment::TOP:
+    lineY = textPath->boundingBox.top - textPath->width / 2;
+    break;
+  case TextPathLineAlignment::CENTER:
+    lineY = textPath->boundingBox.top;
+    break;
+  case TextPathLineAlignment::BOTTOM:
+    lineY = textPath->boundingBox.top + textPath->width / 2;
+    break;
+  }
+
+  const double height = std::max_element(textPath->text.get()->charFormats.begin(), textPath->text.get()->charFormats.end(),
+                                         [](const CharFormatSpec &f1, const CharFormatSpec &f2)
+  {
+    return f1.format->fontSize < f2.format->fontSize;
+  })->format->fontSize;
+
+  double textY;
+  switch (textPath->settings.alignment)
+  {
+  default:
+  case TextPathAlignment::DESCENT:
+  case TextPathAlignment::BASELINE:
+    textY = lineY - height;
+    break;
+  case TextPathAlignment::CENTER:
+    textY = lineY - height / 2;
+    break;
+  case TextPathAlignment::ASCENT:
+    textY = lineY;
+    break;
+  }
+
+  librevenge::RVNGPropertyList textObjPropList;
+
+  textObjPropList.insert("svg:x", page.getX(textPath->boundingBox.left), RVNG_POINT);
+  textObjPropList.insert("svg:y", page.getY(textY), RVNG_POINT);
+  // shouldn't grow vertically
+  textObjPropList.insert("svg:width", textPath->boundingBox.width() + textPath->boundingBox.width() / 2, RVNG_POINT);
+  textObjPropList.insert("svg:height", height, RVNG_POINT);
+
+  textObjPropList.insert("fo:padding-top", 0, RVNG_POINT);
+  textObjPropList.insert("fo:padding-right", 0, RVNG_POINT);
+  textObjPropList.insert("fo:padding-bottom", 0, RVNG_POINT);
+  textObjPropList.insert("fo:padding-left", 0, RVNG_POINT);
+
+  if (!QXP_ALMOST_ZERO(textPath->rotation))
+  {
+    textObjPropList.insert("librevenge:rotate", -textPath->rotation);
+  }
+
+  writeZIndex(textObjPropList, textPath->zIndex + 1);
+
+  m_painter->startTextObject(textObjPropList);
+
+  if (textPath->text)
+  {
+    drawText(textPath->text.get(), textPath->linkSettings);
+  }
+
+  m_painter->endTextObject();
 }
 
 void QXPContentCollector::drawText(const std::shared_ptr<Text> &text, const LinkedTextSettings &linkSettings)
