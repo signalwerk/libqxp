@@ -16,6 +16,31 @@ namespace libqxp
 
 using librevenge::RVNGStringStream;
 using std::make_shared;
+using std::shared_ptr;
+
+namespace
+{
+
+template<typename T>
+shared_ptr<T> createBox(const QXP4Parser::ObjectHeader &header)
+{
+  auto box = make_shared<T>();
+  box->cornerType = header.cornerType;
+  box->boxType = header.boxType;
+  box->rotation = header.rotation;
+  box->fill = header.fillColor;
+  return box;
+}
+
+template<typename T>
+shared_ptr<T> createLine(const QXP4Parser::ObjectHeader &header)
+{
+  auto line = make_shared<T>();
+  line->rotation = header.rotation;
+  return line;
+}
+
+}
 
 QXP4Parser::QXP4Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter,
                        const QXPHeader &commonHeader)
@@ -507,8 +532,7 @@ QXP4Parser::ObjectHeader QXP4Parser::parseObjectHeader(const std::shared_ptr<lib
 
 void QXP4Parser::parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
 {
-  auto line = make_shared<Line>();
-  line->rotation = header.rotation;
+  auto line = createLine<Line>(header);
 
   auto frame = readFrame(stream);
   line->width = frame.width;
@@ -536,11 +560,7 @@ void QXP4Parser::parseBezierEmptyBox(const std::shared_ptr<librevenge::RVNGInput
 
 void QXP4Parser::parseEmptyBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
 {
-  auto box = make_shared<Box>();
-  box->cornerType = header.cornerType;
-  box->boxType = header.boxType;
-  box->rotation = header.rotation;
-  box->fill = header.fillColor;
+  auto box = createBox<Box>(header);
 
   box->frame = readFrame(stream);
 
@@ -567,11 +587,7 @@ void QXP4Parser::parseBezierPictureBox(const std::shared_ptr<librevenge::RVNGInp
 
 void QXP4Parser::parsePictureBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
 {
-  auto picturebox = make_shared<PictureBox>();
-  picturebox->cornerType = header.cornerType;
-  picturebox->boxType = header.boxType;
-  picturebox->rotation = header.rotation;
-  picturebox->fill = header.fillColor;
+  auto picturebox = createBox<PictureBox>(header);
 
   picturebox->frame = readFrame(stream);
 
@@ -604,8 +620,7 @@ void QXP4Parser::parsePictureBox(const std::shared_ptr<librevenge::RVNGInputStre
 
 void QXP4Parser::parseLineText(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
 {
-  auto textpath = make_shared<TextPath>();
-  textpath->rotation = header.rotation;
+  auto textpath = createLine<TextPath>(header);
   textpath->linkSettings.linkId = header.linkId;
 
   auto frame = readFrame(stream);
@@ -659,11 +674,7 @@ void QXP4Parser::parseBezierTextBox(const std::shared_ptr<librevenge::RVNGInputS
 
 void QXP4Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
 {
-  auto textbox = make_shared<TextBox>();
-  textbox->cornerType = header.cornerType;
-  textbox->boxType = header.boxType;
-  textbox->rotation = header.rotation;
-  textbox->fill = header.fillColor;
+  auto textbox = createBox<TextBox>(header);
   textbox->linkSettings.linkId = header.linkId;
 
   textbox->frame = readFrame(stream);

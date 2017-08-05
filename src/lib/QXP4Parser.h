@@ -25,17 +25,6 @@ public:
   QXP4Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter,
              const QXPHeader &commonHeader);
 
-private:
-  struct ColorBlockSpec
-  {
-    unsigned offset;
-    unsigned padding;
-
-    ColorBlockSpec()
-      : offset(0), padding(0)
-    { }
-  };
-
   enum class ShapeType
   {
     UNKNOWN,
@@ -77,6 +66,17 @@ private:
         rotation(0), skew(0), hflip(false), vflip(false),
         contentType(ContentType::UNKNOWN), shapeType(ShapeType::UNKNOWN),
         boxType(BoxType::UNKNOWN), cornerType(CornerType::DEFAULT)
+    { }
+  };
+
+private:
+  struct ColorBlockSpec
+  {
+    unsigned offset;
+    unsigned padding;
+
+    ColorBlockSpec()
+      : offset(0), padding(0)
     { }
   };
 

@@ -16,6 +16,45 @@ namespace libqxp
 using librevenge::RVNGInputStream;
 using std::make_shared;
 using std::vector;
+using std::shared_ptr;
+
+namespace
+{
+
+template<typename T>
+shared_ptr<T> createBox(const QXP33Parser::ObjectHeader &header)
+{
+  auto box = make_shared<T>();
+  box->boundingBox = header.boundingBox;
+  box->boxType = header.boxType;
+  box->fill = header.fill;
+  box->cornerType = header.cornerType;
+  box->cornerRadius = header.cornerRadius;
+  box->rotation = header.rotation;
+  return box;
+}
+
+template<typename T>
+shared_ptr<T> createLine(const QXP33Parser::ObjectHeader &header)
+{
+  auto line = make_shared<T>();
+  line->boundingBox = header.boundingBox;
+  line->rotation = header.rotation;
+  if (auto fill = header.fill.get_ptr())
+  {
+    if (auto color = boost::get<Color>(fill))
+    {
+      line->color = *color;
+    }
+    else
+    {
+      QXP_DEBUG_MSG(("Unsupported line fill type\n"));
+    }
+  }
+  return line;
+}
+
+}
 
 QXP33Parser::QXP33Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter,
                          const QXPHeader &commonHeader)
@@ -328,20 +367,7 @@ QXP33Parser::ObjectHeader QXP33Parser::parseObjectHeader(const std::shared_ptr<l
 
 void QXP33Parser::parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP33Parser::ObjectHeader &header, QXPCollector &collector)
 {
-  auto line = make_shared<Line>();
-  line->boundingBox = header.boundingBox;
-  line->rotation = header.rotation;
-  if (auto fill = header.fill.get_ptr())
-  {
-    if (auto color = boost::get<Color>(fill))
-    {
-      line->color = *color;
-    }
-    else
-    {
-      QXP_DEBUG_MSG(("Unsupported line fill type\n"));
-    }
-  }
+  auto line = createLine<Line>(header);
 
   line->width = readFraction(stream, be);
   skip(stream, 2);
@@ -351,13 +377,7 @@ void QXP33Parser::parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &
 
 void QXP33Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP33Parser::ObjectHeader &header, QXPCollector &collector)
 {
-  auto textbox = make_shared<TextBox>();
-  textbox->boundingBox = header.boundingBox;
-  textbox->boxType = header.boxType;
-  textbox->fill = header.fill;
-  textbox->cornerType = header.cornerType;
-  textbox->cornerRadius = header.cornerRadius;
-  textbox->rotation = header.rotation;
+  auto textbox = createBox<TextBox>(header);
   textbox->linkSettings.linkId = header.linkId;
 
   textbox->frame = readFrame(stream);
@@ -413,13 +433,7 @@ void QXP33Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream
 
 void QXP33Parser::parsePictureBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP33Parser::ObjectHeader &header, QXPCollector &collector)
 {
-  auto picturebox = make_shared<PictureBox>();
-  picturebox->boundingBox = header.boundingBox;
-  picturebox->boxType = header.boxType;
-  picturebox->fill = header.fill;
-  picturebox->cornerType = header.cornerType;
-  picturebox->cornerRadius = header.cornerRadius;
-  picturebox->rotation = header.rotation;
+  auto picturebox = createBox<PictureBox>(header);
 
   picturebox->frame = readFrame(stream);
   skip(stream, 4);
@@ -458,13 +472,7 @@ void QXP33Parser::parsePictureBox(const std::shared_ptr<librevenge::RVNGInputStr
 
 void QXP33Parser::parseEmptyBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP33Parser::ObjectHeader &header, QXPCollector &collector)
 {
-  auto box = make_shared<Box>();
-  box->boundingBox = header.boundingBox;
-  box->boxType = header.boxType;
-  box->fill = header.fill;
-  box->cornerType = header.cornerType;
-  box->cornerRadius = header.cornerRadius;
-  box->rotation = header.rotation;
+  auto box = createBox<Box>(header);
 
   box->frame = readFrame(stream);
   skip(stream, 4);

@@ -27,7 +27,6 @@ public:
   QXP33Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter,
               const QXPHeader &commonHeader);
 
-private:
   enum class ShapeType
   {
     UNKNOWN,
@@ -70,6 +69,7 @@ private:
     { }
   };
 
+private:
   QXP33Header m_header;
 
   bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) override;
