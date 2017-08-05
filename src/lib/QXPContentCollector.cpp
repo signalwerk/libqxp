@@ -64,8 +64,9 @@ void flushText(librevenge::RVNGDrawingInterface *painter, string &text)
   }
 }
 
-void insertText(librevenge::RVNGDrawingInterface *painter,  const RVNGString &text)
+void insertText(librevenge::RVNGDrawingInterface *painter, const RVNGString &text)
 {
+  // TODO: need to remember wasSpace on span change?
   bool wasSpace = false;
   std::string curText;
 
@@ -77,12 +78,15 @@ void insertText(librevenge::RVNGDrawingInterface *painter,  const RVNGString &te
     switch (utf8Char[0])
     {
     case '\r':
+      wasSpace = false;
       break;
     case '\n':
+      wasSpace = false;
       flushText(painter, curText);
       painter->insertLineBreak();
       break;
     case '\t':
+      wasSpace = false;
       flushText(painter, curText);
       painter->insertTab();
       break;
