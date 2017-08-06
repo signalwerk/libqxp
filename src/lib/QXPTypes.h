@@ -333,6 +333,16 @@ struct TextPathSettings
   { }
 };
 
+struct CurveComponent
+{
+  Rect boundingBox;
+  std::vector<Point> points;
+
+  CurveComponent()
+    : boundingBox(), points()
+  { }
+};
+
 struct Object
 {
   Rect boundingBox;
@@ -350,9 +360,10 @@ struct Line : Object
   double width;
   boost::optional<Color> color;
   boost::optional<Color> gapColor;
+  std::vector<CurveComponent> curveComponents;
 
   Line()
-    : rotation(0), width(1.0), color(), gapColor()
+    : rotation(0), width(1.0), color(), gapColor(), curveComponents()
   { }
 };
 
@@ -378,7 +389,8 @@ enum class BoxType
   UNKNOWN,
   RECTANGLE,
   OVAL,
-  POLYGON
+  POLYGON,
+  BEZIER
 };
 
 struct Box : Object
@@ -390,10 +402,11 @@ struct Box : Object
   double cornerRadius;
   double rotation;
   std::vector<Point> customPoints;
+  std::vector<CurveComponent> curveComponents;
 
   Box()
     : fill(), frame(), boxType(BoxType::UNKNOWN), cornerType(CornerType::DEFAULT), cornerRadius(0.0), rotation(0),
-      customPoints()
+      customPoints(), curveComponents()
   { }
 };
 

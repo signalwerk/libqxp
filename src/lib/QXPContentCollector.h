@@ -149,6 +149,7 @@ private:
   void drawRectangle(const std::shared_ptr<Box> &box, const CollectedPage &page);
   void drawOval(const std::shared_ptr<Box> &oval, const CollectedPage &page);
   void drawPolygon(const std::shared_ptr<Box> &polygon, const CollectedPage &page);
+  void drawBezierBox(const std::shared_ptr<Box> &box, const CollectedPage &page);
   void drawTextBox(const std::shared_ptr<TextBox> &textbox, const CollectedPage &page);
   void drawTextPath(const std::shared_ptr<TextPath> &textPath, const CollectedPage &page);
   void drawText(const std::shared_ptr<Text> &text, const LinkedTextSettings &linkSettings);

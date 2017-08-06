@@ -447,6 +447,9 @@ void QXPContentCollector::drawBox(const std::shared_ptr<Box> &box, const QXPCont
   case BoxType::POLYGON:
     drawPolygon(box, page);
     break;
+  case BoxType::BEZIER:
+    drawBezierBox(box, page);
+    break;
   }
 }
 
@@ -533,6 +536,11 @@ void QXPContentCollector::drawPolygon(const std::shared_ptr<Box> &polygon, const
   writeZIndex(propList, polygon->zIndex);
 
   m_painter->drawPath(propList);
+}
+
+void QXPContentCollector::drawBezierBox(const std::shared_ptr<Box> &box, const QXPContentCollector::CollectedPage &page)
+{
+  drawRectangle(box, page);
 }
 
 void QXPContentCollector::drawTextBox(const std::shared_ptr<TextBox> &textbox, const QXPContentCollector::CollectedPage &page)

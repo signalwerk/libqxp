@@ -521,6 +521,7 @@ QXP4Parser::ObjectHeader QXP4Parser::parseObjectHeader(const std::shared_ptr<lib
     break;
   case 11:
     result.shapeType = ShapeType::BEZIER_BOX;
+    result.boxType = BoxType::BEZIER;
     break;
   default:
     QXP_DEBUG_MSG(("Unknown shape type %u\n", shapeType));
@@ -550,12 +551,36 @@ void QXP4Parser::parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &s
 
 void QXP4Parser::parseBezierLine(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
 {
+  auto line = createLine<Line>(header);
 
+  auto frame = readFrame(stream);
+  line->width = frame.width;
+  line->color = frame.color;
+  line->gapColor = frame.gapColor;
+
+  skip(stream, 88);
+
+  readBezierData(stream, line->curveComponents, line->boundingBox);
+
+  collector.collectLine(line);
 }
 
 void QXP4Parser::parseBezierEmptyBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
 {
+  auto box = createBox<Box>(header);
 
+  box->frame = readFrame(stream);
+
+  skip(stream, 88);
+
+  if (header.gradientId != 0)
+  {
+    box->fill = readGradient(stream, header.color);
+  }
+
+  readBezierData(stream, box->curveComponents, box->boundingBox);
+
+  collector.collectBox(box);
 }
 
 void QXP4Parser::parseEmptyBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
@@ -582,7 +607,31 @@ void QXP4Parser::parseEmptyBox(const std::shared_ptr<librevenge::RVNGInputStream
 
 void QXP4Parser::parseBezierPictureBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
 {
+  auto box = createBox<PictureBox>(header);
 
+  box->frame = readFrame(stream);
+
+  skip(stream, 84);
+
+  readOleObject(stream);
+
+  if (header.gradientId != 0)
+  {
+    box->fill = readGradient(stream, header.color);
+  }
+
+  readPictureSettings(stream, box);
+
+  skip(stream, 76);
+
+  if (header.contentIndex != 0 && header.oleId == 0)
+  {
+    readImageData(stream);
+  }
+
+  readBezierData(stream, box->curveComponents, box->boundingBox);
+
+  collector.collectBox(box);
 }
 
 void QXP4Parser::parsePictureBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
@@ -664,12 +713,87 @@ void QXP4Parser::parseLineText(const std::shared_ptr<librevenge::RVNGInputStream
 
 void QXP4Parser::parseBezierText(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
 {
+  auto textpath = createLine<TextPath>(header);
+  textpath->linkSettings.linkId = header.linkId;
 
+  auto frame = readFrame(stream);
+  textpath->width = frame.width;
+  textpath->color = frame.color;
+  textpath->gapColor = frame.gapColor;
+
+  skip(stream, 88);
+
+  textpath->linkSettings.offsetIntoText = readU32(stream, be);
+  skip(stream, 44);
+  readLinkedTextSettings(stream, textpath->linkSettings);
+  skip(stream, 4);
+  readTextPathSettings(stream, textpath->settings);
+  skip(stream, 4);
+
+  readBezierData(stream, textpath->curveComponents, textpath->boundingBox);
+
+  if (header.contentIndex == 0)
+  {
+    skip(stream, 28);
+    collector.collectLine(textpath);
+  }
+  else
+  {
+    if (textpath->linkSettings.offsetIntoText > 0)
+    {
+      textpath->linkSettings.linkedIndex = header.contentIndex;
+    }
+    else
+    {
+      textpath->text = parseText(header.contentIndex, header.linkId, collector);
+      skip(stream, 12);
+    }
+
+    collector.collectTextPath(textpath);
+  }
 }
 
 void QXP4Parser::parseBezierTextBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
 {
+  auto textbox = createBox<TextBox>(header);
+  textbox->linkSettings.linkId = header.linkId;
 
+  textbox->frame = readFrame(stream);
+
+  skip(stream, 88);
+
+  if (header.gradientId != 0)
+  {
+    textbox->fill = readGradient(stream, header.color);
+  }
+
+  textbox->linkSettings.offsetIntoText = readU32(stream, be);
+  skip(stream, 2);
+  readTextSettings(stream, textbox->settings);
+  readLinkedTextSettings(stream, textbox->linkSettings);
+  skip(stream, 12);
+
+  readBezierData(stream, textbox->curveComponents, textbox->boundingBox);
+
+  if (header.contentIndex == 0)
+  {
+    skip(stream, 28);
+    collector.collectBox(textbox);
+  }
+  else
+  {
+    if (textbox->linkSettings.offsetIntoText > 0)
+    {
+      textbox->linkSettings.linkedIndex = header.contentIndex;
+    }
+    else
+    {
+      textbox->text = parseText(header.contentIndex, header.linkId, collector);
+      skip(stream, 12);
+    }
+
+    collector.collectTextBox(textbox);
+  }
 }
 
 void QXP4Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, QXPCollector &collector)
@@ -848,6 +972,67 @@ void QXP4Parser::readImageData(const std::shared_ptr<librevenge::RVNGInputStream
 {
   const unsigned length = readU32(stream, be);
   skip(stream, length);
+}
+
+void QXP4Parser::readBezierData(const std::shared_ptr<librevenge::RVNGInputStream> &stream, std::vector<CurveComponent> &curveComponents, Rect &bbox)
+{
+  const unsigned length = readU32(stream, be);
+  if (length > getLength(stream))
+  {
+    QXP_DEBUG_MSG(("Invalid bezier data length %ul\n", length));
+    throw ParseError();
+  }
+  const unsigned long start = stream->tell();
+  const unsigned long end = start + length;
+
+  try
+  {
+    skip(stream, 2);
+    const unsigned componentsCount = readU16(stream, be);
+    if (componentsCount > length / 24)
+    {
+      QXP_DEBUG_MSG(("Invalid bezier components count %u\n", componentsCount));
+      throw ParseError();
+    }
+
+    bbox = readObjectBBox(stream);
+
+    std::vector<unsigned long> componentsOffsets;
+    componentsOffsets.resize(componentsCount);
+    for (auto &off : componentsOffsets)
+    {
+      off = start + readU32(stream, be);
+    }
+
+    curveComponents.resize(componentsCount);
+    unsigned i = 0;
+    for (auto &comp : curveComponents)
+    {
+      seek(stream, componentsOffsets[i++]);
+
+      skip(stream, 2);
+      const unsigned pointsCount = readU16(stream, be);
+      if (pointsCount > length / 8)
+      {
+        QXP_DEBUG_MSG(("Invalid bezier points count %u\n", componentsCount));
+        throw ParseError();
+      }
+
+      comp.boundingBox = readObjectBBox(stream);
+
+      comp.points.resize(pointsCount);
+      for (auto &p : comp.points)
+      {
+        p = readYX(stream);
+      }
+    }
+  }
+  catch (...)
+  {
+    QXP_DEBUG_MSG(("Failed to parse bezier data, offset %ld\n", stream->tell()));
+  }
+
+  seek(stream, end);
 }
 
 }
