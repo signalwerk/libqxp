@@ -28,6 +28,18 @@ libqxp_@QXP_MAJOR_VERSION@_@QXP_MINOR_VERSION@_la_SOURCES = \
 	QXPDocument.cpp
 
 libqxp_internal_la_SOURCES = \
+	QXP33Deobfuscator.cpp \
+	QXP33Deobfuscator.h \
+	QXP33Header.cpp \
+	QXP33Header.h \
+	QXP33Parser.cpp \
+	QXP33Parser.h \
+	QXP4Deobfuscator.cpp \
+	QXP4Deobfuscator.h \
+	QXP4Header.cpp \
+	QXP4Header.h \
+	QXP4Parser.cpp \
+	QXP4Parser.h \
 	QXPBlockParser.cpp \
 	QXPBlockParser.h \
 	QXPCollector.h \
@@ -35,22 +47,10 @@ libqxp_internal_la_SOURCES = \
 	QXPContentCollector.h \
 	QXPDeobfuscator.cpp \
 	QXPDeobfuscator.h \
-	QXP33Deobfuscator.cpp \
-	QXP33Deobfuscator.h \
-	QXP4Deobfuscator.cpp \
-	QXP4Deobfuscator.h \
 	QXPHeader.cpp \
 	QXPHeader.h \
-	QXP33Header.cpp \
-	QXP33Header.h \
-	QXP4Header.cpp \
-	QXP4Header.h \
 	QXPParser.cpp \
 	QXPParser.h \
-	QXP33Parser.cpp \
-	QXP33Parser.h \
-	QXP4Parser.cpp \
-	QXP4Parser.h \
 	QXPTextParser.cpp \
 	QXPTextParser.h \
 	QXPTypes.cpp \
