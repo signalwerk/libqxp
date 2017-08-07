@@ -53,6 +53,10 @@ libqxp_internal_la_SOURCES = \
 	QXPDeobfuscator.h \
 	QXPHeader.cpp \
 	QXPHeader.h \
+	QXPMacFileParser.cpp \
+	QXPMacFileParser.h \
+	QXPMemoryStream.cpp \
+	QXPMemoryStream.h \
 	QXPParser.cpp \
 	QXPParser.h \
 	QXPTextParser.cpp \
