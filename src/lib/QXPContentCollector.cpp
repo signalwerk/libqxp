@@ -112,6 +112,18 @@ void insertText(librevenge::RVNGDrawingInterface *painter, const RVNGString &tex
   flushText(painter, curText);
 }
 
+void writeArrow(RVNGPropertyList &propList, const char *const name, const Arrow &arrow, double width)
+{
+  librevenge::RVNGString propName;
+
+  propName.sprintf("draw:marker-%s-viewbox", name);
+  propList.insert(propName.cstr(), arrow.viewbox.c_str());
+  propName.sprintf("draw:marker-%s-path", name);
+  propList.insert(propName.cstr(), arrow.path.c_str());
+  propName.sprintf("draw:marker-%s-width", name);
+  propList.insert(propName.cstr(), width * arrow.scale, RVNG_POINT);
+}
+
 class FillWriter : public boost::static_visitor<void>
 {
 public:
@@ -810,6 +822,15 @@ void QXPContentCollector::writeFrame(librevenge::RVNGPropertyList &propList, con
     propList.insert("draw:stroke", "solid");
     propList.insert("svg:stroke-color", frame.color->toString());
     propList.insert("svg:stroke-width", frame.width, RVNG_POINT);
+  }
+
+  if (frame.startArrow)
+  {
+    writeArrow(propList, "start", *frame.startArrow, frame.width);
+  }
+  if (frame.endArrow)
+  {
+    writeArrow(propList, "end", *frame.endArrow, frame.width);
   }
 }
 

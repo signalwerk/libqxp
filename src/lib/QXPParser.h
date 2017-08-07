@@ -48,6 +48,7 @@ protected:
   std::map<int, std::string> m_fonts;
   std::vector<std::shared_ptr<CharFormat>> m_charFormats;
   std::vector<std::shared_ptr<ParagraphFormat>> m_paragraphFormats;
+  std::vector<Arrow> m_arrows;
 
   Color getColor(unsigned id, Color defaultColor = Color(0, 0, 0)) const;
   std::string getFont(int id, std::string defaultFont = "Arial") const;

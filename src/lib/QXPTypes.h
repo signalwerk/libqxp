@@ -256,15 +256,59 @@ struct Text
   { }
 };
 
+enum class LineCapType
+{
+  BUTT,
+  ROUND,
+  RECT,
+  STRETCH
+};
+
+enum class LineJoinType
+{
+  MITER,
+  ROUND,
+  BEVEL
+};
+
+struct LineStyle
+{
+  std::vector<double> segmentLengths;
+  bool isStripe;
+  LineCapType endcapType;
+  LineJoinType joinType;
+
+  LineStyle()
+    : segmentLengths(), isStripe(false), endcapType(LineCapType::BUTT), joinType(LineJoinType::MITER)
+  { }
+};
+
+struct Arrow
+{
+  const std::string path;
+  const std::string viewbox;
+  const double scale;
+
+  explicit Arrow(const std::string &d, const std::string &vbox = "0 0 10 10", double s = 3)
+    : path(d), viewbox(vbox), scale(s)
+  { }
+};
+
 struct Frame
 {
   double width;
   boost::optional<Color> color;
   boost::optional<Color> gapColor;
+  LineStyle lineStyle;
+  Arrow *startArrow;
+  Arrow *endArrow;
 
   Frame()
-    : width(1.0), color(), gapColor()
+    : width(1.0), color(), gapColor(), lineStyle(), startArrow(nullptr), endArrow(nullptr)
   { }
+
+  Frame(const Frame &other) = default;
+  Frame &operator=(const Frame &other) = default;
 };
 
 struct LinkedTextSettings

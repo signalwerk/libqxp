@@ -369,8 +369,31 @@ void QXP33Parser::parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &
 {
   auto line = createLine<Line>(header);
 
-  skip(stream, 2);
   line->style.width = readFraction(stream, be);
+  skip(stream, 1);
+
+  const uint8_t arrowType = readU8(stream);
+  switch (arrowType)
+  {
+  case 1:
+    line->style.endArrow = &m_arrows[0];
+    break;
+  case 2:
+    line->style.startArrow = &m_arrows[0];
+    break;
+  case 3:
+    line->style.startArrow = &m_arrows[1];
+    line->style.endArrow = &m_arrows[0];
+    break;
+  case 4:
+    line->style.startArrow = &m_arrows[0];
+    line->style.endArrow = &m_arrows[1];
+    break;
+  case 5:
+    line->style.startArrow = &m_arrows[0];
+    line->style.endArrow = &m_arrows[0];
+    break;
+  }
 
   collector.collectLine(line);
 }

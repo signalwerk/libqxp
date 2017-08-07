@@ -29,6 +29,7 @@ QXPParser::QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, 
   , m_fonts()
   , m_charFormats()
   , m_paragraphFormats()
+  , m_arrows()
   , m_header(header)
 {
   // default colors, in case parsing fails
@@ -41,6 +42,13 @@ QXPParser::QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, 
   m_colors[6] = Color(239, 4, 127); // magenta
   m_colors[7] = Color(255, 255, 0); // yellow
   m_colors[8] = Color(0, 0, 0); // registration
+
+  m_arrows = std::vector<Arrow>( // should be in ctor, but breaks astyle
+  {
+    // does viewbox has any effect?
+    Arrow("m9 0 l-9 25 l6 -1.5 l6 0 l6 1.5 z", "0 0 18 25", 3),
+    Arrow("m9 5 l-9 -5 l0 20 l6 10 l6 0 l6 -10 l0 -20 z", "0 0 18 35", 2.5)
+  });
 }
 
 bool QXPParser::parse()
