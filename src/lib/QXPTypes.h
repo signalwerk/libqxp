@@ -357,13 +357,11 @@ protected:
 struct Line : Object
 {
   double rotation;
-  double width;
-  boost::optional<Color> color;
-  boost::optional<Color> gapColor;
+  Frame style;
   std::vector<CurveComponent> curveComponents;
 
   Line()
-    : rotation(0), width(1.0), color(), gapColor(), curveComponents()
+    : rotation(0), style(), curveComponents()
   { }
 };
 

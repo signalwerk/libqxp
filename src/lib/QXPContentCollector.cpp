@@ -418,11 +418,7 @@ void QXPContentCollector::drawLine(const std::shared_ptr<Line> &line, const QXPC
 
   RVNGPropertyList propList;
 
-  Frame frame;
-  frame.width = line->width;
-  frame.color = line->color;
-  frame.gapColor = line->gapColor;
-  writeFrame(propList, frame, true);
+  writeFrame(propList, line->style, true);
 
   m_painter->setStyle(propList);
   propList.clear();
@@ -607,13 +603,13 @@ void QXPContentCollector::drawTextPath(const std::shared_ptr<TextPath> &textPath
   {
   default:
   case TextPathLineAlignment::TOP:
-    lineY = textPath->boundingBox.top - textPath->width / 2;
+    lineY = textPath->boundingBox.top - textPath->style.width / 2;
     break;
   case TextPathLineAlignment::CENTER:
     lineY = textPath->boundingBox.top;
     break;
   case TextPathLineAlignment::BOTTOM:
-    lineY = textPath->boundingBox.top + textPath->width / 2;
+    lineY = textPath->boundingBox.top + textPath->style.width / 2;
     break;
   }
 

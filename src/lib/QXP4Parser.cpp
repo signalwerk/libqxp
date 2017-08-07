@@ -535,10 +535,7 @@ void QXP4Parser::parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &s
 {
   auto line = createLine<Line>(header);
 
-  auto frame = readFrame(stream);
-  line->width = frame.width;
-  line->color = frame.color;
-  line->gapColor = frame.gapColor;
+  line->style = readFrame(stream);
 
   skip(stream, 48);
 
@@ -553,10 +550,7 @@ void QXP4Parser::parseBezierLine(const std::shared_ptr<librevenge::RVNGInputStre
 {
   auto line = createLine<Line>(header);
 
-  auto frame = readFrame(stream);
-  line->width = frame.width;
-  line->color = frame.color;
-  line->gapColor = frame.gapColor;
+  line->style = readFrame(stream);
 
   skip(stream, 88);
 
@@ -672,10 +666,7 @@ void QXP4Parser::parseLineText(const std::shared_ptr<librevenge::RVNGInputStream
   auto textpath = createLine<TextPath>(header);
   textpath->linkSettings.linkId = header.linkId;
 
-  auto frame = readFrame(stream);
-  textpath->width = frame.width;
-  textpath->color = frame.color;
-  textpath->gapColor = frame.gapColor;
+  textpath->style = readFrame(stream);
 
   skip(stream, 48);
 
@@ -716,10 +707,7 @@ void QXP4Parser::parseBezierText(const std::shared_ptr<librevenge::RVNGInputStre
   auto textpath = createLine<TextPath>(header);
   textpath->linkSettings.linkId = header.linkId;
 
-  auto frame = readFrame(stream);
-  textpath->width = frame.width;
-  textpath->color = frame.color;
-  textpath->gapColor = frame.gapColor;
+  textpath->style = readFrame(stream);
 
   skip(stream, 88);
 

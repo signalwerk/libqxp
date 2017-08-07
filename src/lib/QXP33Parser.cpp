@@ -44,7 +44,7 @@ shared_ptr<T> createLine(const QXP33Parser::ObjectHeader &header)
   {
     if (auto color = boost::get<Color>(fill))
     {
-      line->color = *color;
+      line->style.color = *color;
     }
     else
     {
@@ -369,8 +369,8 @@ void QXP33Parser::parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &
 {
   auto line = createLine<Line>(header);
 
-  line->width = readFraction(stream, be);
   skip(stream, 2);
+  line->style.width = readFraction(stream, be);
 
   collector.collectLine(line);
 }
