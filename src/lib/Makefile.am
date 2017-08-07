@@ -28,6 +28,10 @@ libqxp_@QXP_MAJOR_VERSION@_@QXP_MINOR_VERSION@_la_SOURCES = \
 	QXPDocument.cpp
 
 libqxp_internal_la_SOURCES = \
+	QXP1Header.cpp \
+	QXP1Header.h \
+	QXP1Parser.cpp \
+	QXP1Parser.h \
 	QXP33Deobfuscator.cpp \
 	QXP33Deobfuscator.h \
 	QXP33Header.cpp \
