@@ -14,6 +14,7 @@
 #include "config.h"
 #endif
 
+#include <cmath>
 #include <memory>
 #include <string>
 
