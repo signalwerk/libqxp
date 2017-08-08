@@ -433,6 +433,31 @@ void QXPParser::readObjectFlags(const std::shared_ptr<librevenge::RVNGInputStrea
   }
 }
 
+void QXPParser::setArrow(const unsigned index, Frame &frame) const
+{
+  switch (index)
+  {
+  case 1:
+    frame.endArrow = &m_arrows[0];
+    break;
+  case 2:
+    frame.startArrow = &m_arrows[0];
+    break;
+  case 3:
+    frame.startArrow = &m_arrows[1];
+    frame.endArrow = &m_arrows[0];
+    break;
+  case 4:
+    frame.startArrow = &m_arrows[0];
+    frame.endArrow = &m_arrows[1];
+    break;
+  case 5:
+    frame.startArrow = &m_arrows[0];
+    frame.endArrow = &m_arrows[0];
+    break;
+  }
+}
+
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

@@ -875,32 +875,7 @@ Frame QXP4Parser::readFrame(const std::shared_ptr<librevenge::RVNGInputStream> &
   frame.gapColor = getColor(gapColorId).applyShade(gapShade);
 
   const uint8_t arrowType = readU8(stream);
-  switch (arrowType)
-  {
-  case 6:
-  case 68:
-    frame.endArrow = &m_arrows[0];
-    break;
-  case 10:
-  case 72:
-    frame.startArrow = &m_arrows[0];
-    break;
-  case 14:
-  case 76:
-    frame.startArrow = &m_arrows[1];
-    frame.endArrow = &m_arrows[0];
-    break;
-  case 18:
-  case 80:
-    frame.startArrow = &m_arrows[0];
-    frame.endArrow = &m_arrows[1];
-    break;
-  case 22:
-  case 84:
-    frame.startArrow = &m_arrows[0];
-    frame.endArrow = &m_arrows[0];
-    break;
-  }
+  setArrow((arrowType >> 2) & 0xf, frame);
 
   skip(stream, 3);
 

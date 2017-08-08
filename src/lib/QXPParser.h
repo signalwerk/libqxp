@@ -81,6 +81,7 @@ protected:
   VerticalAlignment readVertAlign(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   Point readYX(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   void readObjectFlags(const std::shared_ptr<librevenge::RVNGInputStream> &stream, bool &noColor);
+  void setArrow(const unsigned index, Frame &frame) const;
 
 private:
   QXPHeader &m_header;

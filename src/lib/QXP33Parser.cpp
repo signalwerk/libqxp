@@ -373,27 +373,7 @@ void QXP33Parser::parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &
   skip(stream, 1);
 
   const uint8_t arrowType = readU8(stream);
-  switch (arrowType)
-  {
-  case 1:
-    line->style.endArrow = &m_arrows[0];
-    break;
-  case 2:
-    line->style.startArrow = &m_arrows[0];
-    break;
-  case 3:
-    line->style.startArrow = &m_arrows[1];
-    line->style.endArrow = &m_arrows[0];
-    break;
-  case 4:
-    line->style.startArrow = &m_arrows[0];
-    line->style.endArrow = &m_arrows[1];
-    break;
-  case 5:
-    line->style.startArrow = &m_arrows[0];
-    line->style.endArrow = &m_arrows[0];
-    break;
-  }
+  setArrow(arrowType, line->style);
 
   collector.collectLine(line);
 }

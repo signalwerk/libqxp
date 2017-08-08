@@ -300,8 +300,8 @@ struct Frame
   boost::optional<Color> color;
   boost::optional<Color> gapColor;
   LineStyle lineStyle;
-  Arrow *startArrow;
-  Arrow *endArrow;
+  const Arrow *startArrow;
+  const Arrow *endArrow;
 
   Frame()
     : width(1.0), color(), gapColor(), lineStyle(), startArrow(nullptr), endArrow(nullptr)
