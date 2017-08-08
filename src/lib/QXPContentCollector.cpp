@@ -16,6 +16,7 @@ namespace libqxp
 {
 
 using librevenge::RVNG_POINT;
+using librevenge::RVNG_PERCENT;
 using librevenge::RVNGPropertyList;
 using librevenge::RVNGPropertyListVector;
 using librevenge::RVNGString;
@@ -822,15 +823,62 @@ void QXPContentCollector::writeFrame(librevenge::RVNGPropertyList &propList, con
     propList.insert("draw:stroke", "solid");
     propList.insert("svg:stroke-color", frame.color->toString());
     propList.insert("svg:stroke-width", frame.width, RVNG_POINT);
-  }
 
-  if (frame.startArrow)
-  {
-    writeArrow(propList, "start", *frame.startArrow, frame.width);
-  }
-  if (frame.endArrow)
-  {
-    writeArrow(propList, "end", *frame.endArrow, frame.width);
+    if (frame.lineStyle)
+    {
+      if (frame.lineStyle->segmentLengths.size() > 1 && !frame.lineStyle->isStripe)
+      {
+        const double dots1 = frame.lineStyle->segmentLengths[0];
+        const double dist = frame.lineStyle->segmentLengths[1];
+        const double dots2 = frame.lineStyle->segmentLengths[frame.lineStyle->segmentLengths.size() >= 3 ? 2 : 0];
+        const double scale = frame.lineStyle->isProportional ? frame.lineStyle->patternLength : 1.0;
+        const auto unit = frame.lineStyle->isProportional ? RVNG_PERCENT : RVNG_POINT;
+
+        propList.insert("draw:stroke", "dash");
+        propList.insert("draw:dots1", 1);
+        propList.insert("draw:dots1-length", dots1 * scale, unit);
+        propList.insert("draw:dots2", 1);
+        propList.insert("draw:dots2-length", dots2 * scale, unit);
+        propList.insert("draw:distance", dist * scale, unit);
+      }
+
+      switch (frame.lineStyle->endcapType)
+      {
+      default:
+      case LineCapType::BUTT:
+        propList.insert("svg:stroke-linecap", "butt");
+        break;
+      case LineCapType::ROUND:
+        propList.insert("svg:stroke-linecap", "round");
+        break;
+      case LineCapType::RECT:
+        propList.insert("svg:stroke-linecap", "square");
+        break;
+      }
+
+      switch (frame.lineStyle->joinType)
+      {
+      default:
+      case LineJoinType::BEVEL:
+        propList.insert("svg:stroke-linejoin", "bevel");
+        break;
+      case LineJoinType::MITER:
+        propList.insert("svg:stroke-linejoin", "miter");
+        break;
+      case LineJoinType::ROUND:
+        propList.insert("svg:stroke-linejoin", "round");
+        break;
+      }
+    }
+
+    if (frame.startArrow)
+    {
+      writeArrow(propList, "start", *frame.startArrow, frame.width);
+    }
+    if (frame.endArrow)
+    {
+      writeArrow(propList, "end", *frame.endArrow, frame.width);
+    }
   }
 }
 

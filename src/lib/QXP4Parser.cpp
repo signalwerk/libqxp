@@ -69,7 +69,7 @@ bool QXP4Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStream
 
   parseHJs(docStream);
 
-  skipRecord(docStream);
+  parseLineStyles(docStream);
 
   skipRecord(docStream);
 
@@ -233,6 +233,85 @@ CharFormat QXP4Parser::parseCharFormat(const std::shared_ptr<librevenge::RVNGInp
   skip(stream, 36);
 
   return result;
+}
+
+void QXP4Parser::parseLineStyles(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  parseCollection(stream, [=]()
+  {
+    const unsigned long start = stream->tell();
+    const unsigned long end = start + 252;
+
+    try
+    {
+      skip(stream, 168);
+
+      const unsigned id = readU16(stream, be);
+      auto &result = (m_lineStyles[id] = LineStyle());
+
+      result.isStripe = readU8(stream) == 1;
+      skip(stream, 1);
+      const unsigned segmentsCount = readU16(stream, be);
+      if (segmentsCount > 42)
+      {
+        QXP_DEBUG_MSG(("Invalid line style segments count %u\n", segmentsCount));
+        throw ParseError();
+      }
+      result.isProportional = readU8(stream) == 1;
+      skip(stream, 69);
+      result.patternLength = readFraction(stream, be);
+
+      const unsigned miter = readU16(stream, be);
+      switch (miter)
+      {
+      default:
+        QXP_DEBUG_MSG(("Unknown line join type %u\n", miter));
+      // fall-through intended: pick a default
+      case 0:
+        result.joinType = LineJoinType::MITER;
+        break;
+      case 1:
+        result.joinType = LineJoinType::ROUND;
+        break;
+      case 2:
+        result.joinType = LineJoinType::BEVEL;
+        break;
+      }
+
+      const unsigned endcap = readU16(stream, be);
+      switch (endcap)
+      {
+      default:
+        QXP_DEBUG_MSG(("Unknown line cap type %u\n", endcap));
+      // fall-through intended: pick a default
+      case 0:
+        result.endcapType = LineCapType::BUTT;
+        break;
+      case 1:
+        result.endcapType = LineCapType::ROUND;
+        break;
+      case 2:
+        result.endcapType = LineCapType::RECT;
+        break;
+      case 3:
+        result.endcapType = LineCapType::STRETCH;
+        break;
+      }
+
+      seek(stream, start);
+      result.segmentLengths.resize(segmentsCount);
+      for (double &segmentLength : result.segmentLengths)
+      {
+        segmentLength = readFraction(stream, be);
+      }
+    }
+    catch (...)
+    {
+      QXP_DEBUG_MSG(("Failed to parse line style, offset %ld\n", stream->tell()));
+    }
+
+    seek(stream, end);
+  });
 }
 
 void QXP4Parser::skipTemplates(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
@@ -877,7 +956,12 @@ Frame QXP4Parser::readFrame(const std::shared_ptr<librevenge::RVNGInputStream> &
   const uint8_t arrowType = readU8(stream);
   setArrow((arrowType >> 2) & 0xf, frame);
 
-  skip(stream, 3);
+  const bool isBitmapFrame = readU8(stream) == 1;
+  const unsigned styleIndex = readU16(stream, be);
+  if (!isBitmapFrame)
+  {
+    frame.lineStyle = getLineStyle(styleIndex);
+  }
 
   return frame;
 }

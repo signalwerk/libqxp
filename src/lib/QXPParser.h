@@ -48,9 +48,11 @@ protected:
   std::map<int, std::string> m_fonts;
   std::vector<std::shared_ptr<CharFormat>> m_charFormats;
   std::vector<std::shared_ptr<ParagraphFormat>> m_paragraphFormats;
+  std::map<unsigned, LineStyle> m_lineStyles;
   std::vector<Arrow> m_arrows;
 
   Color getColor(unsigned id, Color defaultColor = Color(0, 0, 0)) const;
+  const LineStyle *getLineStyle(unsigned id) const;
   std::string getFont(int id, std::string defaultFont = "Arial") const;
 
   virtual bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) = 0;

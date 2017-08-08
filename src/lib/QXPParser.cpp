@@ -29,6 +29,7 @@ QXPParser::QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, 
   , m_fonts()
   , m_charFormats()
   , m_paragraphFormats()
+  , m_lineStyles()
   , m_arrows()
   , m_header(header)
 {
@@ -81,6 +82,17 @@ Color QXPParser::getColor(unsigned id, Color defaultColor) const
     return defaultColor;
   }
   return (*it).second;
+}
+
+const LineStyle *QXPParser::getLineStyle(unsigned id) const
+{
+  auto it = m_lineStyles.find(id);
+  if (it == m_lineStyles.end())
+  {
+    QXP_DEBUG_MSG(("Line style %u not found\n", id));
+    return nullptr;
+  }
+  return &it->second;
 }
 
 std::string QXPParser::getFont(int id, std::string defaultFont) const

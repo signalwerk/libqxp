@@ -275,11 +275,13 @@ struct LineStyle
 {
   std::vector<double> segmentLengths;
   bool isStripe;
+  bool isProportional;
+  double patternLength;
   LineCapType endcapType;
   LineJoinType joinType;
 
   LineStyle()
-    : segmentLengths(), isStripe(false), endcapType(LineCapType::BUTT), joinType(LineJoinType::MITER)
+    : segmentLengths(), isStripe(false), isProportional(true), patternLength(6.0), endcapType(LineCapType::BUTT), joinType(LineJoinType::MITER)
   { }
 };
 
@@ -299,12 +301,12 @@ struct Frame
   double width;
   boost::optional<Color> color;
   boost::optional<Color> gapColor;
-  LineStyle lineStyle;
+  const LineStyle *lineStyle;
   const Arrow *startArrow;
   const Arrow *endArrow;
 
   Frame()
-    : width(1.0), color(), gapColor(), lineStyle(), startArrow(nullptr), endArrow(nullptr)
+    : width(1.0), color(), gapColor(), lineStyle(nullptr), startArrow(nullptr), endArrow(nullptr)
   { }
 
   Frame(const Frame &other) = default;
