@@ -370,7 +370,13 @@ void QXP33Parser::parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &
   auto line = createLine<Line>(header);
 
   line->style.width = readFraction(stream, be);
-  skip(stream, 1);
+
+  const unsigned styleIndex = readU8(stream);
+  const bool isStripe = (styleIndex >> 7) == 1;
+  if (!isStripe)
+  {
+    line->style.lineStyle = getLineStyle(styleIndex);
+  }
 
   const uint8_t arrowType = readU8(stream);
   setArrow(arrowType, line->style);

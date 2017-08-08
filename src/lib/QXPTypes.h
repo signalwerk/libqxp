@@ -14,6 +14,7 @@
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
 #include <vector>
+#include <utility>
 
 namespace libqxp
 {
@@ -282,6 +283,10 @@ struct LineStyle
 
   LineStyle()
     : segmentLengths(), isStripe(false), isProportional(true), patternLength(6.0), endcapType(LineCapType::BUTT), joinType(LineJoinType::MITER)
+  { }
+
+  LineStyle(std::vector<double> segments, bool proportional, double pattern, LineCapType endcap, LineJoinType join)
+    : segmentLengths(std::move(segments)), isStripe(false), isProportional(proportional), patternLength(pattern), endcapType(endcap), joinType(join)
   { }
 };
 

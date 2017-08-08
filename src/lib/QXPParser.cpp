@@ -44,6 +44,13 @@ QXPParser::QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, 
   m_colors[7] = Color(255, 255, 0); // yellow
   m_colors[8] = Color(0, 0, 0); // registration
 
+  // customm dashes are available only from 4.0
+  m_lineStyles[0] = LineStyle({}, true, 1.0, LineCapType::BUTT, LineJoinType::MITER);
+  m_lineStyles[1] = LineStyle({0.6, 0.4}, true, 5.0, LineCapType::BUTT, LineJoinType::MITER);
+  m_lineStyles[2] = LineStyle({0.75, 0.25}, true, 4.0, LineCapType::BUTT, LineJoinType::MITER);
+  m_lineStyles[3] = LineStyle({0.5455, 0.1818, 0.0909, 0.1818}, true, 11.0, LineCapType::BUTT, LineJoinType::MITER);
+  m_lineStyles[4] = LineStyle({0.0, 1.0}, true, 2.0, LineCapType::ROUND, LineJoinType::MITER);
+
   m_arrows = std::vector<Arrow>( // should be in ctor, but breaks astyle
   {
     // does viewbox has any effect?
