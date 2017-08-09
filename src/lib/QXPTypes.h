@@ -163,6 +163,11 @@ struct TabStop
   librevenge::RVNGString fillChar;
   librevenge::RVNGString alignChar;
 
+  bool isDefined() const
+  {
+    return position >= 0;
+  }
+
   TabStop()
     : type(TabStopType::LEFT), position(0.0), fillChar(), alignChar()
   {  }

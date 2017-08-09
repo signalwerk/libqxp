@@ -195,7 +195,18 @@ ParagraphFormat QXP33Parser::parseParagraphFormat(const std::shared_ptr<libreven
   result.margin.top = readFraction(stream, be);
   result.margin.bottom = readFraction(stream, be);
 
-  skip(stream, 218);
+  skip(stream, 52);
+
+  for (unsigned i = 0; i < 20; ++i)
+  {
+    const auto tabStop = parseTabStop(stream);
+    if (tabStop.isDefined())
+    {
+      result.tabStops.push_back(tabStop);
+    }
+  }
+
+  skip(stream, 6);
 
   return result;
 }
