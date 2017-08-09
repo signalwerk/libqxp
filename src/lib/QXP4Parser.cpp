@@ -615,8 +615,9 @@ void QXP4Parser::parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &s
   auto line = createLine<Line>(header);
 
   line->style = readFrame(stream);
-
-  skip(stream, 48);
+  skip(stream, 4);
+  line->runaround = readRunaround(stream);
+  skip(stream, 4);
 
   line->boundingBox = readObjectBBox(stream);
 
@@ -630,8 +631,9 @@ void QXP4Parser::parseBezierLine(const std::shared_ptr<librevenge::RVNGInputStre
   auto line = createLine<Line>(header);
 
   line->style = readFrame(stream);
-
-  skip(stream, 88);
+  skip(stream, 4);
+  line->runaround = readRunaround(stream);
+  skip(stream, 44);
 
   readBezierData(stream, line->curveComponents, line->boundingBox);
 
@@ -643,8 +645,9 @@ void QXP4Parser::parseBezierEmptyBox(const std::shared_ptr<librevenge::RVNGInput
   auto box = createBox<Box>(header);
 
   box->frame = readFrame(stream);
-
-  skip(stream, 88);
+  skip(stream, 4);
+  box->runaround = readRunaround(stream);
+  skip(stream, 44);
 
   if (header.gradientId != 0)
   {
@@ -661,8 +664,9 @@ void QXP4Parser::parseEmptyBox(const std::shared_ptr<librevenge::RVNGInputStream
   auto box = createBox<Box>(header);
 
   box->frame = readFrame(stream);
-
-  skip(stream, 48);
+  skip(stream, 4);
+  box->runaround = readRunaround(stream);
+  skip(stream, 4);
 
   box->boundingBox = readObjectBBox(stream);
 
@@ -683,8 +687,9 @@ void QXP4Parser::parseBezierPictureBox(const std::shared_ptr<librevenge::RVNGInp
   auto box = createBox<PictureBox>(header);
 
   box->frame = readFrame(stream);
-
-  skip(stream, 84);
+  skip(stream, 4);
+  box->runaround = readRunaround(stream);
+  skip(stream, 40);
 
   readOleObject(stream);
 
@@ -712,8 +717,9 @@ void QXP4Parser::parsePictureBox(const std::shared_ptr<librevenge::RVNGInputStre
   auto picturebox = createBox<PictureBox>(header);
 
   picturebox->frame = readFrame(stream);
-
-  skip(stream, 48);
+  skip(stream, 4);
+  picturebox->runaround = readRunaround(stream);
+  skip(stream, 4);
 
   picturebox->boundingBox = readObjectBBox(stream);
 
@@ -746,8 +752,9 @@ void QXP4Parser::parseLineText(const std::shared_ptr<librevenge::RVNGInputStream
   textpath->linkSettings.linkId = header.linkId;
 
   textpath->style = readFrame(stream);
-
-  skip(stream, 48);
+  skip(stream, 4);
+  textpath->runaround = readRunaround(stream);
+  skip(stream, 4);
 
   textpath->boundingBox = readObjectBBox(stream);
 
@@ -787,8 +794,9 @@ void QXP4Parser::parseBezierText(const std::shared_ptr<librevenge::RVNGInputStre
   textpath->linkSettings.linkId = header.linkId;
 
   textpath->style = readFrame(stream);
-
-  skip(stream, 88);
+  skip(stream, 4);
+  textpath->runaround = readRunaround(stream);
+  skip(stream, 44);
 
   textpath->linkSettings.offsetIntoText = readU32(stream, be);
   skip(stream, 44);
@@ -826,8 +834,9 @@ void QXP4Parser::parseBezierTextBox(const std::shared_ptr<librevenge::RVNGInputS
   textbox->linkSettings.linkId = header.linkId;
 
   textbox->frame = readFrame(stream);
-
-  skip(stream, 88);
+  skip(stream, 4);
+  textbox->runaround = readRunaround(stream);
+  skip(stream, 44);
 
   if (header.gradientId != 0)
   {
@@ -869,8 +878,9 @@ void QXP4Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream>
   textbox->linkSettings.linkId = header.linkId;
 
   textbox->frame = readFrame(stream);
-
-  skip(stream, 48);
+  skip(stream, 4);
+  textbox->runaround = readRunaround(stream);
+  skip(stream, 4);
 
   textbox->boundingBox = readObjectBBox(stream);
 
@@ -964,6 +974,13 @@ Frame QXP4Parser::readFrame(const std::shared_ptr<librevenge::RVNGInputStream> &
   }
 
   return frame;
+}
+
+bool QXP4Parser::readRunaround(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  bool result = readU8(stream) == 1;
+  skip(stream, 39);
+  return result;
 }
 
 void QXP4Parser::readLinkedTextSettings(const std::shared_ptr<librevenge::RVNGInputStream> &stream, LinkedTextSettings &settings)

@@ -397,11 +397,12 @@ struct CurveComponent
 struct Object
 {
   Rect boundingBox;
+  bool runaround; // we probably don't need other runaround properties because ODF doesn't support them
   unsigned zIndex;
 
 protected:
   Object()
-    : boundingBox(), zIndex(0)
+    : boundingBox(), runaround(false), zIndex(0)
   { }
 };
 

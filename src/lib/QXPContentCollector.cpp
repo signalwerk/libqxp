@@ -431,7 +431,7 @@ void QXPContentCollector::drawLine(const std::shared_ptr<Line> &line, const QXPC
 
   RVNGPropertyList propList;
 
-  writeFrame(propList, line->style, true);
+  writeFrame(propList, line->style, line->runaround, true);
 
   m_painter->setStyle(propList);
   propList.clear();
@@ -485,7 +485,7 @@ void QXPContentCollector::drawRectangle(const std::shared_ptr<Box> &box, const Q
 
   RVNGPropertyList propList;
 
-  writeFrame(propList, box->frame);
+  writeFrame(propList, box->frame, box->runaround);
   writeFill(propList, box->fill);
 
   m_painter->setStyle(propList);
@@ -501,7 +501,7 @@ void QXPContentCollector::drawOval(const std::shared_ptr<Box> &oval, const QXPCo
 {
   librevenge::RVNGPropertyList propList;
 
-  writeFrame(propList, oval->frame);
+  writeFrame(propList, oval->frame, oval->runaround);
   writeFill(propList, oval->fill);
 
   m_painter->setStyle(propList);
@@ -535,7 +535,7 @@ void QXPContentCollector::drawPolygon(const std::shared_ptr<Box> &polygon, const
 
   RVNGPropertyList propList;
 
-  writeFrame(propList, polygon->frame);
+  writeFrame(propList, polygon->frame, polygon->runaround);
   writeFill(propList, polygon->fill);
 
   m_painter->setStyle(propList);
@@ -814,7 +814,7 @@ void QXPContentCollector::writeFill(librevenge::RVNGPropertyList &propList, cons
   }
 }
 
-void QXPContentCollector::writeFrame(librevenge::RVNGPropertyList &propList, const Frame &frame, bool allowHairline)
+void QXPContentCollector::writeFrame(librevenge::RVNGPropertyList &propList, const Frame &frame, const bool runaround, const bool allowHairline)
 {
   propList.insert("draw:stroke", "none");
 
@@ -879,6 +879,11 @@ void QXPContentCollector::writeFrame(librevenge::RVNGPropertyList &propList, con
     {
       writeArrow(propList, "end", *frame.endArrow, frame.width);
     }
+  }
+
+  if (runaround)
+  {
+    propList.insert("style:wrap", "biggest");
   }
 }
 

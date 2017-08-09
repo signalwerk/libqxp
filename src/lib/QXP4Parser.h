@@ -114,6 +114,7 @@ private:
   void parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ObjectHeader &header, QXPCollector &collector, const Page &page);
 
   Frame readFrame(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
+  bool readRunaround(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   void readLinkedTextSettings(const std::shared_ptr<librevenge::RVNGInputStream> &stream, LinkedTextSettings &settings);
   void readTextSettings(const std::shared_ptr<librevenge::RVNGInputStream> &stream, TextSettings &settings);
   void readTextPathSettings(const std::shared_ptr<librevenge::RVNGInputStream> &stream, TextPathSettings &settings);
