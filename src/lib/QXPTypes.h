@@ -124,10 +124,13 @@ struct CharFormat
   bool smallCaps;
   bool wordUnderline;
 
+  bool isControlChars;
+
   CharFormat()
     : fontName("Arial"), fontSize(12.0), color(0, 0, 0),
       bold(false), italic(false), underline(false), outline(false), shadow(false), superscript(false), subscript(false), superior(false),
-      strike(false), allCaps(false), smallCaps(false), wordUnderline(false)
+      strike(false), allCaps(false), smallCaps(false), wordUnderline(false),
+      isControlChars(false)
   {  }
 };
 

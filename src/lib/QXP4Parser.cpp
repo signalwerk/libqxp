@@ -230,7 +230,11 @@ CharFormat QXP4Parser::parseCharFormat(const std::shared_ptr<librevenge::RVNGInp
   const double shade = readFraction(stream, be);
   result.color = getColor(colorId).applyShade(shade);
 
-  skip(stream, 36);
+  skip(stream, 12);
+
+  result.isControlChars = readU8(stream) != 0;
+
+  skip(stream, 23);
 
   return result;
 }
