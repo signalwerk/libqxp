@@ -211,20 +211,22 @@ TabStop QXPParser::parseTabStop(const std::shared_ptr<librevenge::RVNGInputStrea
   }
 
   const uint8_t alignChar = readU8(stream);
+  tabStop.alignChar.clear();
   switch (alignChar)
   {
   case 1:
-    tabStop.alignChar = '.';
+    tabStop.alignChar.append('.');
     break;
   case 2:
-    tabStop.alignChar = ',';
+    tabStop.alignChar.append(',');
     break;
   default:
-    tabStop.alignChar = char(alignChar);
+    tabStop.alignChar.append(char(alignChar));
     break;
   }
 
-  tabStop.fillChar = char(readU16(stream, be));
+  tabStop.fillChar.clear();
+  tabStop.fillChar.append(char(readU16(stream, be)));
 
   tabStop.position = readFraction(stream, be);
 

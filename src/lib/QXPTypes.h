@@ -160,11 +160,11 @@ struct TabStop
 {
   TabStopType type;
   double position;
-  char fillChar;
-  char alignChar;
+  librevenge::RVNGString fillChar;
+  librevenge::RVNGString alignChar;
 
   TabStop()
-    : type(TabStopType::LEFT), position(0.0), fillChar(' '), alignChar(',')
+    : type(TabStopType::LEFT), position(0.0), fillChar(), alignChar()
   {  }
 };
 

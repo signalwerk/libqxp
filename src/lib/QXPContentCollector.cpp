@@ -717,6 +717,38 @@ void QXPContentCollector::drawText(const std::shared_ptr<Text> &text, const Link
       break;
     }
 
+    if (!paragraph.format->tabStops.empty())
+    {
+      RVNGPropertyListVector tabs;
+      for (const auto &tab : paragraph.format->tabStops)
+      {
+        RVNGPropertyList tabProps;
+        tabProps.insert("style:position", tab.position, RVNG_POINT);
+        if (!tab.fillChar.empty())
+        {
+          tabProps.insert("style:leader-text", tab.fillChar);
+        }
+        switch (tab.type)
+        {
+        case TabStopType::LEFT:
+          tabProps.insert("style:type", "left");
+          break;
+        case TabStopType::RIGHT:
+          tabProps.insert("style:type", "right");
+          break;
+        case TabStopType::CENTER:
+          tabProps.insert("style:type", "center");
+          break;
+        case TabStopType::ALIGN:
+          tabProps.insert("style:type", "char");
+          tabProps.insert("style:char", tab.alignChar);
+          break;
+        }
+        tabs.append(tabProps);
+      }
+      paragraphPropList.insert("librevenge:tab-stops", tabs);
+    }
+
     m_painter->openParagraph(paragraphPropList);
 
     for (auto &charFormat : text->charFormats)
