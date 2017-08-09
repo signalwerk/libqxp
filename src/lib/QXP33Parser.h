@@ -42,6 +42,8 @@ public:
   {
     boost::optional<Fill> fill;
 
+    bool runaround;
+
     unsigned contentIndex;
     unsigned linkId;
     unsigned gradientId;
@@ -62,7 +64,7 @@ public:
     BoxType boxType;
 
     ObjectHeader()
-      : fill(), contentIndex(0), linkId(0), gradientId(0),
+      : fill(), runaround(false), contentIndex(0), linkId(0), gradientId(0),
         rotation(0), skew(0), hflip(false), vflip(false), cornerType(CornerType::DEFAULT),
         cornerRadius(0), contentType(ContentType::UNKNOWN), shapeType(ShapeType::UNKNOWN), boundingBox(),
         boxType(BoxType::UNKNOWN)
@@ -83,6 +85,7 @@ private:
 
   void parseObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP33Deobfuscator &deobfuscator, QXPCollector &collector, const Page &page);
   ObjectHeader parseObjectHeader(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP33Deobfuscator &deobfuscator);
+  void readObjectFlags(const std::shared_ptr<librevenge::RVNGInputStream> &stream, bool &noColor, bool &noRunaround);
   void parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ObjectHeader &header, QXPCollector &collector);
   void parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ObjectHeader &header, QXPCollector &collector);
   void parsePictureBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ObjectHeader &header, QXPCollector &collector);

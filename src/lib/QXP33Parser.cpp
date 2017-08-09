@@ -26,6 +26,7 @@ shared_ptr<T> createBox(const QXP33Parser::ObjectHeader &header)
 {
   auto box = make_shared<T>();
   box->boundingBox = header.boundingBox;
+  box->runaround = header.runaround;
   box->boxType = header.boxType;
   box->fill = header.fill;
   box->cornerType = header.cornerType;
@@ -39,6 +40,7 @@ shared_ptr<T> createLine(const QXP33Parser::ObjectHeader &header)
 {
   auto line = make_shared<T>();
   line->boundingBox = header.boundingBox;
+  line->runaround = header.runaround;
   line->rotation = header.rotation;
   if (auto fill = header.fill.get_ptr())
   {
@@ -258,11 +260,13 @@ QXP33Parser::ObjectHeader QXP33Parser::parseObjectHeader(const std::shared_ptr<l
   result.contentIndex = deobfuscator(uint16_t(readU32(stream, be) & 0xffff));
 
   bool noColor;
-  readObjectFlags(stream, noColor);
+  bool noRunaround;
+  readObjectFlags(stream, noColor, noRunaround);
   if (!noColor)
   {
     result.fill = color;
   }
+  result.runaround = !noRunaround;
 
   skip(stream, 1);
 
@@ -363,6 +367,19 @@ QXP33Parser::ObjectHeader QXP33Parser::parseObjectHeader(const std::shared_ptr<l
   result.boundingBox = readObjectBBox(stream);
 
   return result;
+}
+
+void QXP33Parser::readObjectFlags(const std::shared_ptr<librevenge::RVNGInputStream> &stream, bool &noColor, bool &noRunaround)
+{
+  const uint8_t flags = QXPParser::readObjectFlags(stream, noColor);
+  if (be)
+  {
+    noRunaround = flags & 0x02;
+  }
+  else
+  {
+    noRunaround = flags & 0x20;
+  }
 }
 
 void QXP33Parser::parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP33Parser::ObjectHeader &header, QXPCollector &collector)

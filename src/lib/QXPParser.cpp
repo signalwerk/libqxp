@@ -439,7 +439,7 @@ Point QXPParser::readYX(const std::shared_ptr<librevenge::RVNGInputStream> &stre
   return p;
 }
 
-void QXPParser::readObjectFlags(const std::shared_ptr<librevenge::RVNGInputStream> &stream, bool &noColor)
+uint8_t QXPParser::readObjectFlags(const std::shared_ptr<librevenge::RVNGInputStream> &stream, bool &noColor)
 {
   const uint8_t flags = readU8(stream);
   if (be)
@@ -450,6 +450,7 @@ void QXPParser::readObjectFlags(const std::shared_ptr<librevenge::RVNGInputStrea
   {
     noColor = flags & 0x1;
   }
+  return flags;
 }
 
 void QXPParser::setArrow(const unsigned index, Frame &frame) const
