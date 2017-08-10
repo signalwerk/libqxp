@@ -26,7 +26,7 @@ using std::string;
 namespace
 {
 
-RVNGPropertyListVector createPath(const vector<Point> &points, bool closed)
+RVNGPropertyListVector createLinePath(const vector<Point> &points, bool closed)
 {
   RVNGPropertyListVector path;
 
@@ -49,6 +49,64 @@ RVNGPropertyListVector createPath(const vector<Point> &points, bool closed)
   }
 
   return path;
+}
+
+void addBezierPath(RVNGPropertyListVector &path, const vector<Point> &points, bool canBeClosed)
+{
+  if (points.size() < 6)
+  {
+    QXP_DEBUG_MSG(("Not enough bezier points, %lu\n", points.size()));
+    return;
+  }
+
+  {
+    RVNGPropertyList pathPart;
+    pathPart.insert("librevenge:path-action", "M");
+    pathPart.insert("svg:x", points[1].x, RVNG_POINT);
+    pathPart.insert("svg:y", points[1].y, RVNG_POINT);
+
+    path.append(pathPart);
+  }
+
+  {
+    RVNGPropertyList pathPart;
+    pathPart.insert("librevenge:path-action", "C");
+    pathPart.insert("svg:x1", points[2].x, RVNG_POINT);
+    pathPart.insert("svg:y1", points[2].y, RVNG_POINT);
+    pathPart.insert("svg:x2", points[3].x, RVNG_POINT);
+    pathPart.insert("svg:y2", points[3].y, RVNG_POINT);
+    pathPart.insert("svg:x", points[4].x, RVNG_POINT);
+    pathPart.insert("svg:y", points[4].y, RVNG_POINT);
+
+    path.append(pathPart);
+  }
+
+  for (unsigned i = 6; i < points.size(); i += 3)
+  {
+    if (i + 1 >= points.size())
+    {
+      QXP_DEBUG_MSG(("Unexpected end of bezier points, %u / %lu\n", i, points.size()));
+      break;
+    }
+    RVNGPropertyList pathPart;
+    pathPart.insert("librevenge:path-action", "S");
+    pathPart.insert("svg:x1", points[i].x, RVNG_POINT);
+    pathPart.insert("svg:y1", points[i].y, RVNG_POINT);
+    pathPart.insert("svg:x2", points[3].x, RVNG_POINT);
+    pathPart.insert("svg:y2", points[3].y, RVNG_POINT);
+    pathPart.insert("svg:x", points[i + 1].x, RVNG_POINT);
+    pathPart.insert("svg:y", points[i + 1].y, RVNG_POINT);
+
+    path.append(pathPart);
+  }
+
+  if (canBeClosed && points[1] == points[points.size() - 2])
+  {
+    RVNGPropertyList pathPart;
+    pathPart.insert("librevenge:path-action", "Z");
+
+    path.append(pathPart);
+  }
 }
 
 void writeZIndex(librevenge::RVNGPropertyList &propList, unsigned value)
@@ -413,21 +471,32 @@ bool QXPContentCollector::hasUnfinishedLinkedTexts()
 
 void QXPContentCollector::drawLine(const std::shared_ptr<Line> &line, const QXPContentCollector::CollectedPage &page)
 {
-  vector<Point> points =
+  RVNGPropertyListVector path;
+  if (line->curveComponents.empty())
   {
-    page.getPoint(line->boundingBox.topLeft()),
-    page.getPoint(line->boundingBox.bottomRight()),
-  };
-
-  if (!QXP_ALMOST_ZERO(line->rotation))
-  {
-    for (auto &p : points)
+    vector<Point> points =
     {
-      p = p.rotateDeg(-line->rotation, page.getPoint(line->boundingBox.center()));
+      page.getPoint(line->boundingBox.topLeft().rotateDeg(-line->rotation, line->boundingBox.center())),
+      page.getPoint(line->boundingBox.bottomRight().rotateDeg(-line->rotation, line->boundingBox.center()))
+    };
+
+    path = createLinePath(points, false);
+  }
+  else
+  {
+    for (const auto &curve : line->curveComponents)
+    {
+      vector<Point> points;
+      points.reserve(curve.points.size());
+      std::transform(curve.points.begin(), curve.points.end(), std::back_inserter(points),
+                     [page, &line](const Point &p)
+      {
+        return page.getPoint(p.rotateDeg(-line->rotation, line->boundingBox.center()));
+      });
+
+      addBezierPath(path, points, false);
     }
   }
-
-  auto path = createPath(points, true);
 
   RVNGPropertyList propList;
 
@@ -481,7 +550,7 @@ void QXPContentCollector::drawRectangle(const std::shared_ptr<Box> &box, const Q
     }
   }
 
-  auto path = createPath(points, true);
+  auto path = createLinePath(points, true);
 
   RVNGPropertyList propList;
 
@@ -531,7 +600,7 @@ void QXPContentCollector::drawPolygon(const std::shared_ptr<Box> &polygon, const
     return page.getPoint(p.rotateDeg(-polygon->rotation, polygon->boundingBox.center()));
   });
 
-  auto path = createPath(points, true);
+  auto path = createLinePath(points, true);
 
   RVNGPropertyList propList;
 
@@ -549,7 +618,32 @@ void QXPContentCollector::drawPolygon(const std::shared_ptr<Box> &polygon, const
 
 void QXPContentCollector::drawBezierBox(const std::shared_ptr<Box> &box, const QXPContentCollector::CollectedPage &page)
 {
-  drawRectangle(box, page);
+  RVNGPropertyListVector path;
+  for (const auto &curve : box->curveComponents)
+  {
+    vector<Point> points;
+    points.reserve(curve.points.size());
+    std::transform(curve.points.begin(), curve.points.end(), std::back_inserter(points),
+                   [page, &box](const Point &p)
+    {
+      return page.getPoint(p.rotateDeg(-box->rotation, box->boundingBox.center()));
+    });
+
+    addBezierPath(path, points, true);
+  }
+
+  RVNGPropertyList propList;
+
+  writeFrame(propList, box->frame, box->runaround);
+  writeFill(propList, box->fill);
+
+  m_painter->setStyle(propList);
+  propList.clear();
+
+  propList.insert("svg:d", path);
+  writeZIndex(propList, box->zIndex);
+
+  m_painter->drawPath(propList);
 }
 
 void QXPContentCollector::drawTextBox(const std::shared_ptr<TextBox> &textbox, const QXPContentCollector::CollectedPage &page)

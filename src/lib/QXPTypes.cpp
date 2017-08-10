@@ -32,6 +32,10 @@ Point Point::move(double dx, double dy) const
 
 Point Point::rotateDeg(double rotationDeg, const Point &center) const
 {
+  if (QXP_ALMOST_ZERO(rotationDeg))
+  {
+    return *this;
+  }
   const double rotation = deg2rad(rotationDeg);
   const double rotatedX = (x - center.x) * std::cos(rotation) - (y - center.y) * std::sin(rotation) + center.x;
   const double rotatedY = (y - center.y) * std::cos(rotation) + (x - center.x) * std::sin(rotation) + center.y;
