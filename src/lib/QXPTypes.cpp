@@ -17,7 +17,7 @@ namespace libqxp
 
 bool operator==(const Point &lhs, const Point &rhs)
 {
-  return lhs.x == rhs.x && lhs.y == rhs.y;
+  return QXP_ALMOST_ZERO(lhs.x - rhs.x) && QXP_ALMOST_ZERO(lhs.y - rhs.y);
 }
 
 bool operator!=(const Point &lhs, const Point &rhs)
