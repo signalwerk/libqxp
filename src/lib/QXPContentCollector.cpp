@@ -871,10 +871,11 @@ void QXPContentCollector::drawText(const std::shared_ptr<Text> &text, const Link
       spanPropList.insert("fo:font-size", charFormat.format->fontSize, librevenge::RVNG_POINT);
       spanPropList.insert("fo:font-weight", charFormat.format->bold ? "bold" : "normal");
       spanPropList.insert("fo:font-style", charFormat.format->italic ? "italic" : "normal");
-      if (charFormat.format->underline)
+      if (charFormat.format->underline || charFormat.format->wordUnderline)
       {
         spanPropList.insert("style:text-underline-type", "single");
         spanPropList.insert("style:text-underline-style", "solid");
+        spanPropList.insert("style:text-underline-mode", charFormat.format->wordUnderline ? "skip-white-space" : "continuous");
       }
       if (charFormat.format->strike)
       {
@@ -882,8 +883,17 @@ void QXPContentCollector::drawText(const std::shared_ptr<Text> &text, const Link
         spanPropList.insert("style:text-line-through-style", "solid");
       }
       spanPropList.insert("fo:font-variant", charFormat.format->smallCaps ? "small-caps" : "normal");
+      if (charFormat.format->allCaps)
+        spanPropList.insert("fo:text-transform", "capitalize");
       spanPropList.insert("style:text-outline", charFormat.format->outline);
+      if (charFormat.format->shadow)
+        spanPropList.insert("fo:text-shadow", "1pt 1pt");
       spanPropList.insert("fo:color", charFormat.format->color.toString());
+      // TODO: use offset and scale from doc props
+      if (charFormat.format->subscript)
+        spanPropList.insert("style:text-position", "sub");
+      else if (charFormat.format->superscript)
+        spanPropList.insert("style:text-position", "super");
 
       m_painter->openSpan(spanPropList);
 
