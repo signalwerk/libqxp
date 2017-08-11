@@ -72,9 +72,11 @@ int main(int argc, char *argv[])
 
   librevenge::RVNGFileStream input(file);
 
-  if (!QXPDocument::isSupported(&input))
+  QXPDocument::Type type = QXPDocument::TYPE_UNKNOWN;
+  QXPDocument::Confidence confidence = QXPDocument::isSupported(&input, &type);
+  if (confidence != QXPDocument::CONFIDENCE_EXCELLENT || (type != QXPDocument::TYPE_DOCUMENT && type != QXPDocument::TYPE_TEMPLATE))
   {
-    std::cerr << "ERROR: Unsupported file format (unsupported version) or file is encrypted!" << std::endl;
+    std::cerr << "ERROR: Unsupported file format" << std::endl;
     return 1;
   }
 

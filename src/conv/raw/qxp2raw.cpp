@@ -13,6 +13,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <iostream>
 #include <memory>
 
 #include <librevenge/librevenge.h>
@@ -72,14 +73,19 @@ int main(int argc, char *argv[])
   if (!file)
     return printUsage();
 
-  std::shared_ptr<librevenge::RVNGInputStream> input(new librevenge::RVNGFileStream(file));
+  librevenge::RVNGFileStream input(file);
 
   QXPDocument::Type type = QXPDocument::TYPE_UNKNOWN;
-  QXPDocument::Confidence confidence = QXPDocument::isSupported(input.get(), &type);
+  QXPDocument::Confidence confidence = QXPDocument::isSupported(&input, &type);
+  if (confidence != QXPDocument::CONFIDENCE_EXCELLENT || (type != QXPDocument::TYPE_DOCUMENT && type != QXPDocument::TYPE_TEMPLATE))
+  {
+    std::cerr << "ERROR: Unsupported file format" << std::endl;
+    return 1;
+  }
 
   librevenge::RVNGRawDrawingGenerator documentGenerator(printIndentLevel);
 
-  return (QXPDocument::RESULT_OK == QXPDocument::parse(input.get(), &documentGenerator)) ? 0 : 1;
+  return (QXPDocument::RESULT_OK == QXPDocument::parse(&input, &documentGenerator)) ? 0 : 1;
 }
 
 /* vim:set shiftwidth=4 softtabstop=4 noexpandtab: */
