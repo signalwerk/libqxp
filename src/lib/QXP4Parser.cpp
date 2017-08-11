@@ -270,7 +270,7 @@ void QXP4Parser::parseLineStyles(const std::shared_ptr<librevenge::RVNGInputStre
       {
       default:
         QXP_DEBUG_MSG(("Unknown line join type %u\n", miter));
-      // fall-through intended: pick a default
+        QXP_FALLTHROUGH; // pick a default
       case 0:
         result.joinType = LineJoinType::MITER;
         break;
@@ -287,7 +287,7 @@ void QXP4Parser::parseLineStyles(const std::shared_ptr<librevenge::RVNGInputStre
       {
       default:
         QXP_DEBUG_MSG(("Unknown line cap type %u\n", endcap));
-      // fall-through intended: pick a default
+        QXP_FALLTHROUGH; // pick a default
       case 0:
         result.endcapType = LineCapType::BUTT;
         break;
@@ -1017,7 +1017,7 @@ void QXP4Parser::readTextPathSettings(const std::shared_ptr<librevenge::RVNGInpu
   {
   default:
     QXP_DEBUG_MSG(("Unknown text path align %u\n", align));
-  // fall-through intended: pick a default
+    QXP_FALLTHROUGH; // pick a default
   case 2:
     settings.alignment = TextPathAlignment::BASELINE;
     break;
@@ -1036,7 +1036,7 @@ void QXP4Parser::readTextPathSettings(const std::shared_ptr<librevenge::RVNGInpu
   {
   default:
     QXP_DEBUG_MSG(("Unknown text path line align %u\n", lineAlign));
-  // fall-through intended: pick a default
+    QXP_FALLTHROUGH; // pick a default
   case 0:
     settings.lineAlignment = TextPathLineAlignment::TOP;
     break;

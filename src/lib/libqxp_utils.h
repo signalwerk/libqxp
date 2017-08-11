@@ -32,6 +32,14 @@
 #define QXP_ATTRIBUTE_PRINTF(fmt, arg)
 #endif
 
+#if defined(HAVE_CLANG_ATTRIBUTE_FALLTHROUGH)
+#  define QXP_FALLTHROUGH [[clang::fallthrough]]
+#elif defined(HAVE_GCC_ATTRIBUTE_FALLTHROUGH)
+#  define QXP_FALLTHROUGH __attribute__((fallthrough))
+#else
+#  define QXP_FALLTHROUGH ((void) 0)
+#endif
+
 // do nothing with debug messages in a release compile
 #ifdef DEBUG
 namespace libqxp

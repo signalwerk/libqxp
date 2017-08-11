@@ -195,7 +195,7 @@ TabStop QXPParser::parseTabStop(const std::shared_ptr<librevenge::RVNGInputStrea
   {
   default:
     QXP_DEBUG_MSG(("Unknown tab stop type %u\n", type));
-  // fall-through intended: pick a default
+    QXP_FALLTHROUGH; // pick a default
   case 0:
     tabStop.type = TabStopType::LEFT;
     break;
@@ -352,7 +352,7 @@ Gradient QXPParser::readGradient(const std::shared_ptr<librevenge::RVNGInputStre
   {
   default:
     QXP_DEBUG_MSG(("Unknown gradient type %u\n", type));
-  // fall-through intended: pick a default
+    QXP_FALLTHROUGH; // pick a default
   case 0x10:
     gradient.type = GradientType::LINEAR;
     break;
@@ -400,7 +400,7 @@ HorizontalAlignment QXPParser::readHorAlign(const std::shared_ptr<librevenge::RV
   {
   default:
     QXP_DEBUG_MSG(("Unknown hor. align %u\n", align));
-  // fall-through intended: pick a default
+    QXP_FALLTHROUGH; // pick a default
   case 0:
     return HorizontalAlignment::LEFT;
   case 1:
@@ -421,7 +421,7 @@ VerticalAlignment QXPParser::readVertAlign(const std::shared_ptr<librevenge::RVN
   {
   default:
     QXP_DEBUG_MSG(("Unknown vert. align %u\n", align));
-  // fall-through intended: pick a default
+    QXP_FALLTHROUGH; // pick a default
   case 0:
     return VerticalAlignment::TOP;
   case 1:
