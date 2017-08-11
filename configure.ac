@@ -256,12 +256,12 @@ AM_CONDITIONAL([WITH_DOCS], [test "x$build_docs" != "xno"])
 # ================
 # Conversion tools
 # ================
-AC_ARG_WITH(tools,
-    [AS_HELP_STRING([--without-tools], [Do not build conversion tools])],
-    [with_tools="$withval"],
-    [AS_IF([test "x$native_win32" = "xyes"], [with_tools=no], [with_tools=yes])]
+AC_ARG_ENABLE(tools,
+    [AS_HELP_STRING([--disable-tools], [Do not build conversion tools])],
+    [enable_tools="$enableval"],
+    [AS_IF([test "x$native_win32" = "xyes"], [enable_tools=no], [enable_tools=yes])]
 )
-AM_CONDITIONAL([WITH_TOOLS], [test "x$with_tools" != "xno"])
+AM_CONDITIONAL([BUILD_TOOLS], [test "x$enable_tools" = "xyes"])
 
 # =======
 # Fuzzers
@@ -312,7 +312,7 @@ Build configuration:
     docs:            ${build_docs}
     fuzzers:         ${enable_fuzzers}
     tests:           ${enable_tests}
-    tools:           ${with_tools}
+    tools:           ${enable_tools}
     werror:          ${enable_werror}
 ==============================================================================
 ])

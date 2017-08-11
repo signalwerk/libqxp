@@ -2,7 +2,7 @@
 
 SUBDIRS = lib
 
-if WITH_TOOLS
+if BUILD_TOOLS
 SUBDIRS += conv
 endif
 
