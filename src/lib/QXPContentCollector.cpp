@@ -747,7 +747,7 @@ void QXPContentCollector::drawTextPath(const std::shared_ptr<TextPath> &textPath
   textObjPropList.insert("svg:x", page.getX(textPath->boundingBox.left), RVNG_POINT);
   textObjPropList.insert("svg:y", page.getY(textY), RVNG_POINT);
   // shouldn't grow vertically
-  textObjPropList.insert("svg:width", textPath->boundingBox.width() + textPath->boundingBox.width() / 2, RVNG_POINT);
+  textObjPropList.insert("svg:width", textPath->boundingBox.width() + height, RVNG_POINT);
   textObjPropList.insert("svg:height", height, RVNG_POINT);
 
   textObjPropList.insert("fo:padding-top", 0, RVNG_POINT);
