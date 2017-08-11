@@ -8,6 +8,7 @@
  */
 
 #include <cstdint>
+#include <cstdlib>
 
 #include <librevenge-generators/librevenge-generators.h>
 
@@ -19,7 +20,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
   librevenge::RVNGStringStream input(data, size);
   librevenge::RVNGRawDrawingGenerator generator(true);
-  QXPDocument::parse(input, &generator);
+  libqxp::QXPDocument::parse(&input, &generator);
   return 0;
 }
 
