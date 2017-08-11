@@ -18,7 +18,7 @@
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
   librevenge::RVNGStringStream input(data, size);
-  librevenge::RVNGRawTextGenerator generator(true);
+  librevenge::RVNGRawDrawingGenerator generator(true);
   QXPDocument::parse(input, &generator);
   return 0;
 }
