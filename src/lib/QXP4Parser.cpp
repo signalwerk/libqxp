@@ -503,10 +503,10 @@ QXP4Parser::ObjectHeader QXP4Parser::parseObjectHeader(const std::shared_ptr<lib
 {
   ObjectHeader result;
 
-  skip(stream, 1);
-
   bool noColor;
   readObjectFlags(stream, noColor);
+
+  skip(stream, 1);
 
   const unsigned colorId = readU16(stream, be);
   const double shade = readFraction(stream, be);
