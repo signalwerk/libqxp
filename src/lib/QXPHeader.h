@@ -47,11 +47,11 @@ public:
 
   bool isLittleEndian() const;
   bool isBigEndian() const;
-  QXPVersion version() const;
+  unsigned version() const;
 
 protected:
   unsigned m_proc;
-  QXPVersion m_version;
+  unsigned m_version;
   boost::optional<QXPDocument::Type> m_fileType;
 };
 

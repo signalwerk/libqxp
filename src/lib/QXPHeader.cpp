@@ -16,7 +16,7 @@ namespace libqxp
 
 QXPHeader::QXPHeader(const boost::optional<QXPDocument::Type> &fileType)
   : m_proc(0)
-  , m_version()
+  , m_version(QXPVersion::UNKNOWN)
   , m_fileType(fileType)
 {
 }
@@ -31,7 +31,7 @@ bool QXPHeader::isBigEndian() const
   return !isLittleEndian();
 }
 
-QXPVersion QXPHeader::version() const
+unsigned QXPHeader::version() const
 {
   return m_version;
 }

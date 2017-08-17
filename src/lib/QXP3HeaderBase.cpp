@@ -14,34 +14,6 @@
 namespace libqxp
 {
 
-namespace
-{
-QXPVersion parseVersion(unsigned val)
-{
-  switch (val)
-  {
-  case 0x3e:
-    return QXPVersion::QXP_31;
-  case 0x3f:
-    return QXPVersion::QXP_33;
-  case 0x41:
-    return QXPVersion::QXP_4;
-  case 0x42:
-    return QXPVersion::QXP_5;
-  case 0x43:
-    return QXPVersion::QXP_6;
-  case 0x44:
-    return QXPVersion::QXP_7;
-  case 0x45:
-    return QXPVersion::QXP_8;
-  default:
-    QXP_DEBUG_MSG(("Unknown version 0x%x\n", val));
-    return QXPVersion::UNKNOWN;
-  }
-}
-
-}
-
 QXP3HeaderBase::QXP3HeaderBase(const boost::optional<QXPDocument::Type> &fileType)
   : QXPHeader(fileType)
   , m_signature()
@@ -58,7 +30,7 @@ bool QXP3HeaderBase::load(const std::shared_ptr<librevenge::RVNGInputStream> &in
 
   skip(input, 1);
 
-  m_version = parseVersion(readU16(input, isBigEndian()));
+  m_version = readU16(input, isBigEndian());
 
   return true;
 }
