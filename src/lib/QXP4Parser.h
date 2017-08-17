@@ -122,6 +122,7 @@ private:
   void readPictureSettings(const std::shared_ptr<librevenge::RVNGInputStream> &stream, std::shared_ptr<PictureBox> &picturebox);
   void readImageData(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   void readBezierData(const std::shared_ptr<librevenge::RVNGInputStream> &stream, std::vector<CurveComponent> &curveComponents, Rect &bbox);
+  void skipTextObjectEnd(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ObjectHeader &header, const LinkedTextSettings &linkedTextSettings);
 };
 
 }

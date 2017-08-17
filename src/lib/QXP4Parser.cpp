@@ -771,9 +771,10 @@ void QXP4Parser::parseLineText(const std::shared_ptr<librevenge::RVNGInputStream
   readTextPathSettings(stream, textpath->settings);
   skip(stream, 4);
 
+  skipTextObjectEnd(stream, header, textpath->linkSettings);
+
   if (header.contentIndex == 0)
   {
-    skip(stream, 28);
     collector.collectLine(textpath);
   }
   else
@@ -785,7 +786,6 @@ void QXP4Parser::parseLineText(const std::shared_ptr<librevenge::RVNGInputStream
     else
     {
       textpath->text = parseText(header.contentIndex, header.linkId, collector);
-      skip(stream, 12);
     }
 
     collector.collectTextPath(textpath);
@@ -811,9 +811,10 @@ void QXP4Parser::parseBezierText(const std::shared_ptr<librevenge::RVNGInputStre
 
   readBezierData(stream, textpath->curveComponents, textpath->boundingBox);
 
+  skipTextObjectEnd(stream, header, textpath->linkSettings);
+
   if (header.contentIndex == 0)
   {
-    skip(stream, 28);
     collector.collectLine(textpath);
   }
   else
@@ -825,7 +826,6 @@ void QXP4Parser::parseBezierText(const std::shared_ptr<librevenge::RVNGInputStre
     else
     {
       textpath->text = parseText(header.contentIndex, header.linkId, collector);
-      skip(stream, 12);
     }
 
     collector.collectTextPath(textpath);
@@ -855,9 +855,10 @@ void QXP4Parser::parseBezierTextBox(const std::shared_ptr<librevenge::RVNGInputS
 
   readBezierData(stream, textbox->curveComponents, textbox->boundingBox);
 
+  skipTextObjectEnd(stream, header, textbox->linkSettings);
+
   if (header.contentIndex == 0)
   {
-    skip(stream, 28);
     collector.collectBox(textbox);
   }
   else
@@ -869,7 +870,6 @@ void QXP4Parser::parseBezierTextBox(const std::shared_ptr<librevenge::RVNGInputS
     else
     {
       textbox->text = parseText(header.contentIndex, header.linkId, collector);
-      skip(stream, 12);
     }
 
     collector.collectTextBox(textbox);
@@ -903,9 +903,10 @@ void QXP4Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream>
   readLinkedTextSettings(stream, textbox->linkSettings);
   skip(stream, 12);
 
+  skipTextObjectEnd(stream, header, textbox->linkSettings);
+
   if (header.contentIndex == 0)
   {
-    skip(stream, 28);
     collector.collectBox(textbox);
   }
   else
@@ -917,7 +918,6 @@ void QXP4Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream>
     else
     {
       textbox->text = parseText(header.contentIndex, header.linkId, collector);
-      skip(stream, 12);
     }
 
     collector.collectTextBox(textbox);
@@ -1131,6 +1131,18 @@ void QXP4Parser::readBezierData(const std::shared_ptr<librevenge::RVNGInputStrea
   }
 
   seek(stream, end);
+}
+
+void QXP4Parser::skipTextObjectEnd(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &header, const LinkedTextSettings &linkedTextSettings)
+{
+  if (header.contentIndex == 0 || linkedTextSettings.offsetIntoText == 0)
+  {
+    skip(stream, 12);
+    if (header.contentIndex == 0)
+    {
+      skip(stream, 16);
+    }
+  }
 }
 
 }
