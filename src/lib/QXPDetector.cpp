@@ -9,6 +9,7 @@
 
 #include "QXPDetector.h"
 
+#include "QXP1Header.h"
 #include "QXP33Header.h"
 #include "QXP3HeaderBase.h"
 #include "QXP4Header.h"
@@ -85,25 +86,34 @@ void QXPDetector::detect(const std::shared_ptr<librevenge::RVNGInputStream> &inp
       else if (type == "XLIB")
         docType = QXPDocument::TYPE_LIBRARY;
     }
+    else if (creator == "XPRS" && type == "XDOC")
+    {
+      m_input = docStream;
+      m_header = std::make_shared<QXP1Header>();
+    }
   }
   else
   {
     docStream = input;
   }
 
-  QXP3Detector detector;
-  if (detector.load(docStream) && detector.isSupported())
+  if (!m_header)
   {
-    m_input = docStream;
-    m_header = detector.createHeader(docType);
-    if (bool(m_header))
+    QXP3Detector detector;
+    if (detector.load(docStream) && detector.isSupported())
     {
-      m_input->seek(0, librevenge::RVNG_SEEK_SET);
-      m_header->load(m_input);
-      m_type = m_header->getType();
-      if (m_type != QXPDocument::TYPE_UNKNOWN)
-        m_confidence = QXPDocument::CONFIDENCE_EXCELLENT;
+      m_input = docStream;
+      m_header = detector.createHeader(docType);
     }
+  }
+
+  if (bool(m_header))
+  {
+    m_input->seek(0, librevenge::RVNG_SEEK_SET);
+    m_header->load(m_input);
+    m_type = m_header->getType();
+    if (m_type != QXPDocument::TYPE_UNKNOWN)
+      m_confidence = QXPDocument::CONFIDENCE_EXCELLENT;
   }
 }
 
