@@ -17,6 +17,7 @@
 #include <librevenge-stream/librevenge-stream.h>
 
 #include "libqxp_utils.h"
+#include "QXPDetector.h"
 #include "QXPHeader.h"
 #include "QXPBlockParser.h"
 
@@ -27,6 +28,7 @@
 namespace test
 {
 
+using libqxp::QXPDetector;
 using libqxp::QXPHeader;
 using libqxp::QXPBlockParser;
 using libqxp::readString;
@@ -44,9 +46,12 @@ namespace
 shared_ptr<QXPBlockParser> createParser(const string &name)
 {
   const shared_ptr<RVNGInputStream> input(new librevenge::RVNGFileStream((string(TEST_DATA_DIR) + "/" + name).c_str()));
-  QXPHeader header;
-  CPPUNIT_ASSERT(header.load(input));
-  return make_shared<QXPBlockParser>(input, header);
+  QXPDetector detector;
+  detector.detect(input);
+  CPPUNIT_ASSERT(detector.header());
+  CPPUNIT_ASSERT(detector.input());
+  CPPUNIT_ASSERT(detector.header()->load(detector.input()));
+  return make_shared<QXPBlockParser>(detector.input(), detector.header());
 }
 
 }

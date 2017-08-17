@@ -16,9 +16,9 @@
 #include <libqxp/libqxp.h>
 
 #include "libqxp_utils.h"
+#include "QXPDetector.h"
 #include "QXPHeader.h"
-#include "QXP33Parser.h"
-#include "QXP4Parser.h"
+#include "QXPParser.h"
 
 using librevenge::RVNGInputStream;
 
@@ -28,64 +28,38 @@ using std::shared_ptr;
 namespace libqxp
 {
 
-namespace
+QXPAPI QXPDocument::Confidence QXPDocument::isSupported(librevenge::RVNGInputStream *const input, Type *const type) try
 {
-
-QXPDocument::Confidence checkSupport(librevenge::RVNGInputStream *const input, QXPHeader &header, QXPDocument::Type *const type) try
-{
+  QXPDetector detector;
+  detector.detect(std::shared_ptr<librevenge::RVNGInputStream>(input, QXPDummyDeleter()));
   if (type)
-    *type = QXPDocument::TYPE_UNKNOWN;
-
-  if (header.load(std::shared_ptr<RVNGInputStream>(input, QXPDummyDeleter())) && header.isSupported())
-  {
-    if (type)
-      *type = QXPDocument::TYPE_DOCUMENT;
-    return QXPDocument::CONFIDENCE_EXCELLENT;
-  }
-
-  return QXPDocument::CONFIDENCE_NONE;
+    *type = detector.type();
+  return detector.confidence();
 }
 catch (...)
 {
   return QXPDocument::CONFIDENCE_NONE;
 }
 
-}
-
-QXPAPI QXPDocument::Confidence QXPDocument::isSupported(librevenge::RVNGInputStream *const input, Type *const type)
-{
-  QXPHeader header;
-  return checkSupport(input, header, type);
-}
-
 QXPAPI QXPDocument::Result QXPDocument::parse(librevenge::RVNGInputStream *const input, librevenge::RVNGDrawingInterface *const document) try
 {
-  Type type;
-  QXPHeader header;
-  const Confidence confidence = checkSupport(input, header, &type);
-  if (CONFIDENCE_NONE == confidence)
+  QXPDetector detector;
+  detector.detect(std::shared_ptr<librevenge::RVNGInputStream>(input, QXPDummyDeleter()));
+  if (CONFIDENCE_NONE == detector.confidence())
     return RESULT_UNSUPPORTED_FORMAT;
-  else if (CONFIDENCE_SUPPORTED_PART == confidence)
+  else if (CONFIDENCE_SUPPORTED_PART == detector.confidence())
     return RESULT_UNSUPPORTED_FORMAT;
-  else if (CONFIDENCE_UNSUPPORTED_ENCRYPTION == confidence)
+  else if (CONFIDENCE_UNSUPPORTED_ENCRYPTION == detector.confidence())
     return RESULT_UNSUPPORTED_ENCRYPTION;
 
-  if (QXPDocument::TYPE_DOCUMENT != type)
+  if (detector.type() != QXPDocument::TYPE_DOCUMENT && detector.type() != QXPDocument::TYPE_TEMPLATE)
     return QXPDocument::RESULT_UNSUPPORTED_FORMAT;
 
-  const std::shared_ptr<RVNGInputStream> input_(input, QXPDummyDeleter());
+  if (!detector.header()->load(detector.input()))
+    return RESULT_UNKNOWN_ERROR;
+  auto parser = detector.header()->createParser(detector.input(), document);
 
-  input_->seek(0, librevenge::RVNG_SEEK_SET);
-
-  switch (header.version())
-  {
-  case QXPVersion::QXP_33:
-    return QXP33Parser(input_, document, header).parse() ? RESULT_OK : RESULT_UNKNOWN_ERROR;
-  case QXPVersion::QXP_4:
-    return QXP4Parser(input_, document, header).parse() ? RESULT_OK : RESULT_UNKNOWN_ERROR;
-  default:
-    return RESULT_UNSUPPORTED_FORMAT;
-  }
+  return parser->parse() ? RESULT_OK : RESULT_UNKNOWN_ERROR;
 }
 catch (const FileAccessError &)
 {

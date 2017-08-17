@@ -9,6 +9,8 @@
 
 #include "QXP1Parser.h"
 
+#include "QXP1Header.h"
+
 namespace libqxp
 {
 
@@ -16,10 +18,9 @@ using librevenge::RVNGInputStream;
 using std::make_shared;
 using std::shared_ptr;
 
-QXP1Parser::QXP1Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter,
-                       const QXPHeader &commonHeader)
-  : QXPParser(input, painter, commonHeader, m_header)
-  , m_header()
+QXP1Parser::QXP1Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter, const std::shared_ptr<QXP1Header> &header)
+  : QXPParser(input, painter, header)
+  , m_header(header)
 {
 }
 

@@ -26,14 +26,14 @@ class QXPTextParser
   QXPTextParser &operator=(const QXPTextParser &other) = delete;
 
 public:
-  QXPTextParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, const QXPHeader &header);
+  QXPTextParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, const std::shared_ptr<QXPHeader> &header);
 
   std::shared_ptr<Text> parseText(unsigned index,
                                   const std::vector<std::shared_ptr<CharFormat>> &charFormats,
                                   const std::vector<std::shared_ptr<ParagraphFormat>> &paragraphFormats);
 
 private:
-  const QXPHeader m_header;
+  const std::shared_ptr<QXPHeader> m_header;
   const bool be; // big endian
   QXPBlockParser m_blockParser;
 };

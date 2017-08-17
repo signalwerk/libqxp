@@ -64,6 +64,12 @@ struct QXPDummyDeleter
   void operator()(void *) {}
 };
 
+template<typename T, typename... Args>
+std::unique_ptr<T> make_unique(Args &&... args)
+{
+  return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+
 uint8_t readU8(librevenge::RVNGInputStream *input, bool = false);
 uint16_t readU16(librevenge::RVNGInputStream *input, bool bigEndian=false);
 uint32_t readU32(librevenge::RVNGInputStream *input, bool bigEndian=false);

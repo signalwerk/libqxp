@@ -10,8 +10,11 @@
 #ifndef QXPHEADER_H_INCLUDED
 #define QXPHEADER_H_INCLUDED
 
-#include "libqxp_utils.h"
-#include <string>
+#include <memory>
+
+#include <boost/optional.hpp>
+
+#include <libqxp/libqxp.h>
 
 namespace libqxp
 {
@@ -28,26 +31,28 @@ enum QXPVersion
   QXP_8 = 0x45,
 };
 
+class QXPParser;
+
 class QXPHeader
 {
 public:
-  QXPHeader();
+  explicit QXPHeader(const boost::optional<QXPDocument::Type> &fileType = boost::none);
   virtual ~QXPHeader() = default;
 
-  virtual bool load(const std::shared_ptr<librevenge::RVNGInputStream> &input);
+  virtual bool load(const std::shared_ptr<librevenge::RVNGInputStream> &input) = 0;
 
-  bool isSupported() const;
+  virtual QXPDocument::Type getType() const = 0;
+
+  virtual std::unique_ptr<QXPParser> createParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter) = 0;
 
   bool isLittleEndian() const;
   bool isBigEndian() const;
   QXPVersion version() const;
 
-private:
-  bool checkSignature() const;
-
-  uint8_t m_proc;
-  std::string m_signature;
+protected:
+  unsigned m_proc;
   QXPVersion m_version;
+  boost::optional<QXPDocument::Type> m_fileType;
 };
 
 }

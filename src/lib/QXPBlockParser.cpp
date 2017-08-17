@@ -8,10 +8,13 @@
  */
 
 #include "QXPBlockParser.h"
+
 #include <librevenge-stream/librevenge-stream.h>
 #include <algorithm>
 #include <memory>
 #include <vector>
+
+#include "QXPHeader.h"
 
 namespace libqxp
 {
@@ -21,9 +24,9 @@ using librevenge::RVNGStringStream;
 using std::make_shared;
 using std::vector;
 
-QXPBlockParser::QXPBlockParser(const std::shared_ptr<RVNGInputStream> &input, const QXPHeader &header)
+QXPBlockParser::QXPBlockParser(const std::shared_ptr<RVNGInputStream> &input, const std::shared_ptr<QXPHeader> &header)
   : m_input(input)
-  , be(header.isBigEndian())
+  , be(header->isBigEndian())
   , m_blockLength(256)
 {
 }

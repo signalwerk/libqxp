@@ -15,12 +15,16 @@
 namespace libqxp
 {
 
-class QXP1Header : public QXPHeader
+class QXP1Header : public QXPHeader, public std::enable_shared_from_this<QXP1Header>
 {
 public:
   QXP1Header();
 
-  bool load(const std::shared_ptr<librevenge::RVNGInputStream> &input) override;
+  bool load(const std::shared_ptr<librevenge::RVNGInputStream> &input);
+
+  QXPDocument::Type getType() const override;
+
+  std::unique_ptr<QXPParser> createParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter) override;
 };
 
 }

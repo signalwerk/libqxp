@@ -8,8 +8,11 @@
  */
 
 #include "QXP4Parser.h"
+
 #include <librevenge-stream/librevenge-stream.h>
 #include <memory>
+
+#include "QXP4Header.h"
 
 namespace libqxp
 {
@@ -42,10 +45,9 @@ shared_ptr<T> createLine(const QXP4Parser::ObjectHeader &header)
 
 }
 
-QXP4Parser::QXP4Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter,
-                       const QXPHeader &commonHeader)
-  : QXPParser(input, painter, commonHeader, m_header)
-  , m_header()
+QXP4Parser::QXP4Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter, const std::shared_ptr<QXP4Header> &header)
+  : QXPParser(input, painter, header)
+  , m_header(header)
   , m_paragraphTabStops()
 {
 }
@@ -88,7 +90,7 @@ bool QXP4Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStream
 
 bool QXP4Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXPCollector &collector)
 {
-  QXP4Deobfuscator deobfuscator(m_header.seed(), m_header.increment());
+  QXP4Deobfuscator deobfuscator(m_header->seed(), m_header->increment());
   QXPDummyCollector dummyCollector;
 
   unsigned ind = 0;
@@ -101,7 +103,7 @@ bool QXP4Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &
     seekRelative(stream, -4);
 
     // don't output master pages, everything is included in normal pages
-    QXPCollector &coll = ind < m_header.masterPagesCount() ? dummyCollector : collector;
+    QXPCollector &coll = ind < m_header->masterPagesCount() ? dummyCollector : collector;
 
     auto page = parsePage(stream, deobfuscator);
     coll.startPage(page);

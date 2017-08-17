@@ -12,7 +12,6 @@
 
 #include "libqxp_utils.h"
 #include "QXPBlockParser.h"
-#include "QXPHeader.h"
 #include "QXPCollector.h"
 #include "QXPTextParser.h"
 #include "QXPTypes.h"
@@ -23,6 +22,8 @@
 namespace libqxp
 {
 
+class QXPHeader;
+
 class QXPParser
 {
   // disable copying
@@ -30,8 +31,7 @@ class QXPParser
   QXPParser &operator=(const QXPParser &other) = delete;
 
 public:
-  QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter,
-            const QXPHeader &commonHeader, QXPHeader &header);
+  QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter, const std::shared_ptr<QXPHeader> &header);
   virtual ~QXPParser() = default;
 
   bool parse();
@@ -87,7 +87,7 @@ protected:
   void skipFileInfo(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
 
 private:
-  QXPHeader &m_header;
+  const std::shared_ptr<QXPHeader> m_header;
 };
 
 }

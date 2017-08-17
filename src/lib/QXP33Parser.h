@@ -12,7 +12,6 @@
 
 #include "libqxp_utils.h"
 #include "QXPParser.h"
-#include "QXP33Header.h"
 #include "QXPTypes.h"
 #include "QXP33Deobfuscator.h"
 
@@ -21,11 +20,12 @@
 namespace libqxp
 {
 
+class QXP33Header;
+
 class QXP33Parser : public QXPParser
 {
 public:
-  QXP33Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter,
-              const QXPHeader &commonHeader);
+  QXP33Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter, const std::shared_ptr<QXP33Header> &header);
 
   enum class ShapeType
   {
@@ -72,7 +72,7 @@ public:
   };
 
 private:
-  QXP33Header m_header;
+  const std::shared_ptr<QXP33Header> m_header;
 
   bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) override;
   bool parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &pagesStream, QXPCollector &collector) override;

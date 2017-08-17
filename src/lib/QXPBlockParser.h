@@ -11,10 +11,11 @@
 #define QXPBLOCKPARSER_H_INCLUDED
 
 #include "libqxp_utils.h"
-#include "QXPHeader.h"
 
 namespace libqxp
 {
+
+class QXPHeader;
 
 class QXPBlockParser
 {
@@ -23,7 +24,7 @@ class QXPBlockParser
   QXPBlockParser &operator=(const QXPBlockParser &other) = delete;
 
 public:
-  QXPBlockParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, const QXPHeader &header);
+  QXPBlockParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, const std::shared_ptr<QXPHeader> &header);
 
   std::shared_ptr<librevenge::RVNGInputStream> getBlock(const uint32_t index);
   std::shared_ptr<librevenge::RVNGInputStream> getChain(const uint32_t index);

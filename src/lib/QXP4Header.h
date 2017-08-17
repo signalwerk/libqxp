@@ -10,24 +10,31 @@
 #ifndef QXP4HEADER_H_INCLUDED
 #define QXP4HEADER_H_INCLUDED
 
+#include <string>
+
 #include "libqxp_utils.h"
-#include "QXPHeader.h"
+#include "QXP3HeaderBase.h"
 
 namespace libqxp
 {
 
-class QXP4Header : public QXPHeader
+class QXP4Header : public QXP3HeaderBase, public std::enable_shared_from_this<QXP4Header>
 {
 public:
-  QXP4Header();
+  explicit QXP4Header(const boost::optional<QXPDocument::Type> &fileType = boost::none);
 
-  bool load(const std::shared_ptr<librevenge::RVNGInputStream> &input) override;
+  bool load(const std::shared_ptr<librevenge::RVNGInputStream> &input);
+
+  QXPDocument::Type getType() const override;
+
+  std::unique_ptr<QXPParser> createParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter) override;
 
   uint16_t masterPagesCount() const;
   uint16_t seed() const;
   uint16_t increment() const;
 
 private:
+  std::string m_type;
   uint16_t m_masterPagesCount;
   uint16_t m_seed;
   uint16_t m_increment;

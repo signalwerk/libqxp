@@ -12,18 +12,18 @@
 
 #include "libqxp_utils.h"
 #include "QXPParser.h"
-#include "QXP4Header.h"
 #include "QXP4Deobfuscator.h"
 #include <vector>
 
 namespace libqxp
 {
 
+class QXP4Header;
+
 class QXP4Parser : public QXPParser
 {
 public:
-  QXP4Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter,
-             const QXPHeader &commonHeader);
+  QXP4Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter, const std::shared_ptr<QXP4Header> &header);
 
   enum class ShapeType
   {
@@ -80,7 +80,7 @@ private:
     { }
   };
 
-  QXP4Header m_header;
+  const std::shared_ptr<QXP4Header> m_header;
 
   std::vector<std::vector<TabStop>> m_paragraphTabStops;
 

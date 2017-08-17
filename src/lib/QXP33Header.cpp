@@ -9,11 +9,14 @@
 
 #include "QXP33Header.h"
 
+#include "QXP33Parser.h"
+
 namespace libqxp
 {
 
-QXP33Header::QXP33Header()
-  : m_masterPagesCount(0)
+QXP33Header::QXP33Header(const boost::optional<QXPDocument::Type> &fileType)
+  : QXP3HeaderBase(fileType)
+  , m_masterPagesCount(0)
   , m_seed(0)
   , m_increment()
 {
@@ -21,7 +24,7 @@ QXP33Header::QXP33Header()
 
 bool QXP33Header::load(const std::shared_ptr<librevenge::RVNGInputStream> &input)
 {
-  QXPHeader::load(input);
+  QXP3HeaderBase::load(input);
 
   seek(input, 0x75);
   m_masterPagesCount = readU8(input);
@@ -33,6 +36,16 @@ bool QXP33Header::load(const std::shared_ptr<librevenge::RVNGInputStream> &input
   seek(input, 512);
 
   return true;
+}
+
+QXPDocument::Type QXP33Header::getType() const
+{
+  return m_fileType ? get(m_fileType) : QXPDocument::TYPE_DOCUMENT;
+}
+
+std::unique_ptr<QXPParser> QXP33Header::createParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter)
+{
+  return std::unique_ptr<QXPParser>(new QXP33Parser(input, painter, shared_from_this()));
 }
 
 uint16_t QXP33Header::masterPagesCount() const

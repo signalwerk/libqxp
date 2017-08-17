@@ -8,6 +8,8 @@
  */
 
 #include "QXP33Parser.h"
+
+#include "QXP33Header.h"
 #include "QXPTypes.h"
 
 namespace libqxp
@@ -58,10 +60,9 @@ shared_ptr<T> createLine(const QXP33Parser::ObjectHeader &header)
 
 }
 
-QXP33Parser::QXP33Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter,
-                         const QXPHeader &commonHeader)
-  : QXPParser(input, painter, commonHeader, m_header)
-  , m_header()
+QXP33Parser::QXP33Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter, const std::shared_ptr<QXP33Header> &header)
+  : QXPParser(input, painter, header)
+  , m_header(header)
 {
 }
 
@@ -96,7 +97,7 @@ bool QXP33Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStrea
 
 bool QXP33Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXPCollector &collector)
 {
-  QXP33Deobfuscator deobfuscator(m_header.seed(), m_header.increment());
+  QXP33Deobfuscator deobfuscator(m_header->seed(), m_header->increment());
   QXPDummyCollector dummyCollector;
 
   unsigned ind = 0;
@@ -109,7 +110,7 @@ bool QXP33Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> 
     seekRelative(stream, -4);
 
     // don't output master pages, everything is included in normal pages
-    QXPCollector &coll = ind < m_header.masterPagesCount() ? dummyCollector : collector;
+    QXPCollector &coll = ind < m_header->masterPagesCount() ? dummyCollector : collector;
 
     auto page = parsePage(stream);
     coll.startPage(page);

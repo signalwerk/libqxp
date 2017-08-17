@@ -38,6 +38,8 @@ libqxp_internal_la_SOURCES = \
 	QXP33Header.h \
 	QXP33Parser.cpp \
 	QXP33Parser.h \
+	QXP3HeaderBase.cpp \
+	QXP3HeaderBase.h \
 	QXP4Deobfuscator.cpp \
 	QXP4Deobfuscator.h \
 	QXP4Header.cpp \
@@ -51,6 +53,8 @@ libqxp_internal_la_SOURCES = \
 	QXPContentCollector.h \
 	QXPDeobfuscator.cpp \
 	QXPDeobfuscator.h \
+	QXPDetector.cpp \
+	QXPDetector.h \
 	QXPHeader.cpp \
 	QXPHeader.h \
 	QXPMacFileParser.cpp \

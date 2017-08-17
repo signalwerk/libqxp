@@ -8,7 +8,10 @@
  */
 
 #include "QXPParser.h"
+
 #include "QXPContentCollector.h"
+#include "QXPHeader.h"
+
 #include <cmath>
 #include <memory>
 
@@ -18,13 +21,12 @@ namespace libqxp
 using librevenge::RVNGStringStream;
 using std::make_shared;
 
-QXPParser::QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter,
-                     const QXPHeader &commonHeader, QXPHeader &header)
+QXPParser::QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter, const std::shared_ptr<QXPHeader> &header)
   : m_input(input)
   , m_painter(painter)
-  , be(commonHeader.isBigEndian())
-  , m_blockParser(input, commonHeader)
-  , m_textParser(input, commonHeader)
+  , be(header->isBigEndian())
+  , m_blockParser(input, header)
+  , m_textParser(input, header)
   , m_colors()
   , m_fonts()
   , m_charFormats()
@@ -61,9 +63,6 @@ QXPParser::QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, 
 
 bool QXPParser::parse()
 {
-  if (!m_header.load(m_input) || !m_header.isSupported())
-    return false;
-
   QXPContentCollector collector(m_painter);
 
   collector.startDocument();
@@ -132,7 +131,7 @@ void QXPParser::parseFonts(const std::shared_ptr<librevenge::RVNGInputStream> &s
     for (unsigned i = 0; i < count; ++i)
     {
       int index = readS16(stream, be);
-      if (m_header.version() >= QXP_4)
+      if (m_header->version() >= QXP_4)
       {
         skip(stream, 2);
       }
@@ -285,7 +284,7 @@ std::vector<PageSettings> QXPParser::parsePageSettings(const std::shared_ptr<lib
     page.margin.bottom = readFraction(stream, be);
     page.margin.left = readFraction(stream, be);
     page.margin.right = readFraction(stream, be);
-    skip(stream, m_header.version() >= QXP_4 ? 12 : 8);
+    skip(stream, m_header->version() >= QXP_4 ? 12 : 8);
   }
 
   for (unsigned i = 0; i <= count; ++i)
@@ -345,7 +344,7 @@ Gradient QXPParser::readGradient(const std::shared_ptr<librevenge::RVNGInputStre
   Gradient gradient;
   gradient.color1 = color1;
 
-  skip(stream, m_header.version() >= QXP_4 ? 20 : 14);
+  skip(stream, m_header->version() >= QXP_4 ? 20 : 14);
 
   const uint8_t type = readU16(stream, be) & 0xff;
   switch (type)
@@ -375,7 +374,7 @@ Gradient QXPParser::readGradient(const std::shared_ptr<librevenge::RVNGInputStre
   skip(stream, 4);
 
   unsigned colorId;
-  if (m_header.version() >= QXP_4)
+  if (m_header->version() >= QXP_4)
   {
     colorId = readU16(stream, be);
   }

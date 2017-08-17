@@ -10,17 +10,17 @@
 #ifndef QXP1PARSER_H_INCLUDED
 #define QXP1PARSER_H_INCLUDED
 
-#include "QXP1Header.h"
 #include "QXPParser.h"
 
 namespace libqxp
 {
 
+class QXP1Header;
+
 class QXP1Parser : public QXPParser
 {
 public:
-  QXP1Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter,
-             const QXPHeader &commonHeader);
+  QXP1Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter, const std::shared_ptr<QXP1Header> &header);
 
 private:
   bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) override;
@@ -30,7 +30,7 @@ private:
   ParagraphFormat parseParagraphFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) override;
 
 private:
-  QXP1Header m_header;
+  const std::shared_ptr<QXP1Header> m_header;
 };
 
 }

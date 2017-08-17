@@ -14,9 +14,9 @@ namespace libqxp
 
 using std::make_shared;
 
-QXPTextParser::QXPTextParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, const QXPHeader &header)
+QXPTextParser::QXPTextParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, const std::shared_ptr<QXPHeader> &header)
   : m_header(header)
-  , be(header.isBigEndian())
+  , be(header->isBigEndian())
   , m_blockParser(input, header)
 {
 }
@@ -37,7 +37,7 @@ std::shared_ptr<Text> QXPTextParser::parseText(unsigned index,
     while (infoStream->tell() < end)
     {
       const unsigned blockIndex = readU32(infoStream, be);
-      const unsigned length = m_header.version() >= QXP_4 ? readU32(infoStream, be) : readU16(infoStream, be);
+      const unsigned length = m_header->version() >= QXP_4 ? readU32(infoStream, be) : readU16(infoStream, be);
       auto blockStream = m_blockParser.getBlock(blockIndex);
       text->text += readString(blockStream, length);
     }
@@ -48,7 +48,7 @@ std::shared_ptr<Text> QXPTextParser::parseText(unsigned index,
     const long end = infoStream->tell() + charSpecLength;
     while (infoStream->tell() < end)
     {
-      const unsigned charFormatIndex = m_header.version() >= QXP_4 ? readU32(infoStream, be) : readU16(infoStream, be);
+      const unsigned charFormatIndex = m_header->version() >= QXP_4 ? readU32(infoStream, be) : readU16(infoStream, be);
       const unsigned length = readU32(infoStream, be);
       const unsigned startIndex = text->charFormats.empty() ? 0 : text->charFormats.back().afterEndIndex();
 
@@ -74,7 +74,7 @@ std::shared_ptr<Text> QXPTextParser::parseText(unsigned index,
     const long end = infoStream->tell() + paragraphSpecLength;
     while (infoStream->tell() < end)
     {
-      const unsigned paragraphFormatIndex = m_header.version() >= QXP_4 ? readU32(infoStream, be) : readU16(infoStream, be);
+      const unsigned paragraphFormatIndex = m_header->version() >= QXP_4 ? readU32(infoStream, be) : readU16(infoStream, be);
       const unsigned length = readU32(infoStream, be);
       const unsigned startIndex = text->paragraphs.empty() ? 0 : text->paragraphs.back().afterEndIndex();
 
