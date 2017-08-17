@@ -12,7 +12,6 @@
 
 #include "libqxp_utils.h"
 #include "QXPBlockParser.h"
-#include "QXPCollector.h"
 #include "QXPTextParser.h"
 #include "QXPTypes.h"
 #include <functional>
@@ -22,6 +21,7 @@
 namespace libqxp
 {
 
+class QXPCollector;
 class QXPHeader;
 
 class QXPParser

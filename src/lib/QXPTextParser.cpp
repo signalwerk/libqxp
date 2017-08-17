@@ -9,6 +9,9 @@
 
 #include "QXPTextParser.h"
 
+#include "QXPHeader.h"
+#include "QXPTypes.h"
+
 namespace libqxp
 {
 

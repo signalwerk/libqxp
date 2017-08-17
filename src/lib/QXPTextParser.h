@@ -10,14 +10,20 @@
 #ifndef QXPTEXTPARSER_H_INCLUDED
 #define QXPTEXTPARSER_H_INCLUDED
 
+#include <memory>
+#include <vector>
+
 #include "libqxp_utils.h"
 #include "QXPBlockParser.h"
-#include "QXPHeader.h"
-#include "QXPTypes.h"
-#include <memory>
 
 namespace libqxp
 {
+
+class QXPHeader;
+
+struct CharFormat;
+struct ParagraphFormat;
+struct Text;
 
 class QXPTextParser
 {

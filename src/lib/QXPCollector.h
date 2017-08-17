@@ -11,10 +11,17 @@
 #define QXPCOLLECTOR_H_INCLUDED
 
 #include "libqxp_utils.h"
-#include "QXPTypes.h"
 
 namespace libqxp
 {
+
+struct Box;
+struct Group;
+struct Line;
+struct Page;
+struct Text;
+struct TextBox;
+struct TextPath;
 
 class QXPCollector
 {

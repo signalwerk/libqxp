@@ -12,7 +12,9 @@
 #include <librevenge-stream/librevenge-stream.h>
 #include <memory>
 
+#include "QXP4Deobfuscator.h"
 #include "QXP4Header.h"
+#include "QXPCollector.h"
 
 namespace libqxp
 {

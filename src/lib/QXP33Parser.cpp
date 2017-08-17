@@ -9,7 +9,9 @@
 
 #include "QXP33Parser.h"
 
+#include "QXP33Deobfuscator.h"
 #include "QXP33Header.h"
+#include "QXPCollector.h"
 #include "QXPTypes.h"
 
 namespace libqxp

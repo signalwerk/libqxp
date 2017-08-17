@@ -10,13 +10,14 @@
 #ifndef QXPCONTENTCOLLECTOR_H_INCLUDED
 #define QXPCONTENTCOLLECTOR_H_INCLUDED
 
-#include "libqxp_utils.h"
 #include "QXPCollector.h"
 #include <vector>
 #include <unordered_map>
 #include <memory>
 #include <functional>
 #include <type_traits>
+
+#include "QXPTypes.h"
 
 namespace libqxp
 {

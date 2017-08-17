@@ -12,14 +12,13 @@
 
 #include "libqxp_utils.h"
 #include "QXPParser.h"
-#include "QXPTypes.h"
-#include "QXP33Deobfuscator.h"
 
 #include <string>
 
 namespace libqxp
 {
 
+class QXP33Deobfuscator;
 class QXP33Header;
 
 class QXP33Parser : public QXPParser

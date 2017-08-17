@@ -10,14 +10,13 @@
 #ifndef QXP4PARSER_H_INCLUDED
 #define QXP4PARSER_H_INCLUDED
 
-#include "libqxp_utils.h"
 #include "QXPParser.h"
-#include "QXP4Deobfuscator.h"
 #include <vector>
 
 namespace libqxp
 {
 
+class QXP4Deobfuscator;
 class QXP4Header;
 
 class QXP4Parser : public QXPParser
