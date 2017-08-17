@@ -20,8 +20,9 @@ QXP1Header::QXP1Header()
 
 bool QXP1Header::load(const std::shared_ptr<librevenge::RVNGInputStream> &input)
 {
-  (void) input;
-  return false;
+  m_proc = 'M';
+  m_version = readU16(input, true);
+  return true;
 }
 
 QXPDocument::Type QXP1Header::getType() const
