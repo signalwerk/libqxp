@@ -448,9 +448,29 @@ void QXP33Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream
     textbox->customPoints = readPolygonData(stream);
   }
 
+  if (header.contentIndex == 0 || textbox->linkSettings.offsetIntoText == 0)
+  {
+    skip(stream, 4);
+    const unsigned fileInfoId = readU32(stream, be);
+    skip(stream, 4);
+    if (fileInfoId != 0)
+    {
+      skipFileInfo(stream);
+    }
+    if (header.contentIndex == 0)
+    {
+      skip(stream, 12);
+    }
+  }
+
+  if (runaroundId != 0)
+  {
+    const unsigned length = readU32(stream, be);
+    skip(stream, length);
+  }
+
   if (header.contentIndex == 0)
   {
-    skip(stream, 24);
     collector.collectBox(textbox);
   }
   else
@@ -462,16 +482,9 @@ void QXP33Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream
     else
     {
       textbox->text = parseText(header.contentIndex, header.linkId, collector);
-      skip(stream, 12);
     }
 
     collector.collectTextBox(textbox);
-  }
-
-  if (runaroundId != 0)
-  {
-    const unsigned length = readU32(stream, be);
-    skip(stream, length);
   }
 }
 
