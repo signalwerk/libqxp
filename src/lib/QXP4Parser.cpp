@@ -1137,7 +1137,13 @@ void QXP4Parser::skipTextObjectEnd(const std::shared_ptr<librevenge::RVNGInputSt
 {
   if (header.contentIndex == 0 || linkedTextSettings.offsetIntoText == 0)
   {
-    skip(stream, 12);
+    skip(stream, 4);
+    const unsigned fileInfoId = readU32(stream, be);
+    skip(stream, 4);
+    if (fileInfoId != 0)
+    {
+      skipFileInfo(stream);
+    }
     if (header.contentIndex == 0)
     {
       skip(stream, 16);

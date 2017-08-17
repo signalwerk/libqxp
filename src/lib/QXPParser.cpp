@@ -480,6 +480,15 @@ void QXPParser::setArrow(const unsigned index, Frame &frame) const
   }
 }
 
+void QXPParser::skipFileInfo(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  const unsigned length = readU32(stream, be);
+  if (length > 0)
+  {
+    skip(stream, length);
+  }
+}
+
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
