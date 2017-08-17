@@ -167,6 +167,7 @@ std::string readString(librevenge::RVNGInputStream *input, const unsigned length
   checkStream(input);
 
   string str;
+  str.reserve(length);
   for (unsigned i = 0; length != i; ++i)
     str.push_back(readU8(input));
 
