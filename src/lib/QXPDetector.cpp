@@ -12,6 +12,7 @@
 #include "QXP33Header.h"
 #include "QXP3HeaderBase.h"
 #include "QXP4Header.h"
+#include "QXPMacFileParser.h"
 #include "QXPParser.h"
 
 namespace libqxp
@@ -65,11 +66,36 @@ QXPDetector::QXPDetector()
 
 void QXPDetector::detect(const std::shared_ptr<librevenge::RVNGInputStream> &input)
 {
-  QXP3Detector detector;
-  if (detector.load(input) && detector.isSupported())
+  boost::optional<QXPDocument::Type> docType;
+
+  std::shared_ptr<librevenge::RVNGInputStream> docStream;
+  std::string type;
+  std::string creator;
+  QXPMacFileParser macFile(docStream, type, creator);
+  if (macFile.parse(input))
   {
-    m_input = input;
-    m_header = detector.createHeader();
+    if (creator == "XPR3")
+    {
+      if (type == "XDOC")
+        docType = QXPDocument::TYPE_DOCUMENT;
+      else if (type == "XTMP")
+        docType = QXPDocument::TYPE_TEMPLATE;
+      else if (type == "XBOK")
+        docType = QXPDocument::TYPE_BOOK;
+      else if (type == "XLIB")
+        docType = QXPDocument::TYPE_LIBRARY;
+    }
+  }
+  else
+  {
+    docStream = input;
+  }
+
+  QXP3Detector detector;
+  if (detector.load(docStream) && detector.isSupported())
+  {
+    m_input = docStream;
+    m_header = detector.createHeader(docType);
     if (bool(m_header))
     {
       m_input->seek(0, librevenge::RVNG_SEEK_SET);
