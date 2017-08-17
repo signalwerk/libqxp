@@ -55,6 +55,8 @@ protected:
   const LineStyle *getLineStyle(unsigned id) const;
   std::string getFont(int id, std::string defaultFont = "Arial") const;
 
+  void convertCharFormatFlags(unsigned flags, CharFormat &format);
+
   virtual bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) = 0;
   virtual bool parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXPCollector &collector) = 0;
 

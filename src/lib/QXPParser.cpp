@@ -169,18 +169,7 @@ void QXPParser::parseCommonCharFormatProps(const std::shared_ptr<librevenge::RVN
   result.fontName = getFont(fontIndex).c_str();
 
   const unsigned flags = readU16(stream, be);
-  result.bold = flags & 0x1;
-  result.italic = flags & 0x2;
-  result.underline = flags & 0x4;
-  result.outline = flags & 0x8;
-  result.shadow = flags & 0x10;
-  result.superscript = flags & 0x20;
-  result.subscript = flags & 0x40;
-  result.superior = flags & 0x100;
-  result.strike = flags & 0x200;
-  result.allCaps = flags & 0x400;
-  result.smallCaps = flags & 0x800;
-  result.wordUnderline = flags & 0x1000;
+  convertCharFormatFlags(flags, result);
 
   result.fontSize = readFraction(stream, be);
 }
@@ -486,6 +475,22 @@ void QXPParser::skipFileInfo(const std::shared_ptr<librevenge::RVNGInputStream> 
   {
     skip(stream, length);
   }
+}
+
+void QXPParser::convertCharFormatFlags(unsigned flags, CharFormat &format)
+{
+  format.bold = flags & 0x1;
+  format.italic = flags & 0x2;
+  format.underline = flags & 0x4;
+  format.outline = flags & 0x8;
+  format.shadow = flags & 0x10;
+  format.superscript = flags & 0x20;
+  format.subscript = flags & 0x40;
+  format.superior = flags & 0x100;
+  format.strike = flags & 0x200;
+  format.allCaps = flags & 0x400;
+  format.smallCaps = flags & 0x800;
+  format.wordUnderline = flags & 0x1000;
 }
 
 }

@@ -18,6 +18,21 @@ using librevenge::RVNGInputStream;
 using std::make_shared;
 using std::shared_ptr;
 
+namespace
+{
+
+double getShade(const unsigned shadeId)
+{
+  if (shadeId < 3)
+    return 0.1 * shadeId;
+  else if (shadeId < 6)
+    return 0.2 * (shadeId - 1);
+  else
+    return 1.0;
+}
+
+}
+
 QXP1Parser::QXP1Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter, const std::shared_ptr<QXP1Header> &header)
   : QXPParser(input, painter, header)
   , m_header(header)
@@ -26,8 +41,8 @@ QXP1Parser::QXP1Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input
 
 bool QXP1Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream)
 {
-  (void) docStream;
-  return false;
+  parseCharFormats(docStream);
+  return true;
 }
 
 bool QXP1Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXPCollector &collector)
@@ -39,8 +54,26 @@ bool QXP1Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &
 
 CharFormat QXP1Parser::parseCharFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
 {
-  (void) stream;
-  return CharFormat();
+  CharFormat result;
+
+  skip(stream, 2);
+
+  const int fontIndex = readS16(stream, true);
+  (void) fontIndex;
+  result.fontName = "Helvetica"; // TODO: How to determine font name? Is the list of fonts fixed?
+
+  result.fontSize = readU16(stream, true) / 4.0;
+
+  const unsigned flags = readU16(stream, true);
+  convertCharFormatFlags(flags, result);
+
+  skip(stream, 2);
+
+  const unsigned colorId = readU8(stream);
+  const unsigned shadeId = readU8(stream);
+  result.color = getColor(colorId).applyShade(getShade(shadeId));
+
+  return result;
 }
 
 ParagraphFormat QXP1Parser::parseParagraphFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
