@@ -179,24 +179,7 @@ TabStop QXPParser::parseTabStop(const std::shared_ptr<librevenge::RVNGInputStrea
   TabStop tabStop;
 
   const uint8_t type = readU8(stream);
-  switch (type)
-  {
-  default:
-    QXP_DEBUG_MSG(("Unknown tab stop type %u\n", type));
-    QXP_FALLTHROUGH; // pick a default
-  case 0:
-    tabStop.type = TabStopType::LEFT;
-    break;
-  case 1:
-    tabStop.type = TabStopType::CENTER;
-    break;
-  case 2:
-    tabStop.type = TabStopType::RIGHT;
-    break;
-  case 3:
-    tabStop.type = TabStopType::ALIGN;
-    break;
-  }
+  tabStop.type = convertTabStopType(type);
 
   const uint8_t alignChar = readU8(stream);
   tabStop.alignChar.clear();
@@ -491,6 +474,24 @@ void QXPParser::convertCharFormatFlags(unsigned flags, CharFormat &format)
   format.allCaps = flags & 0x400;
   format.smallCaps = flags & 0x800;
   format.wordUnderline = flags & 0x1000;
+}
+
+TabStopType QXPParser::convertTabStopType(unsigned type)
+{
+  switch (type)
+  {
+  default:
+    QXP_DEBUG_MSG(("Unknown tab stop type %u\n", type));
+    QXP_FALLTHROUGH; // pick a default
+  case 0:
+    return TabStopType::LEFT;
+  case 1:
+    return TabStopType::CENTER;
+  case 2:
+    return TabStopType::RIGHT;
+  case 3:
+    return TabStopType::ALIGN;
+  }
 }
 
 }

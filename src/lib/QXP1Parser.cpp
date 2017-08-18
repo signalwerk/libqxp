@@ -42,6 +42,7 @@ QXP1Parser::QXP1Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input
 bool QXP1Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream, QXPCollector &)
 {
   parseCharFormats(docStream);
+  parseParagraphFormats(docStream);
   return true;
 }
 
@@ -78,8 +79,32 @@ CharFormat QXP1Parser::parseCharFormat(const std::shared_ptr<librevenge::RVNGInp
 
 ParagraphFormat QXP1Parser::parseParagraphFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
 {
-  (void) stream;
-  return ParagraphFormat();
+  ParagraphFormat result;
+
+  skip(stream, 3);
+  result.alignment = readHorAlign(stream);
+  skip(stream, 2);
+  result.margin.left = readFraction(stream, true);
+  result.firstLineIndent = readFraction(stream, true);
+  result.margin.right = readFraction(stream, true);
+  result.leading = readFraction(stream, true);
+  result.margin.top = readFraction(stream, true);
+  result.margin.bottom = readFraction(stream, true);
+
+  for (unsigned i = 0; i < 20; ++i)
+  {
+    TabStop tabStop;
+
+    const uint8_t type = readU8(stream);
+    tabStop.type = convertTabStopType(type);
+    tabStop.fillChar.append(char(readU8(stream)));
+    tabStop.position = readFraction(stream, true);
+
+    if (tabStop.isDefined())
+      result.tabStops.push_back(tabStop);
+  }
+
+  return result;
 }
 
 }

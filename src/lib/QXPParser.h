@@ -56,6 +56,7 @@ protected:
   std::string getFont(int id, std::string defaultFont = "Arial") const;
 
   void convertCharFormatFlags(unsigned flags, CharFormat &format);
+  TabStopType convertTabStopType(unsigned type);
 
   virtual bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream, QXPCollector &collector) = 0;
   virtual bool parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXPCollector &collector) = 0;
