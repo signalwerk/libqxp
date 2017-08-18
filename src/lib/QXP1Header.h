@@ -20,7 +20,7 @@ class QXP1Header : public QXPHeader, public std::enable_shared_from_this<QXP1Hea
 public:
   QXP1Header();
 
-  bool load(const std::shared_ptr<librevenge::RVNGInputStream> &input);
+  bool load(const std::shared_ptr<librevenge::RVNGInputStream> &input) override;
 
   QXPDocument::Type getType() const override;
 
