@@ -34,6 +34,8 @@ enum QXPVersion
 
 class QXPParser;
 
+struct QXPDocumentProperties;
+
 class QXPHeader
 {
 public:

@@ -19,6 +19,7 @@ QXP33Header::QXP33Header(const boost::optional<QXPDocument::Type> &fileType)
   , m_masterPagesCount(0)
   , m_seed(0)
   , m_increment()
+  , m_documentProperties()
 {
 }
 
@@ -61,6 +62,11 @@ uint16_t QXP33Header::seed() const
 uint16_t QXP33Header::increment() const
 {
   return m_increment;
+}
+
+const QXPDocumentProperties &QXP33Header::documentProperties() const
+{
+  return m_documentProperties;
 }
 
 }

@@ -526,6 +526,22 @@ struct Page
   }
 };
 
+struct QXPDocumentProperties
+{
+  QXPDocumentProperties()
+    : superscriptOffset(1.0 / 3)
+    , superscriptScale(1.0)
+    , subscriptOffset(-1.0 / 3)
+    , subscriptScale(1.0)
+  {
+  }
+
+  double superscriptOffset;
+  double superscriptScale;
+  double subscriptOffset;
+  double subscriptScale;
+};
+
 }
 
 #endif // QXPTYPES_H_INCLUDED

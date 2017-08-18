@@ -14,6 +14,7 @@
 
 #include "libqxp_utils.h"
 #include "QXP3HeaderBase.h"
+#include "QXPTypes.h"
 
 namespace libqxp
 {
@@ -32,12 +33,14 @@ public:
   uint16_t masterPagesCount() const;
   uint16_t seed() const;
   uint16_t increment() const;
+  const QXPDocumentProperties &documentProperties() const;
 
 private:
   std::string m_type;
   uint16_t m_masterPagesCount;
   uint16_t m_seed;
   uint16_t m_increment;
+  QXPDocumentProperties m_documentProperties;
 };
 
 }

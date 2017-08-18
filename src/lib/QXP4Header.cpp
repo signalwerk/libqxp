@@ -20,6 +20,7 @@ QXP4Header::QXP4Header(const boost::optional<QXPDocument::Type> &fileType)
   , m_masterPagesCount(0)
   , m_seed(0)
   , m_increment(0)
+  , m_documentProperties()
 {
 }
 
@@ -79,6 +80,11 @@ uint16_t QXP4Header::seed() const
 uint16_t QXP4Header::increment() const
 {
   return m_increment;
+}
+
+const QXPDocumentProperties &QXP4Header::documentProperties() const
+{
+  return m_documentProperties;
 }
 
 }

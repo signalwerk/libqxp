@@ -8,7 +8,10 @@
  */
 
 #include "QXPContentCollector.h"
+
 #include <algorithm>
+#include <cmath>
+
 #include <boost/range/adaptor/reversed.hpp>
 #include <boost/variant.hpp>
 
@@ -232,6 +235,13 @@ private:
   librevenge::RVNGPropertyList &m_propList;
 };
 
+RVNGString makeTextPos(const double offset, const double scale)
+{
+  RVNGString pos;
+  pos.sprintf("%d%% %d%%", int(std::round(100 * offset)), int(std::round(100 * scale)));
+  return pos;
+}
+
 }
 
 QXPContentCollector::QXPContentCollector(librevenge::RVNGDrawingInterface *painter)
@@ -241,6 +251,7 @@ QXPContentCollector::QXPContentCollector(librevenge::RVNGDrawingInterface *paint
   , m_unprocessedPages()
   , m_linkTextMap()
   , m_linkIndexedTextObjectsMap()
+  , m_docProps()
 {
 }
 
@@ -294,6 +305,11 @@ void QXPContentCollector::endPage()
     return;
 
   draw();
+}
+
+void QXPContentCollector::collectDocumentProperties(const QXPDocumentProperties &props)
+{
+  m_docProps = props;
 }
 
 void QXPContentCollector::collectLine(const std::shared_ptr<Line> &line)
@@ -891,9 +907,9 @@ void QXPContentCollector::drawText(const std::shared_ptr<Text> &text, const Link
       spanPropList.insert("fo:color", charFormat.format->color.toString());
       // TODO: use offset and scale from doc props
       if (charFormat.format->subscript)
-        spanPropList.insert("style:text-position", "sub");
+        spanPropList.insert("style:text-position", makeTextPos(m_docProps.subscriptOffset, m_docProps.subscriptScale));
       else if (charFormat.format->superscript)
-        spanPropList.insert("style:text-position", "super");
+        spanPropList.insert("style:text-position", makeTextPos(m_docProps.superscriptOffset, m_docProps.superscriptScale));
 
       m_painter->openSpan(spanPropList);
 

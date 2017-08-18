@@ -38,6 +38,8 @@ public:
   void startPage(const Page &page) override;
   void endPage() override;
 
+  void collectDocumentProperties(const QXPDocumentProperties &props) override;
+
   void collectLine(const std::shared_ptr<Line> &line) override;
   void collectBox(const std::shared_ptr<Box> &box) override;
   void collectTextBox(const std::shared_ptr<TextBox> &box) override;
@@ -128,6 +130,8 @@ private:
 
   std::unordered_map<unsigned, std::shared_ptr<Text>> m_linkTextMap;
   std::unordered_map<unsigned, std::unordered_map<unsigned, std::shared_ptr<TextObject>>> m_linkIndexedTextObjectsMap;
+
+  QXPDocumentProperties m_docProps;
 
   CollectedPage &getInsertionPage(const std::shared_ptr<Object> &obj);
 

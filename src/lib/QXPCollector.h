@@ -19,6 +19,7 @@ struct Box;
 struct Group;
 struct Line;
 struct Page;
+struct QXPDocumentProperties;
 struct Text;
 struct TextBox;
 struct TextPath;
@@ -38,6 +39,8 @@ public:
 
   virtual void startPage(const Page &) { }
   virtual void endPage() { }
+
+  virtual void collectDocumentProperties(const QXPDocumentProperties &) { }
 
   virtual void collectLine(const std::shared_ptr<Line> &) { }
   virtual void collectBox(const std::shared_ptr<Box> &) { }
