@@ -919,6 +919,13 @@ void QXPContentCollector::drawText(const std::shared_ptr<Text> &text, const Link
         writeTextPosition(spanPropList, m_docProps.superscriptOffset + charFormat.format->baselineShift, m_docProps.superscriptVScale);
         spanPropList.insert("style:text-scale", m_docProps.superscriptHScale, librevenge::RVNG_PERCENT);
       }
+      else if (charFormat.format->superior)
+      {
+        // approximate "superior" positioning (char ascents are aligned with the cap height of the current font)
+        const double offset = (charFormat.format->fontSize * (1.0 - m_docProps.superiorVScale)) / charFormat.format->fontSize;
+        writeTextPosition(spanPropList, offset + charFormat.format->baselineShift, m_docProps.superiorVScale);
+        spanPropList.insert("style:text-scale", m_docProps.superiorHScale, librevenge::RVNG_PERCENT);
+      }
       else if (charFormat.format->baselineShift != 0.0)
       {
         writeTextPosition(spanPropList, charFormat.format->baselineShift);

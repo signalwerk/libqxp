@@ -47,6 +47,8 @@ bool QXP4Header::load(const std::shared_ptr<librevenge::RVNGInputStream> &input)
   m_documentProperties.subscriptOffset = -readFraction(input, isBigEndian());
   m_documentProperties.subscriptHScale = readFraction(input, isBigEndian());
   m_documentProperties.subscriptVScale = readFraction(input, isBigEndian());
+  m_documentProperties.superiorHScale = readFraction(input, isBigEndian());
+  m_documentProperties.superiorVScale = readFraction(input, isBigEndian());
 
   seek(input, 512);
 

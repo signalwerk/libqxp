@@ -37,8 +37,10 @@ bool QXP33Header::load(const std::shared_ptr<librevenge::RVNGInputStream> &input
   m_documentProperties.subscriptOffset = -readFraction(input, isBigEndian());
   m_documentProperties.subscriptHScale = readFraction(input, isBigEndian());
   m_documentProperties.subscriptVScale = readFraction(input, isBigEndian());
+  m_documentProperties.superiorHScale = readFraction(input, isBigEndian());
+  m_documentProperties.superiorVScale = readFraction(input, isBigEndian());
 
-  seekRelative(input, 36);
+  seekRelative(input, 28);
   m_seed = readU16(input, !isLittleEndian());
   m_increment = readU16(input, !isLittleEndian());
 

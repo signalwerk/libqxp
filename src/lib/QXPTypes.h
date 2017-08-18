@@ -536,6 +536,8 @@ struct QXPDocumentProperties
     , subscriptOffset(-1.0 / 3)
     , subscriptHScale(1.0)
     , subscriptVScale(1.0)
+    , superiorHScale(0.5)
+    , superiorVScale(0.5)
   {
   }
 
@@ -545,6 +547,8 @@ struct QXPDocumentProperties
   double subscriptOffset;
   double subscriptHScale;
   double subscriptVScale;
+  double superiorHScale;
+  double superiorVScale;
 };
 
 }
