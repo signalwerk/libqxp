@@ -110,6 +110,7 @@ struct CharFormat
 {
   librevenge::RVNGString fontName;
   double fontSize;
+  double baselineShift;
   Color color;
   bool bold;
   bool italic;
@@ -127,7 +128,7 @@ struct CharFormat
   bool isControlChars;
 
   CharFormat()
-    : fontName("Arial"), fontSize(12.0), color(0, 0, 0),
+    : fontName("Arial"), fontSize(12.0), baselineShift(0.0), color(0, 0, 0),
       bold(false), italic(false), underline(false), outline(false), shadow(false), superscript(false), subscript(false), superior(false),
       strike(false), allCaps(false), smallCaps(false), wordUnderline(false),
       isControlChars(false)
