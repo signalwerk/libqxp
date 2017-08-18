@@ -888,14 +888,18 @@ void QXPContentCollector::drawText(const std::shared_ptr<Text> &text, const Link
       spanPropList.insert("fo:font-style", charFormat.format->italic ? "italic" : "normal");
       if (charFormat.format->underline || charFormat.format->wordUnderline)
       {
+        spanPropList.insert("style:text-underline-color", "font-color");
         spanPropList.insert("style:text-underline-type", "single");
         spanPropList.insert("style:text-underline-style", "solid");
         spanPropList.insert("style:text-underline-mode", charFormat.format->wordUnderline ? "skip-white-space" : "continuous");
       }
       if (charFormat.format->strike)
       {
+        spanPropList.insert("style:text-line-through-color", "font-color");
+        spanPropList.insert("style:text-line-through-mode", "continuous");
         spanPropList.insert("style:text-line-through-type", "single");
         spanPropList.insert("style:text-line-through-style", "solid");
+        spanPropList.insert("style:text-line-through-width", "1pt");
       }
       spanPropList.insert("fo:font-variant", charFormat.format->smallCaps ? "small-caps" : "normal");
       if (charFormat.format->allCaps)
