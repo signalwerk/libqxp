@@ -54,8 +54,10 @@ QXP4Parser::QXP4Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input
 {
 }
 
-bool QXP4Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream, QXPCollector &/*collector*/)
+bool QXP4Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream, QXPCollector &collector)
 {
+  collector.collectDocumentProperties(m_header->documentProperties());
+
   for (int i = 0; i < 5; ++i)
   {
     skipRecord(docStream);
