@@ -73,7 +73,7 @@ public:
 private:
   const std::shared_ptr<QXP33Header> m_header;
 
-  bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) override;
+  bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream, QXPCollector &collector) override;
   bool parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &pagesStream, QXPCollector &collector) override;
 
   void parseColors(const std::shared_ptr<librevenge::RVNGInputStream> &stream);

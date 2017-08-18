@@ -39,7 +39,7 @@ QXP1Parser::QXP1Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input
 {
 }
 
-bool QXP1Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream)
+bool QXP1Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream, QXPCollector &)
 {
   parseCharFormats(docStream);
   return true;

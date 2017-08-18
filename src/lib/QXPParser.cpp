@@ -68,7 +68,7 @@ bool QXPParser::parse()
   collector.startDocument();
 
   auto docStream = m_blockParser.getChain(3);
-  if (!parseDocument(docStream))
+  if (!parseDocument(docStream, collector))
     return false;
 
   if (!parsePages(docStream, collector))

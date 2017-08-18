@@ -54,7 +54,7 @@ QXP4Parser::QXP4Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input
 {
 }
 
-bool QXP4Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream)
+bool QXP4Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream, QXPCollector &/*collector*/)
 {
   for (int i = 0; i < 5; ++i)
   {

@@ -57,7 +57,7 @@ protected:
 
   void convertCharFormatFlags(unsigned flags, CharFormat &format);
 
-  virtual bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) = 0;
+  virtual bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream, QXPCollector &collector) = 0;
   virtual bool parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXPCollector &collector) = 0;
 
   void skipRecord(const std::shared_ptr<librevenge::RVNGInputStream> &stream);

@@ -23,7 +23,7 @@ public:
   QXP1Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter, const std::shared_ptr<QXP1Header> &header);
 
 private:
-  bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) override;
+  bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream, QXPCollector &collector) override;
   bool parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &pagesStream, QXPCollector &collector) override;
 
   CharFormat parseCharFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) override;

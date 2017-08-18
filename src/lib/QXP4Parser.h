@@ -83,7 +83,7 @@ private:
 
   std::vector<std::vector<TabStop>> m_paragraphTabStops;
 
-  bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream) override;
+  bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream, QXPCollector &collector) override;
   bool parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXPCollector &collector) override;
 
   void parseColors(const std::shared_ptr<librevenge::RVNGInputStream> &docStream);
