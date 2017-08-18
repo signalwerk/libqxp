@@ -30,7 +30,14 @@ bool QXP33Header::load(const std::shared_ptr<librevenge::RVNGInputStream> &input
   seek(input, 0x75);
   m_masterPagesCount = readU8(input);
 
-  seek(input, 0x110);
+  seekRelative(input, 94);
+  m_documentProperties.superscriptOffset = readFraction(input, isBigEndian());
+  m_documentProperties.superscriptScale = readFraction(input, isBigEndian());
+  seekRelative(input, 4);
+  m_documentProperties.subscriptOffset = -readFraction(input, isBigEndian());
+  m_documentProperties.subscriptScale = readFraction(input, isBigEndian());
+
+  seekRelative(input, 40);
   m_seed = readU16(input, !isLittleEndian());
   m_increment = readU16(input, !isLittleEndian());
 
