@@ -13,6 +13,8 @@
 #include "libqxp_utils.h"
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
+
+#include <memory>
 #include <vector>
 #include <utility>
 
@@ -135,6 +137,24 @@ struct CharFormat
   {  }
 };
 
+struct HJ
+{
+  HJ()
+    : hyphenate(true)
+    , minBefore(3)
+    , minAfter(2)
+    , maxInRow(0)
+    , singleWordJustify(true)
+  {
+  }
+
+  bool hyphenate;
+  unsigned minBefore;
+  unsigned minAfter;
+  unsigned maxInRow;
+  bool singleWordJustify;
+};
+
 enum class HorizontalAlignment
 {
   LEFT,
@@ -200,10 +220,11 @@ struct ParagraphFormat
   boost::optional<ParagraphRule> ruleAbove;
   boost::optional<ParagraphRule> ruleBelow;
   std::vector<TabStop> tabStops;
+  std::shared_ptr<HJ> hj;
 
   ParagraphFormat()
     : alignment(HorizontalAlignment::LEFT), margin(), firstLineIndent(0), leading(0),
-      ruleAbove(), ruleBelow(), tabStops()
+      ruleAbove(), ruleBelow(), tabStops(), hj(nullptr)
   {  }
 };
 

@@ -107,6 +107,11 @@ ParagraphFormat QXP1Parser::parseParagraphFormat(const std::shared_ptr<libreveng
   return result;
 }
 
+std::shared_ptr<HJ> QXP1Parser::parseHJ(const std::shared_ptr<librevenge::RVNGInputStream> &)
+{
+  return std::shared_ptr<HJ>();
+}
+
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

@@ -33,6 +33,7 @@ QXPParser::QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, 
   , m_paragraphFormats()
   , m_lineStyles()
   , m_arrows()
+  , m_hjs()
   , m_header(header)
 {
   // default colors, in case parsing fails
@@ -151,7 +152,10 @@ void QXPParser::parseFonts(const std::shared_ptr<librevenge::RVNGInputStream> &s
 
 void QXPParser::parseHJs(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
 {
-  skipRecord(stream);
+  parseCollection(stream, [=]()
+  {
+    m_hjs.push_back(parseHJ(stream));
+  });
 }
 
 void QXPParser::parseCharFormats(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
@@ -161,6 +165,19 @@ void QXPParser::parseCharFormats(const std::shared_ptr<librevenge::RVNGInputStre
   {
     m_charFormats.emplace_back(make_shared<CharFormat>(parseCharFormat(stream)));
   });
+}
+
+void QXPParser::parseHJProps(const std::shared_ptr<librevenge::RVNGInputStream> &stream, HJ &result)
+{
+  skip(stream, 1);
+  result.minBefore = readU8(stream);
+  result.minAfter = readU8(stream);
+  result.maxInRow = readU8(stream);
+  skip(stream, 4);
+  result.singleWordJustify = readU8(stream) == 0;
+  skip(stream, 1);
+  result.hyphenate = readU8(stream) != 0;
+  skip(stream, 33);
 }
 
 void QXPParser::parseCommonCharFormatProps(const std::shared_ptr<librevenge::RVNGInputStream> &stream, CharFormat &result)

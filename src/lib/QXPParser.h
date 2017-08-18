@@ -14,6 +14,8 @@
 #include "QXPBlockParser.h"
 #include "QXPTextParser.h"
 #include "QXPTypes.h"
+
+#include <deque>
 #include <functional>
 #include <map>
 #include <vector>
@@ -50,6 +52,7 @@ protected:
   std::vector<std::shared_ptr<ParagraphFormat>> m_paragraphFormats;
   std::map<unsigned, LineStyle> m_lineStyles;
   std::vector<Arrow> m_arrows;
+  std::deque<std::shared_ptr<HJ>> m_hjs;
 
   Color getColor(unsigned id, Color defaultColor = Color(0, 0, 0)) const;
   const LineStyle *getLineStyle(unsigned id) const;
@@ -66,11 +69,13 @@ protected:
   void parseHJs(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   void parseCharFormats(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   void parseCommonCharFormatProps(const std::shared_ptr<librevenge::RVNGInputStream> &stream, CharFormat &result);
+  void parseHJProps(const std::shared_ptr<librevenge::RVNGInputStream> &stream, HJ &result);
   TabStop parseTabStop(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   void parseParagraphFormats(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
 
   virtual CharFormat parseCharFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) = 0;
   virtual ParagraphFormat parseParagraphFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) = 0;
+  virtual std::shared_ptr<HJ> parseHJ(const std::shared_ptr<librevenge::RVNGInputStream> &stream) = 0;
 
   void parseCollection(const std::shared_ptr<librevenge::RVNGInputStream>stream, std::function<void()> itemHandler);
 

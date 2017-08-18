@@ -95,6 +95,7 @@ private:
   void skipTemplates(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   void parseTabStops(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   ParagraphFormat parseParagraphFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) override;
+  std::shared_ptr<HJ> parseHJ(const std::shared_ptr<librevenge::RVNGInputStream> &stream) override;
 
   Page parsePage(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP4Deobfuscator &deobfuscator);
 

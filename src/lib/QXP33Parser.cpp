@@ -196,7 +196,11 @@ ParagraphFormat QXP33Parser::parseParagraphFormat(const std::shared_ptr<libreven
   skip(stream, 5);
   result.alignment = readHorAlign(stream);
 
-  skip(stream, 8);
+  skip(stream, 4);
+  const unsigned hj = readU16(stream, be);
+  if (hj < m_hjs.size())
+    result.hj = m_hjs[hj];
+  skip(stream, 2);
 
   result.margin.left = readFraction(stream, be);
   result.firstLineIndent = readFraction(stream, be);
@@ -219,6 +223,17 @@ ParagraphFormat QXP33Parser::parseParagraphFormat(const std::shared_ptr<libreven
   skip(stream, 6);
 
   return result;
+}
+
+std::shared_ptr<HJ> QXP33Parser::parseHJ(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  auto hj = make_shared<HJ>();
+
+  skip(stream, 4);
+  parseHJProps(stream, *hj);
+  readName(stream);
+
+  return hj;
 }
 
 Page QXP33Parser::parsePage(const std::shared_ptr<librevenge::RVNGInputStream> &stream)

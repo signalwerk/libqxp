@@ -10,6 +10,7 @@
 #include "QXPContentCollector.h"
 
 #include <algorithm>
+#include <utility>
 
 #include <boost/range/adaptor/reversed.hpp>
 #include <boost/variant.hpp>
@@ -825,6 +826,17 @@ void QXPContentCollector::drawText(const std::shared_ptr<Text> &text, const Link
       paragraphPropList.insert("fo:text-align", "justify");
       break;
     }
+    paragraphPropList.insert("fo:text-align-last", "start");
+
+    if (paragraph.format->hj)
+    {
+      paragraphPropList.insert("fo:hyphenate", paragraph.format->hj->hyphenate);
+      if (paragraph.format->hj->maxInRow == 0)
+        paragraphPropList.insert("fo:hyphenation-ladder-count", "no-limit");
+      else
+        paragraphPropList.insert("fo:hyphenation-ladder-count", int(paragraph.format->hj->maxInRow));
+      paragraphPropList.insert("style:justify-single-word", paragraph.format->hj->singleWordJustify);
+    }
 
     if (!paragraph.format->tabStops.empty())
     {
@@ -929,6 +941,12 @@ void QXPContentCollector::drawText(const std::shared_ptr<Text> &text, const Link
       else if (charFormat.format->baselineShift != 0.0)
       {
         writeTextPosition(spanPropList, charFormat.format->baselineShift);
+      }
+
+      if (paragraph.format->hj)
+      {
+        spanPropList.insert("fo:hyphenation-remain-char-count", std::max(int(paragraph.format->hj->minBefore), 1));
+        spanPropList.insert("fo:hyphenation-push-char-count", std::max(int(paragraph.format->hj->minAfter), 1));
       }
 
       m_painter->openSpan(spanPropList);
