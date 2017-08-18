@@ -531,16 +531,20 @@ struct QXPDocumentProperties
 {
   QXPDocumentProperties()
     : superscriptOffset(1.0 / 3)
-    , superscriptScale(1.0)
+    , superscriptHScale(1.0)
+    , superscriptVScale(1.0)
     , subscriptOffset(-1.0 / 3)
-    , subscriptScale(1.0)
+    , subscriptHScale(1.0)
+    , subscriptVScale(1.0)
   {
   }
 
   double superscriptOffset;
-  double superscriptScale;
+  double superscriptHScale;
+  double superscriptVScale;
   double subscriptOffset;
-  double subscriptScale;
+  double subscriptHScale;
+  double subscriptVScale;
 };
 
 }

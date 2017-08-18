@@ -910,11 +910,19 @@ void QXPContentCollector::drawText(const std::shared_ptr<Text> &text, const Link
       spanPropList.insert("fo:color", charFormat.format->color.toString());
 
       if (charFormat.format->subscript)
-        writeTextPosition(spanPropList, m_docProps.subscriptOffset + charFormat.format->baselineShift, m_docProps.subscriptScale);
+      {
+        writeTextPosition(spanPropList, m_docProps.subscriptOffset + charFormat.format->baselineShift, m_docProps.subscriptVScale);
+        spanPropList.insert("style:text-scale", m_docProps.subscriptHScale, librevenge::RVNG_PERCENT);
+      }
       else if (charFormat.format->superscript)
-        writeTextPosition(spanPropList, m_docProps.superscriptOffset + charFormat.format->baselineShift, m_docProps.superscriptScale);
+      {
+        writeTextPosition(spanPropList, m_docProps.superscriptOffset + charFormat.format->baselineShift, m_docProps.superscriptVScale);
+        spanPropList.insert("style:text-scale", m_docProps.superscriptHScale, librevenge::RVNG_PERCENT);
+      }
       else if (charFormat.format->baselineShift != 0.0)
+      {
         writeTextPosition(spanPropList, charFormat.format->baselineShift);
+      }
 
       m_painter->openSpan(spanPropList);
 
