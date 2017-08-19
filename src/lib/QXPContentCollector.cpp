@@ -810,6 +810,11 @@ void QXPContentCollector::drawText(const std::shared_ptr<Text> &text, const Link
 
     paragraphPropList.insert("fo:text-indent", paragraph.format->firstLineIndent, RVNG_POINT);
 
+    if (!QXP_ALMOST_ZERO(paragraph.format->leading))
+    {
+      paragraphPropList.insert("fo:line-height", paragraph.format->leading, RVNG_POINT);
+    }
+
     switch (paragraph.format->alignment)
     {
     case HorizontalAlignment::LEFT:
