@@ -429,6 +429,20 @@ Point QXPParser::readYX(const std::shared_ptr<librevenge::RVNGInputStream> &stre
   return p;
 }
 
+uint8_t QXPParser::readParagraphFlags(const std::shared_ptr<librevenge::RVNGInputStream> &stream, bool &incrementalLeading)
+{
+  const uint8_t flags = readU8(stream);
+  if (be)
+  {
+    incrementalLeading = flags & 0x20;
+  }
+  else
+  {
+    incrementalLeading = flags & 0x4;
+  }
+  return flags;
+}
+
 uint8_t QXPParser::readObjectFlags(const std::shared_ptr<librevenge::RVNGInputStream> &stream, bool &noColor)
 {
   const uint8_t flags = readU8(stream);

@@ -90,6 +90,7 @@ protected:
   HorizontalAlignment readHorAlign(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   VerticalAlignment readVertAlign(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   Point readYX(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
+  uint8_t readParagraphFlags(const std::shared_ptr<librevenge::RVNGInputStream> &stream, bool &incrementalLeading);
   uint8_t readObjectFlags(const std::shared_ptr<librevenge::RVNGInputStream> &stream, bool &noColor);
   void setArrow(const unsigned index, Frame &frame) const;
   void skipFileInfo(const std::shared_ptr<librevenge::RVNGInputStream> &stream);

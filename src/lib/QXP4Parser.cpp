@@ -381,7 +381,9 @@ ParagraphFormat QXP4Parser::parseParagraphFormat(const std::shared_ptr<libreveng
 {
   ParagraphFormat result;
 
-  skip(stream, 11);
+  skip(stream, 8);
+  readParagraphFlags(stream, result.incrementalLeading);
+  skip(stream, 2);
   result.alignment = readHorAlign(stream);
 
   skip(stream, 4);

@@ -193,7 +193,9 @@ ParagraphFormat QXP33Parser::parseParagraphFormat(const std::shared_ptr<libreven
 {
   ParagraphFormat result;
 
-  skip(stream, 5);
+  skip(stream, 2);
+  readParagraphFlags(stream, result.incrementalLeading);
+  skip(stream, 2);
   result.alignment = readHorAlign(stream);
 
   skip(stream, 4);

@@ -217,13 +217,14 @@ struct ParagraphFormat
   Rect margin;
   double firstLineIndent;
   double leading;
+  bool incrementalLeading;
   boost::optional<ParagraphRule> ruleAbove;
   boost::optional<ParagraphRule> ruleBelow;
   std::vector<TabStop> tabStops;
   std::shared_ptr<HJ> hj;
 
   ParagraphFormat()
-    : alignment(HorizontalAlignment::LEFT), margin(), firstLineIndent(0), leading(0),
+    : alignment(HorizontalAlignment::LEFT), margin(), firstLineIndent(0), leading(0), incrementalLeading(false),
       ruleAbove(), ruleBelow(), tabStops(), hj(nullptr)
   {  }
 };
