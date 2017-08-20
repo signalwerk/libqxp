@@ -120,6 +120,23 @@ bool TextObject::isLinked() const
   return linkSettings.linkedIndex > 0 || linkSettings.nextLinkedIndex > 0;
 }
 
+void QXPDocumentProperties::setAutoLeading(const double val)
+{
+  if (val >= -63 && val <= 63)
+  {
+    m_autoLeading = val;
+  }
+  else
+  {
+    QXP_DEBUG_MSG(("Invalid auto leading %lf\n", val));
+  }
+}
+
+double QXPDocumentProperties::autoLeading() const
+{
+  return m_autoLeading;
+}
+
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */

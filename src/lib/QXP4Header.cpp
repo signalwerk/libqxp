@@ -37,6 +37,9 @@ bool QXP4Header::load(const std::shared_ptr<librevenge::RVNGInputStream> &input)
   seek(input, 0x52);
   m_increment = readU16(input, !isLittleEndian());
 
+  seek(input, 0x58);
+  m_documentProperties.setAutoLeading(readFraction(input, isBigEndian()));
+
   seek(input, 0x80);
   m_seed = readU16(input, !isLittleEndian());
 

@@ -560,6 +560,7 @@ struct QXPDocumentProperties
     , subscriptVScale(1.0)
     , superiorHScale(0.5)
     , superiorVScale(0.5)
+    , m_autoLeading(0.2)
   {
   }
 
@@ -571,6 +572,18 @@ struct QXPDocumentProperties
   double subscriptVScale;
   double superiorHScale;
   double superiorVScale;
+
+  void setAutoLeading(const double val);
+  double autoLeading() const;
+
+  // there should be a flag to detect this...
+  bool isIncrementalAutoLeading() const
+  {
+    return autoLeading() < 0 || autoLeading() > 1;
+  }
+
+private:
+  double m_autoLeading;
 };
 
 }
