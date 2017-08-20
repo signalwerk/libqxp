@@ -283,6 +283,8 @@ struct Text
   std::vector<ParagraphSpec> paragraphs;
   std::vector<CharFormatSpec> charFormats;
 
+  double maxFontSize() const;
+
   Text()
     : text(), paragraphs(), charFormats()
   { }

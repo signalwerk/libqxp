@@ -716,7 +716,7 @@ void QXPContentCollector::drawTextPath(const std::shared_ptr<TextPath> &textPath
 {
   drawLine(textPath, page);
 
-  if (!textPath->text || textPath->text.get()->charFormats.empty())
+  if (!textPath->text)
   {
     return;
   }
@@ -736,11 +736,7 @@ void QXPContentCollector::drawTextPath(const std::shared_ptr<TextPath> &textPath
     break;
   }
 
-  const double height = std::max_element(textPath->text.get()->charFormats.begin(), textPath->text.get()->charFormats.end(),
-                                         [](const CharFormatSpec &f1, const CharFormatSpec &f2)
-  {
-    return f1.format->fontSize < f2.format->fontSize;
-  })->format->fontSize;
+  const double height = textPath->text.get()->maxFontSize();
 
   double textY;
   switch (textPath->settings.alignment)

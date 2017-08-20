@@ -9,6 +9,7 @@
 
 #include "QXPTypes.h"
 
+#include <algorithm>
 #include <boost/math/constants/constants.hpp>
 #include <cmath>
 
@@ -113,6 +114,20 @@ Color Color::applyShade(double shade) const
   return Color(uint8_t(std::round(red + (255 - red) * tint)),
                uint8_t(std::round(green + (255 - green) * tint)),
                uint8_t(std::round(blue + (255 - blue) * tint)));
+}
+
+double Text::maxFontSize() const
+{
+  if (charFormats.empty())
+  {
+    QXP_DEBUG_MSG(("Text::maxFontSize no char formats\n"));
+    return 0;
+  }
+  return std::max_element(charFormats.begin(), charFormats.end(),
+                          [](const CharFormatSpec &f1, const CharFormatSpec &f2)
+  {
+    return f1.format->fontSize < f2.format->fontSize;
+  })->format->fontSize;
 }
 
 bool TextObject::isLinked() const
