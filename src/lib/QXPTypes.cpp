@@ -116,6 +116,11 @@ Color Color::applyShade(double shade) const
                uint8_t(std::round(blue + (255 - blue) * tint)));
 }
 
+bool TextSpec::overlaps(const TextSpec &other) const
+{
+  return startIndex <= other.endIndex() && other.startIndex <= endIndex();
+}
+
 double Text::maxFontSize() const
 {
   if (charFormats.empty())
@@ -128,6 +133,19 @@ double Text::maxFontSize() const
   {
     return f1.format->fontSize < f2.format->fontSize;
   })->format->fontSize;
+}
+
+double Text::maxFontSize(const ParagraphSpec &paragraph) const
+{
+  double maxSize = 0;
+  for (auto &charFormat : charFormats)
+  {
+    if (charFormat.overlaps(paragraph) && charFormat.format->fontSize > maxSize)
+    {
+      maxSize = charFormat.format->fontSize;
+    }
+  }
+  return maxSize;
 }
 
 bool TextObject::isLinked() const

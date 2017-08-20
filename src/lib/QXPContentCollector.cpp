@@ -806,9 +806,16 @@ void QXPContentCollector::drawText(const std::shared_ptr<Text> &text, const Link
 
     paragraphPropList.insert("fo:text-indent", paragraph.format->firstLineIndent, RVNG_POINT);
 
-    if (!QXP_ALMOST_ZERO(paragraph.format->leading))
+    if (!QXP_ALMOST_ZERO(paragraph.format->leading) && !paragraph.format->incrementalLeading)
     {
       paragraphPropList.insert("fo:line-height", paragraph.format->leading, RVNG_POINT);
+    }
+    else
+    {
+      const double fontSize = text->maxFontSize(paragraph);
+      const double initialLeading = fontSize + (m_docProps.isIncrementalAutoLeading() ? m_docProps.autoLeading() : (fontSize * m_docProps.autoLeading()));
+      const double lineHeight = initialLeading + paragraph.format->leading;
+      paragraphPropList.insert("fo:line-height", lineHeight, RVNG_POINT);
     }
 
     switch (paragraph.format->alignment)

@@ -253,6 +253,8 @@ struct TextSpec
     return startIndex + length;
   }
 
+  bool overlaps(const TextSpec &other) const;
+
 protected:
   TextSpec(unsigned start, unsigned len)
     : startIndex(start), length(len)
@@ -284,6 +286,7 @@ struct Text
   std::vector<CharFormatSpec> charFormats;
 
   double maxFontSize() const;
+  double maxFontSize(const ParagraphSpec &paragraph) const;
 
   Text()
     : text(), paragraphs(), charFormats()
