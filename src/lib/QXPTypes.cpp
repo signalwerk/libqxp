@@ -130,7 +130,7 @@ double Text::maxFontSize() const
   double maxSize = 0;
   for (auto &charFormat : charFormats)
   {
-    if (!charFormats.isControlChars && charFormat.format->fontSize > maxSize)
+    if (!charFormat.format->isControlChars && charFormat.format->fontSize > maxSize)
     {
       maxSize = charFormat.format->fontSize;
     }
@@ -143,7 +143,7 @@ double Text::maxFontSize(const ParagraphSpec &paragraph) const
   double maxSize = 0;
   for (auto &charFormat : charFormats)
   {
-    if (!charFormats.isControlChars && charFormat.overlaps(paragraph) && charFormat.format->fontSize > maxSize)
+    if (!charFormat.format->isControlChars && charFormat.overlaps(paragraph) && charFormat.format->fontSize > maxSize)
     {
       maxSize = charFormat.format->fontSize;
     }
