@@ -9,7 +9,6 @@
 
 #include "QXPTypes.h"
 
-#include <algorithm>
 #include <boost/math/constants/constants.hpp>
 #include <cmath>
 
@@ -126,13 +125,17 @@ double Text::maxFontSize() const
   if (charFormats.empty())
   {
     QXP_DEBUG_MSG(("Text::maxFontSize no char formats\n"));
-    return 0;
   }
-  return std::max_element(charFormats.begin(), charFormats.end(),
-                          [](const CharFormatSpec &f1, const CharFormatSpec &f2)
+
+  double maxSize = 0;
+  for (auto &charFormat : charFormats)
   {
-    return f1.format->fontSize < f2.format->fontSize;
-  })->format->fontSize;
+    if (!charFormats.isControlChars && charFormat.format->fontSize > maxSize)
+    {
+      maxSize = charFormat.format->fontSize;
+    }
+  }
+  return maxSize;
 }
 
 double Text::maxFontSize(const ParagraphSpec &paragraph) const
@@ -140,7 +143,7 @@ double Text::maxFontSize(const ParagraphSpec &paragraph) const
   double maxSize = 0;
   for (auto &charFormat : charFormats)
   {
-    if (charFormat.overlaps(paragraph) && charFormat.format->fontSize > maxSize)
+    if (!charFormats.isControlChars && charFormat.overlaps(paragraph) && charFormat.format->fontSize > maxSize)
     {
       maxSize = charFormat.format->fontSize;
     }
