@@ -131,7 +131,7 @@ bool QXPDetector::isSupported() const
   return m_supported;
 }
 
-const QXPDocument::Type &QXPDetector::type() const
+QXPDocument::Type QXPDetector::type() const
 {
   return m_type;
 }

@@ -32,7 +32,7 @@ public:
   const std::shared_ptr<librevenge::RVNGInputStream> &input() const;
   const std::shared_ptr<QXPHeader> &header() const;
   bool isSupported() const;
-  const QXPDocument::Type &type() const;
+  QXPDocument::Type type() const;
 
 private:
   std::shared_ptr<librevenge::RVNGInputStream> m_input;
