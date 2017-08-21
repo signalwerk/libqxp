@@ -34,8 +34,7 @@ QXPDocument::Type assertDetection(const string &name, const bool expectedSupport
 {
   librevenge::RVNGFileStream input((string(DETECTION_TEST_DIR) + "/" + name).c_str());
   QXPDocument::Type type = QXPDocument::TYPE_UNKNOWN;
-  const QXPDocument::Confidence confidence = QXPDocument::isSupported(&input, &type);
-  const bool supported = confidence == QXPDocument::CONFIDENCE_EXCELLENT;
+  const bool supported = QXPDocument::isSupported(&input, &type);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(name, expectedSupported, supported);
   return type;
 }

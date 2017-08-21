@@ -33,18 +33,6 @@ namespace libqxp
 class QXPDocument
 {
 public:
-  /** Likelihood that the file format is supported.
-    */
-  enum Confidence
-  {
-    CONFIDENCE_NONE, //< not supported
-    CONFIDENCE_WEAK, //< maybe supported
-    CONFIDENCE_UNSUPPORTED_ENCRYPTION, //< the format is supported, but the used encryption method is not
-    CONFIDENCE_SUPPORTED_ENCRYPTION, //< the format is supported, but encrypted
-    CONFIDENCE_SUPPORTED_PART, //< the file is only a part of a supported structured format
-    CONFIDENCE_EXCELLENT //< supported
-  };
-
   /** Result of parsing the file.
     */
   enum Result
@@ -52,7 +40,6 @@ public:
     RESULT_OK, //< parsed without any problem
     RESULT_FILE_ACCESS_ERROR, //< problem when accessing the file
     RESULT_PARSE_ERROR, //< problem when parsing the file
-    RESULT_UNSUPPORTED_ENCRYPTION, //< unsupported encryption
     RESULT_UNSUPPORTED_FORMAT, //< unsupported file format
     RESULT_UNKNOWN_ERROR //< an unspecified error
   };
@@ -69,7 +56,7 @@ public:
     TYPE_LIBRARY
   };
 
-  static QXPAPI Confidence isSupported(librevenge::RVNGInputStream *input, Type *type = 0);
+  static QXPAPI bool isSupported(librevenge::RVNGInputStream *input, Type *type = 0);
   static QXPAPI Result parse(librevenge::RVNGInputStream *input, librevenge::RVNGDrawingInterface *document);
 };
 

@@ -60,8 +60,8 @@ private:
 QXPDetector::QXPDetector()
   : m_input()
   , m_header()
-  , m_confidence(QXPDocument::CONFIDENCE_NONE)
   , m_type(QXPDocument::TYPE_UNKNOWN)
+  , m_supported(false)
 {
 }
 
@@ -112,8 +112,7 @@ void QXPDetector::detect(const std::shared_ptr<librevenge::RVNGInputStream> &inp
     m_input->seek(0, librevenge::RVNG_SEEK_SET);
     m_header->load(m_input);
     m_type = m_header->getType();
-    if (m_type != QXPDocument::TYPE_UNKNOWN)
-      m_confidence = QXPDocument::CONFIDENCE_EXCELLENT;
+    m_supported = m_type != QXPDocument::TYPE_UNKNOWN;
   }
 }
 
@@ -127,9 +126,9 @@ const std::shared_ptr<QXPHeader> &QXPDetector::header() const
   return m_header;
 }
 
-const QXPDocument::Confidence &QXPDetector::confidence() const
+bool QXPDetector::isSupported() const
 {
-  return m_confidence;
+  return m_supported;
 }
 
 const QXPDocument::Type &QXPDetector::type() const

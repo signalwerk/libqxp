@@ -28,29 +28,25 @@ using std::shared_ptr;
 namespace libqxp
 {
 
-QXPAPI QXPDocument::Confidence QXPDocument::isSupported(librevenge::RVNGInputStream *const input, Type *const type) try
+QXPAPI bool QXPDocument::isSupported(librevenge::RVNGInputStream *const input, Type *const type) try
 {
   QXPDetector detector;
   detector.detect(std::shared_ptr<librevenge::RVNGInputStream>(input, QXPDummyDeleter()));
   if (type)
     *type = detector.type();
-  return detector.confidence();
+  return detector.isSupported();
 }
 catch (...)
 {
-  return QXPDocument::CONFIDENCE_NONE;
+  return false;
 }
 
 QXPAPI QXPDocument::Result QXPDocument::parse(librevenge::RVNGInputStream *const input, librevenge::RVNGDrawingInterface *const document) try
 {
   QXPDetector detector;
   detector.detect(std::shared_ptr<librevenge::RVNGInputStream>(input, QXPDummyDeleter()));
-  if (CONFIDENCE_NONE == detector.confidence())
+  if (!detector.isSupported())
     return RESULT_UNSUPPORTED_FORMAT;
-  else if (CONFIDENCE_SUPPORTED_PART == detector.confidence())
-    return RESULT_UNSUPPORTED_FORMAT;
-  else if (CONFIDENCE_UNSUPPORTED_ENCRYPTION == detector.confidence())
-    return RESULT_UNSUPPORTED_ENCRYPTION;
 
   if (detector.type() != QXPDocument::TYPE_DOCUMENT && detector.type() != QXPDocument::TYPE_TEMPLATE)
     return QXPDocument::RESULT_UNSUPPORTED_FORMAT;
@@ -64,10 +60,6 @@ QXPAPI QXPDocument::Result QXPDocument::parse(librevenge::RVNGInputStream *const
 catch (const FileAccessError &)
 {
   return RESULT_FILE_ACCESS_ERROR;
-}
-catch (const UnsupportedEncryption &)
-{
-  return RESULT_UNSUPPORTED_ENCRYPTION;
 }
 catch (const UnsupportedFormat &)
 {

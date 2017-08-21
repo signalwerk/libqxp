@@ -31,14 +31,14 @@ public:
 
   const std::shared_ptr<librevenge::RVNGInputStream> &input() const;
   const std::shared_ptr<QXPHeader> &header() const;
-  const QXPDocument::Confidence &confidence() const;
+  bool isSupported() const;
   const QXPDocument::Type &type() const;
 
 private:
   std::shared_ptr<librevenge::RVNGInputStream> m_input;
   std::shared_ptr<QXPHeader> m_header;
-  QXPDocument::Confidence m_confidence;
   QXPDocument::Type m_type;
+  bool m_supported;
 };
 
 }

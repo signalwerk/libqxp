@@ -140,10 +140,6 @@ class ParseError
 {
 };
 
-class UnsupportedEncryption
-{
-};
-
 class UnsupportedFormat
 {
 };
