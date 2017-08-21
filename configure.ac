@@ -292,7 +292,10 @@ src/conv/Makefile
 src/fuzz/Makefile
 src/lib/Makefile
 src/lib/libqxp.rc
-src/conv/raw/Makefile src/conv/raw/qxp2raw.rc src/conv/svg/Makefile src/conv/svg/qxp2svg.rc 
+src/conv/raw/Makefile
+src/conv/raw/qxp2raw.rc
+src/conv/svg/Makefile
+src/conv/svg/qxp2svg.rc
 src/conv/text/Makefile
 src/conv/text/qxp2text.rc
 src/test/Makefile
