@@ -79,7 +79,8 @@ bool QXP33Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStrea
 
   parseFonts(docStream);
 
-  skipRecord(docStream);
+  if (m_header->version() == QXP_33)
+    skipRecord(docStream);
 
   parseColors(docStream);
 
@@ -289,7 +290,48 @@ QXP33Parser::ObjectHeader QXP33Parser::parseObjectHeader(const std::shared_ptr<l
 {
   ObjectHeader result;
 
-  skip(stream, 1);
+  const unsigned objectType = deobfuscator(readU8(stream, be));
+  if (m_header->version() < QXP_33)
+  {
+    switch (objectType)
+    {
+    case 0:
+      result.shapeType = ShapeType::LINE;
+      result.contentType = ContentType::NONE;
+      break;
+    case 1:
+      result.shapeType = ShapeType::ORTHOGONAL_LINE;
+      result.contentType = ContentType::NONE;
+      break;
+    case 3:
+      result.shapeType = ShapeType::RECTANGLE;
+      result.contentType = ContentType::TEXT;
+      break;
+    case 11:
+      result.shapeType = ShapeType::RECTANGLE;
+      result.contentType = ContentType::OBJECTS;
+      break;
+    case 12:
+      result.shapeType = ShapeType::RECTANGLE;
+      result.contentType = ContentType::PICTURE;
+      break;
+    case 13:
+      result.shapeType = ShapeType::CORNERED_RECTANGLE;
+      result.contentType = ContentType::PICTURE;
+      break;
+    case 14:
+      result.shapeType = ShapeType::OVAL;
+      result.contentType = ContentType::PICTURE;
+      break;
+    case 15:
+      result.shapeType = ShapeType::POLYGON;
+      result.contentType = ContentType::PICTURE;
+      break;
+    default:
+      QXP_DEBUG_MSG(("Unknown object type %u\n", objectType));
+      throw ParseError();
+    }
+  }
 
   const unsigned colorId = readU8(stream);
   const double shade = readFraction(stream, be);
@@ -335,67 +377,84 @@ QXP33Parser::ObjectHeader QXP33Parser::parseObjectHeader(const std::shared_ptr<l
     concave = boxFlag2 & 0x4;
   }
 
-  const uint8_t contentType = readU8(stream);
-  switch (contentType)
+  if (m_header->version() == QXP_33)
   {
-  case 1:
-    result.contentType = ContentType::OBJECTS;
-    break;
-  case 2:
-  case 4:
-    result.contentType = ContentType::NONE;
-    break;
-  case 3:
-    result.contentType = ContentType::TEXT;
-    break;
-  case 5:
-    result.contentType = ContentType::PICTURE;
-    break;
-  default:
-    QXP_DEBUG_MSG(("Unknown content type %u\n", contentType));
-    throw ParseError();
+    const uint8_t contentType = readU8(stream);
+    switch (contentType)
+    {
+    case 1:
+      result.contentType = ContentType::OBJECTS;
+      break;
+    case 2:
+    case 4:
+      result.contentType = ContentType::NONE;
+      break;
+    case 3:
+      result.contentType = ContentType::TEXT;
+      break;
+    case 5:
+      result.contentType = ContentType::PICTURE;
+      break;
+    default:
+      QXP_DEBUG_MSG(("Unknown content type %u\n", contentType));
+      throw ParseError();
+    }
+
+    const uint8_t shapeType = readU8(stream);
+    switch (shapeType)
+    {
+    case 0:
+      result.shapeType = ShapeType::LINE;
+      break;
+    case 1:
+      result.shapeType = ShapeType::ORTHOGONAL_LINE;
+      break;
+    case 2:
+      result.shapeType = ShapeType::RECTANGLE;
+      break;
+    case 3:
+      result.shapeType = ShapeType::CORNERED_RECTANGLE;
+      break;
+    case 4:
+      result.shapeType = ShapeType::OVAL;
+      break;
+    case 5:
+      result.shapeType = ShapeType::POLYGON;
+      break;
+    default:
+      QXP_DEBUG_MSG(("Unknown shape type %u\n", shapeType));
+      throw ParseError();
+    }
   }
 
-  const uint8_t shapeType = readU8(stream);
-  switch (shapeType)
+  switch (result.shapeType)
   {
-  case 0:
-    result.shapeType = ShapeType::LINE;
-    break;
-  case 1:
-    result.shapeType = ShapeType::ORTHOGONAL_LINE;
-    break;
-  case 2:
-    result.shapeType = ShapeType::RECTANGLE;
+  case ShapeType::RECTANGLE:
+  case ShapeType::CORNERED_RECTANGLE:
     result.boxType = BoxType::RECTANGLE;
     break;
-  case 3:
-    result.shapeType = ShapeType::CORNERED_RECTANGLE;
-    result.boxType = BoxType::RECTANGLE;
-    result.cornerType = CornerType::ROUNDED;
-    if (beveled)
-    {
-      result.cornerType = CornerType::BEVELED;
-    }
-    if (concave)
-    {
-      result.cornerType = CornerType::CONCAVE;
-    }
-    break;
-  case 4:
-    result.shapeType = ShapeType::OVAL;
+  case ShapeType::OVAL:
     result.boxType = BoxType::OVAL;
     break;
-  case 5:
-    result.shapeType = ShapeType::POLYGON;
+  case ShapeType::POLYGON:
     result.boxType = BoxType::POLYGON;
     break;
   default:
-    QXP_DEBUG_MSG(("Unknown shape type %u\n", shapeType));
-    throw ParseError();
+    break;
   }
 
-  result.cornerRadius = readFraction(stream, be);
+  if (result.shapeType == ShapeType::CORNERED_RECTANGLE)
+  {
+    if (concave)
+      result.cornerType = CornerType::CONCAVE;
+    else if (beveled)
+      result.cornerType = CornerType::BEVELED;
+    else
+      result.cornerType = CornerType::ROUNDED;
+  }
+
+  if (m_header->version() == QXP_33)
+    result.cornerRadius = readFraction(stream, be);
 
   if (result.gradientId != 0)
   {
@@ -508,16 +567,55 @@ void QXP33Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream
   }
 }
 
-void QXP33Parser::parsePictureBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP33Parser::ObjectHeader &header, QXPCollector &collector)
+void QXP33Parser::parsePictureBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP33Parser::ObjectHeader &objHeader, QXPCollector &collector)
 {
-  auto picturebox = createBox<PictureBox>(header);
+  const auto frame = readFrame(stream);
 
-  picturebox->frame = readFrame(stream);
   skip(stream, 4);
-  const unsigned runaroundId = readU32(stream, be);
-  skip(stream, 2);
-  const unsigned clipId = readU32(stream, be);
-  skip(stream, 14);
+
+  unsigned runaroundId = 0;
+  unsigned clipId = 0;
+
+  QXP33Parser::ObjectHeader header(objHeader);
+
+  if (m_header->version() == QXP_33)
+  {
+    runaroundId = readU32(stream, be);
+    skip(stream, 2);
+    clipId = readU32(stream, be);
+    skip(stream, 14);
+  }
+  else
+  {
+    skip(stream, 4);
+    if (header.shapeType == ShapeType::CORNERED_RECTANGLE)
+    {
+      header.cornerRadius = readFraction(stream, be);
+      const unsigned cornerType = readU8(stream, be);
+      switch (cornerType)
+      {
+      case 0:
+        header.cornerType = CornerType::BEVELED;
+        break;
+      default:
+        QXP_DEBUG_MSG(("Unknown corner type %u\n", cornerType));
+        QXP_FALLTHROUGH; // pick a default
+      case 1:
+        header.cornerType = CornerType::ROUNDED;
+        break;
+      case 2:
+        header.cornerType = CornerType::CONCAVE;
+        break;
+      }
+    }
+    else if (header.shapeType == ShapeType::POLYGON)
+    {
+      skip(stream, 5);
+    }
+  }
+
+  auto picturebox = createBox<PictureBox>(header);
+  picturebox->frame = frame;
 
   picturebox->pictureRotation = readFraction(stream, be);
   picturebox->pictureSkew = readFraction(stream, be);

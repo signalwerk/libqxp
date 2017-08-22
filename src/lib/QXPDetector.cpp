@@ -27,13 +27,24 @@ class QXP3Detector : public QXP3HeaderBase
 public:
   bool isSupported()
   {
-    return m_signature == "XPR" && (version() == QXP_33 || version() == QXP_4);
+    switch (m_version)
+    {
+    case QXPVersion::QXP_31_MAC:
+    case QXPVersion::QXP_31:
+    case QXPVersion::QXP_33:
+    case QXPVersion::QXP_4:
+      return m_signature == "XPR";
+    default:
+      return false;
+    }
   }
 
   std::shared_ptr<QXPHeader> createHeader(const boost::optional<QXPDocument::Type> type = boost::none)
   {
     switch (m_version)
     {
+    case QXPVersion::QXP_31_MAC:
+    case QXPVersion::QXP_31:
     case QXPVersion::QXP_33:
       return std::make_shared<QXP33Header>(type);
     case QXPVersion::QXP_4:
