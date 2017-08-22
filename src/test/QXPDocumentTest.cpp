@@ -82,10 +82,10 @@ void QXPDocumentTest::testDetectQXP()
   assertSupported("qxp1.zip");
   assertSupported("qxp31mac");
   assertSupported("qxp31win.qxd");
-  assertSupported("qxp33win.qxd");
   assertSupported("qxp33mac");
-  assertSupported("qxp4win.qxd");
+  assertSupported("qxp33win.qxd");
   assertSupported("qxp4mac");
+  assertSupported("qxp4win.qxd");
 }
 
 void QXPDocumentTest::testUnsupported()
