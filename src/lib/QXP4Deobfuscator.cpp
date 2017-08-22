@@ -53,7 +53,7 @@ void QXP4Deobfuscator::next(uint16_t block)
 
 void QXP4Deobfuscator::nextRev()
 {
-  m_seed = m_seed + 0xffff - m_increment;
+  m_seed += 0xffff - m_increment;
 }
 
 void QXP4Deobfuscator::nextShift(uint16_t count)

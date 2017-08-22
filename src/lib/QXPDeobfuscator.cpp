@@ -19,7 +19,7 @@ QXPDeobfuscator::QXPDeobfuscator(uint16_t seed)
 
 uint16_t QXPDeobfuscator::operator()(uint16_t value) const
 {
-  return ((value + m_seed) - (((value & m_seed) << 1)) + (1 << 16));
+  return value + m_seed - ((value & m_seed) << 1);
 }
 
 uint8_t QXPDeobfuscator::operator()(uint8_t value) const
