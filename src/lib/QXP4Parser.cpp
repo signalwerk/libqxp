@@ -382,7 +382,10 @@ ParagraphFormat QXP4Parser::parseParagraphFormat(const std::shared_ptr<libreveng
   ParagraphFormat result;
 
   skip(stream, 8);
-  readParagraphFlags(stream, result.incrementalLeading);
+
+  bool hasRuleAbove, hasRuleBelow;
+  readParagraphFlags(stream, result.incrementalLeading, hasRuleAbove, hasRuleBelow);
+
   skip(stream, 2);
   result.alignment = readHorAlign(stream);
 
@@ -399,7 +402,14 @@ ParagraphFormat QXP4Parser::parseParagraphFormat(const std::shared_ptr<libreveng
   result.margin.top = readFraction(stream, be);
   result.margin.bottom = readFraction(stream, be);
 
-  skip(stream, 52);
+  skip(stream, 4);
+
+  auto ruleAbove = readParagraphRule(stream);
+  auto ruleBelow = readParagraphRule(stream);
+  if (hasRuleAbove)
+    result.ruleAbove = ruleAbove;
+  if (hasRuleBelow)
+    result.ruleBelow = ruleBelow;
 
   const unsigned tabStopsIndex = readU16(stream, be);
   if (tabStopsIndex != 0xffff)

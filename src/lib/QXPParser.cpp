@@ -429,16 +429,40 @@ Point QXPParser::readYX(const std::shared_ptr<librevenge::RVNGInputStream> &stre
   return p;
 }
 
-uint8_t QXPParser::readParagraphFlags(const std::shared_ptr<librevenge::RVNGInputStream> &stream, bool &incrementalLeading)
+std::shared_ptr<ParagraphRule> QXPParser::readParagraphRule(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+{
+  auto rule = make_shared<ParagraphRule>();
+
+  rule->width = readFraction(stream, be);
+
+  const unsigned styleIndex = m_header->version() >= QXP_4 ? readU16(stream, be) : readU8(stream);
+  rule->lineStyle = getLineStyle(styleIndex);
+
+  const unsigned colorId = m_header->version() >= QXP_4 ? readU16(stream, be) : readU8(stream);
+  const double shade = readFraction(stream, be);
+  rule->color = getColor(colorId).applyShade(shade);
+
+  rule->leftMargin = readFraction(stream, be);
+  rule->rightMargin = readFraction(stream, be);
+  rule->offset = readFraction(stream, be);
+
+  return rule;
+}
+
+uint8_t QXPParser::readParagraphFlags(const std::shared_ptr<librevenge::RVNGInputStream> &stream, bool &incrementalLeading, bool &ruleAbove, bool &ruleBelow)
 {
   const uint8_t flags = readU8(stream);
   if (be)
   {
+    ruleBelow = flags & 0x2;
+    ruleAbove = flags & 0x4;
     incrementalLeading = flags & 0x20;
   }
   else
   {
     incrementalLeading = flags & 0x4;
+    ruleAbove = flags & 0x20;
+    ruleBelow = flags & 0x40;
   }
   return flags;
 }

@@ -108,6 +108,39 @@ struct Gradient
 
 typedef boost::variant<Color, Gradient> Fill;
 
+enum class LineCapType
+{
+  BUTT,
+  ROUND,
+  RECT,
+  STRETCH
+};
+
+enum class LineJoinType
+{
+  MITER,
+  ROUND,
+  BEVEL
+};
+
+struct LineStyle
+{
+  std::vector<double> segmentLengths;
+  bool isStripe;
+  bool isProportional;
+  double patternLength;
+  LineCapType endcapType;
+  LineJoinType joinType;
+
+  LineStyle()
+    : segmentLengths(), isStripe(false), isProportional(true), patternLength(6.0), endcapType(LineCapType::BUTT), joinType(LineJoinType::MITER)
+  { }
+
+  LineStyle(std::vector<double> segments, bool proportional, double pattern, LineCapType endcap, LineJoinType join)
+    : segmentLengths(std::move(segments)), isStripe(false), isProportional(proportional), patternLength(pattern), endcapType(endcap), joinType(join)
+  { }
+};
+
 struct CharFormat
 {
   librevenge::RVNGString fontName;
@@ -201,13 +234,13 @@ struct ParagraphRule
 {
   double width;
   Color color;
-  double shade;
+  const LineStyle *lineStyle;
   double leftMargin;
   double rightMargin;
   double offset;
 
   ParagraphRule()
-    : width(1.0), color(0, 0, 0), shade(1.0), leftMargin(0), rightMargin(0), offset(0)
+    : width(1.0), color(0, 0, 0), lineStyle(nullptr), leftMargin(0), rightMargin(0), offset(0)
   {  }
 };
 
@@ -218,14 +251,14 @@ struct ParagraphFormat
   double firstLineIndent;
   double leading;
   bool incrementalLeading;
-  boost::optional<ParagraphRule> ruleAbove;
-  boost::optional<ParagraphRule> ruleBelow;
+  std::shared_ptr<ParagraphRule> ruleAbove;
+  std::shared_ptr<ParagraphRule> ruleBelow;
   std::vector<TabStop> tabStops;
   std::shared_ptr<HJ> hj;
 
   ParagraphFormat()
     : alignment(HorizontalAlignment::LEFT), margin(), firstLineIndent(0), leading(0), incrementalLeading(false),
-      ruleAbove(), ruleBelow(), tabStops(), hj(nullptr)
+      ruleAbove(nullptr), ruleBelow(nullptr), tabStops(), hj(nullptr)
   {  }
 };
 
@@ -290,39 +323,6 @@ struct Text
 
   Text()
     : text(), paragraphs(), charFormats()
-  { }
-};
-
-enum class LineCapType
-{
-  BUTT,
-  ROUND,
-  RECT,
-  STRETCH
-};
-
-enum class LineJoinType
-{
-  MITER,
-  ROUND,
-  BEVEL
-};
-
-struct LineStyle
-{
-  std::vector<double> segmentLengths;
-  bool isStripe;
-  bool isProportional;
-  double patternLength;
-  LineCapType endcapType;
-  LineJoinType joinType;
-
-  LineStyle()
-    : segmentLengths(), isStripe(false), isProportional(true), patternLength(6.0), endcapType(LineCapType::BUTT), joinType(LineJoinType::MITER)
-  { }
-
-  LineStyle(std::vector<double> segments, bool proportional, double pattern, LineCapType endcap, LineJoinType join)
-    : segmentLengths(std::move(segments)), isStripe(false), isProportional(proportional), patternLength(pattern), endcapType(endcap), joinType(join)
   { }
 };
 
