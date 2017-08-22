@@ -83,8 +83,8 @@ private:
 
   Page parsePage(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
 
-  void parseObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP33Deobfuscator &deobfuscator, QXPCollector &collector, const Page &page);
-  ObjectHeader parseObjectHeader(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP33Deobfuscator &deobfuscator);
+  void parseObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP33Deobfuscator &deobfuscate, QXPCollector &collector, const Page &page);
+  ObjectHeader parseObjectHeader(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP33Deobfuscator &deobfuscate);
   void readObjectFlags(const std::shared_ptr<librevenge::RVNGInputStream> &stream, bool &noColor, bool &noRunaround);
   void parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ObjectHeader &header, QXPCollector &collector);
   void parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ObjectHeader &header, QXPCollector &collector);

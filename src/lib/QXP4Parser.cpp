@@ -94,7 +94,7 @@ bool QXP4Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStream
 
 bool QXP4Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXPCollector &collector)
 {
-  QXP4Deobfuscator deobfuscator(m_header->seed(), m_header->increment());
+  QXP4Deobfuscator deobfuscate(m_header->seed(), m_header->increment());
   QXPDummyCollector dummyCollector;
 
   unsigned ind = 0;
@@ -109,13 +109,13 @@ bool QXP4Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &
     // don't output master pages, everything is included in normal pages
     QXPCollector &coll = ind < m_header->masterPagesCount() ? dummyCollector : collector;
 
-    auto page = parsePage(stream, deobfuscator);
+    auto page = parsePage(stream, deobfuscate);
     coll.startPage(page);
-    deobfuscator.nextRev();
+    deobfuscate.nextRev();
 
     for (unsigned i = 0; i < page.objectsCount; ++i)
     {
-      parseObject(stream, deobfuscator, coll, page);
+      parseObject(stream, deobfuscate, coll, page);
     }
 
     coll.endPage();
@@ -430,17 +430,17 @@ std::shared_ptr<HJ> QXP4Parser::parseHJ(const std::shared_ptr<librevenge::RVNGIn
   return hj;
 }
 
-Page QXP4Parser::parsePage(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP4Deobfuscator &deobfuscator)
+Page QXP4Parser::parsePage(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP4Deobfuscator &deobfuscate)
 {
   Page page;
   page.pageSettings = parsePageSettings(stream);
-  page.objectsCount = deobfuscator(uint16_t(readU32(stream, be) & 0xffff));
+  page.objectsCount = deobfuscate(uint16_t(readU32(stream, be) & 0xffff));
   return page;
 }
 
-void QXP4Parser::parseObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP4Deobfuscator &deobfuscator, QXPCollector &collector, const Page &page)
+void QXP4Parser::parseObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP4Deobfuscator &deobfuscate, QXPCollector &collector, const Page &page)
 {
-  const auto header = parseObjectHeader(stream, deobfuscator);
+  const auto header = parseObjectHeader(stream, deobfuscate);
 
   switch (header.contentType)
   {
@@ -520,10 +520,10 @@ void QXP4Parser::parseObject(const std::shared_ptr<librevenge::RVNGInputStream> 
     throw GenericException();
   }
 
-  deobfuscator.next(uint16_t(header.contentIndex));
+  deobfuscate.next(uint16_t(header.contentIndex));
 }
 
-QXP4Parser::ObjectHeader QXP4Parser::parseObjectHeader(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP4Deobfuscator &deobfuscator)
+QXP4Parser::ObjectHeader QXP4Parser::parseObjectHeader(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP4Deobfuscator &deobfuscate)
 {
   ObjectHeader result;
 
@@ -566,12 +566,12 @@ QXP4Parser::ObjectHeader QXP4Parser::parseObjectHeader(const std::shared_ptr<lib
     result.vflip = boxFlag2 & 0x1;
   }
 
-  const uint8_t contentType = deobfuscator(readU8(stream));
-  deobfuscator.nextShift(contentType);
+  const uint8_t contentType = deobfuscate(readU8(stream));
+  deobfuscate.nextShift(contentType);
 
-  result.contentIndex = deobfuscator(contentIndexObf);
+  result.contentIndex = deobfuscate(contentIndexObf);
 
-  const uint8_t shapeType = deobfuscator(readU8(stream));
+  const uint8_t shapeType = deobfuscate(readU8(stream));
 
   switch (contentType)
   {

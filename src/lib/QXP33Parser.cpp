@@ -102,7 +102,7 @@ bool QXP33Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStrea
 
 bool QXP33Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXPCollector &collector)
 {
-  QXP33Deobfuscator deobfuscator(m_header->seed(), m_header->increment());
+  QXP33Deobfuscator deobfuscate(m_header->seed(), m_header->increment());
   QXPDummyCollector dummyCollector;
 
   unsigned ind = 0;
@@ -122,8 +122,8 @@ bool QXP33Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> 
 
     for (unsigned i = 0; i < page.objectsCount; ++i)
     {
-      parseObject(stream, deobfuscator, coll, page);
-      deobfuscator.next();
+      parseObject(stream, deobfuscate, coll, page);
+      deobfuscate.next();
     }
 
     coll.endPage();
@@ -247,9 +247,9 @@ Page QXP33Parser::parsePage(const std::shared_ptr<librevenge::RVNGInputStream> &
   return page;
 }
 
-void QXP33Parser::parseObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP33Deobfuscator &deobfuscator, QXPCollector &collector, const Page &page)
+void QXP33Parser::parseObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP33Deobfuscator &deobfuscate, QXPCollector &collector, const Page &page)
 {
-  const auto header = parseObjectHeader(stream, deobfuscator);
+  const auto header = parseObjectHeader(stream, deobfuscate);
 
   switch (header.contentType)
   {
@@ -286,11 +286,11 @@ void QXP33Parser::parseObject(const std::shared_ptr<librevenge::RVNGInputStream>
   }
 }
 
-QXP33Parser::ObjectHeader QXP33Parser::parseObjectHeader(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP33Deobfuscator &deobfuscator)
+QXP33Parser::ObjectHeader QXP33Parser::parseObjectHeader(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP33Deobfuscator &deobfuscate)
 {
   ObjectHeader result;
 
-  const unsigned objectType = deobfuscator(readU8(stream, be));
+  const unsigned objectType = deobfuscate(readU8(stream, be));
   if (m_header->version() < QXP_33)
   {
     switch (objectType)
@@ -337,7 +337,7 @@ QXP33Parser::ObjectHeader QXP33Parser::parseObjectHeader(const std::shared_ptr<l
   const double shade = readFraction(stream, be);
   const auto color = getColor(colorId).applyShade(shade);
 
-  result.contentIndex = deobfuscator(uint16_t(readU32(stream, be) & 0xffff));
+  result.contentIndex = deobfuscate(uint16_t(readU32(stream, be) & 0xffff));
 
   bool noColor;
   bool noRunaround;
