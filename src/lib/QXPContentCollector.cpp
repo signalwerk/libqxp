@@ -29,6 +29,41 @@ using std::string;
 namespace
 {
 
+void writeBorder(RVNGPropertyList &propList, const char *const name, const double width, const Color &color, const LineStyle *lineStyle)
+{
+  RVNGString border;
+
+  border.sprintf("%fpt", width);
+
+  border.append(" ");
+  if (lineStyle->isStripe)
+  {
+    border.append("double");
+  }
+  if (lineStyle->segmentLengths.size() == 2)
+  {
+    border.append("dotted");
+  }
+  if (lineStyle->segmentLengths.size() > 2)
+  {
+    border.append("dashed");
+  }
+  else
+  {
+    border.append("solid");
+  }
+
+  border.append(" ");
+  border.append(color.toString());
+
+  propList.insert(name, border);
+}
+
+void writeBorder(RVNGPropertyList &propList, const char *const name, const std::shared_ptr<ParagraphRule> &rule)
+{
+  writeBorder(propList, name, rule->width, rule->color, rule->lineStyle);
+}
+
 RVNGPropertyListVector createLinePath(const vector<Point> &points, bool closed)
 {
   RVNGPropertyListVector path;
@@ -786,6 +821,8 @@ void QXPContentCollector::drawText(const std::shared_ptr<Text> &text, const Link
   unsigned long spanTextStart = linkSettings.offsetIntoText;
   const unsigned long textEnd = linkSettings.textLength ? (spanTextStart + linkSettings.textLength.get()) : text->text.length();
 
+  unsigned paragraphInd = 0;
+
   for (auto &paragraph : text->paragraphs)
   {
     if (paragraph.startIndex >= textEnd)
@@ -878,6 +915,15 @@ void QXPContentCollector::drawText(const std::shared_ptr<Text> &text, const Link
       paragraphPropList.insert("librevenge:tab-stops", tabs);
     }
 
+    if (paragraph.format->ruleAbove && paragraphInd > 0)
+    {
+      writeBorder(paragraphPropList, "fo:border-top", paragraph.format->ruleAbove);
+    }
+    if (paragraph.format->ruleBelow && paragraphInd < text->paragraphs.size() - 1)
+    {
+      writeBorder(paragraphPropList, "fo:border-bottom", paragraph.format->ruleBelow);
+    }
+
     m_painter->openParagraph(paragraphPropList);
 
     for (auto &charFormat : text->charFormats)
@@ -967,6 +1013,8 @@ void QXPContentCollector::drawText(const std::shared_ptr<Text> &text, const Link
     }
 
     m_painter->closeParagraph();
+
+    paragraphInd++;
   }
 }
 
