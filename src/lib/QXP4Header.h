@@ -24,7 +24,7 @@ class QXP4Header : public QXP3HeaderBase, public std::enable_shared_from_this<QX
 public:
   explicit QXP4Header(const boost::optional<QXPDocument::Type> &fileType = boost::none);
 
-  bool load(const std::shared_ptr<librevenge::RVNGInputStream> &input);
+  bool load(const std::shared_ptr<librevenge::RVNGInputStream> &input) override;
 
   QXPDocument::Type getType() const override;
 
