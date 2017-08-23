@@ -1,3 +1,3 @@
-
+libqxp requires boost, icu and librevenge to build.
 
 The library is available under MPL 2.0+.
