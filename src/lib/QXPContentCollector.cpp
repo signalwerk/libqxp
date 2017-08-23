@@ -946,6 +946,12 @@ void QXPContentCollector::drawText(const std::shared_ptr<Text> &text, const Link
 
       const unsigned long spanTextEnd = std::min<unsigned long>({ charFormat.afterEndIndex(), paragraph.afterEndIndex(), text->text.length(), textEnd });
 
+      if (charFormat.format->isControlChars)
+      {
+        spanTextStart = spanTextEnd;
+        continue;
+      }
+
       librevenge::RVNGPropertyList spanPropList;
 
       spanPropList.insert("style:font-name", charFormat.format->fontName);
