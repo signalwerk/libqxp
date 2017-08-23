@@ -17,6 +17,7 @@ namespace libqxp
 QXPHeader::QXPHeader(const boost::optional<QXPDocument::Type> &fileType)
   : m_proc(0)
   , m_version(QXPVersion::UNKNOWN)
+  , m_language(0)
   , m_fileType(fileType)
 {
 }
@@ -34,6 +35,18 @@ bool QXPHeader::isBigEndian() const
 unsigned QXPHeader::version() const
 {
   return m_version;
+}
+
+const char *QXPHeader::encoding() const
+{
+  switch (m_language)
+  {
+  default:
+    QXP_DEBUG_MSG(("Unknown language %u\n", m_language));
+    QXP_FALLTHROUGH; // pick a default
+  case 0x33:
+    return isLittleEndian() ? "cp1252" : "macroman";
+  }
 }
 
 }

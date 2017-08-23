@@ -20,6 +20,7 @@ using std::make_shared;
 QXPTextParser::QXPTextParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, const std::shared_ptr<QXPHeader> &header)
   : m_header(header)
   , be(header->isBigEndian())
+  , m_encoding(header->encoding())
   , m_blockParser(input, header)
 {
 }
@@ -31,6 +32,7 @@ std::shared_ptr<Text> QXPTextParser::parseText(unsigned index,
   auto infoStream = m_blockParser.getChain(index);
 
   auto text = make_shared<Text>();
+  text->encoding = m_encoding;
 
   skip(infoStream, 4);
 

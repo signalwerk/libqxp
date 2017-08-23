@@ -28,7 +28,7 @@ bool QXP3HeaderBase::load(const std::shared_ptr<librevenge::RVNGInputStream> &in
   skip(input, 1);
   m_signature = readString(input, 3);
 
-  skip(input, 1);
+  m_language = readU8(input);
 
   m_version = readU16(input, isBigEndian());
 

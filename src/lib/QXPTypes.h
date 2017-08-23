@@ -315,6 +315,7 @@ struct ParagraphSpec : public TextSpec
 struct Text
 {
   std::string text;
+  const char *encoding;
   std::vector<ParagraphSpec> paragraphs;
   std::vector<CharFormatSpec> charFormats;
 
@@ -322,8 +323,11 @@ struct Text
   double maxFontSize(const ParagraphSpec &paragraph) const;
 
   Text()
-    : text(), paragraphs(), charFormats()
+    : text(), encoding("cp1252"), paragraphs(), charFormats()
   { }
+
+  Text(const Text &other) = default;
+  Text &operator=(const Text &other) = default;
 };
 
 struct Arrow

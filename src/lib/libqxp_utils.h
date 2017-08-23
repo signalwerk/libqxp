@@ -120,6 +120,9 @@ double deg2rad(double value);
 double normalizeDegAngle(double degAngle);
 double normalizeRadAngle(double radAngle);
 
+void appendCharacters(librevenge::RVNGString &text, const char *characters, const size_t size,
+                      const char *encoding);
+
 class EndOfStreamException
 {
 public:

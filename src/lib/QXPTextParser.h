@@ -41,6 +41,7 @@ public:
 private:
   const std::shared_ptr<QXPHeader> m_header;
   const bool be; // big endian
+  const char *m_encoding;
   QXPBlockParser m_blockParser;
 };
 

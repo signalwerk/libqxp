@@ -52,10 +52,12 @@ public:
   bool isLittleEndian() const;
   bool isBigEndian() const;
   unsigned version() const;
+  const char *encoding() const;
 
 protected:
   unsigned m_proc;
   unsigned m_version;
+  unsigned m_language;
   boost::optional<QXPDocument::Type> m_fileType;
 };
 

@@ -1011,7 +1011,11 @@ void QXPContentCollector::drawText(const std::shared_ptr<Text> &text, const Link
 
       m_painter->openSpan(spanPropList);
 
-      insertText(m_painter, RVNGString(text->text.substr(spanTextStart, spanTextEnd - spanTextStart).c_str()));
+      auto sourceStr = text->text.substr(spanTextStart, spanTextEnd - spanTextStart);
+      RVNGString str;
+      appendCharacters(str, sourceStr.c_str(), sourceStr.length(), text->encoding);
+
+      insertText(m_painter, str);
 
       m_painter->closeSpan();
 

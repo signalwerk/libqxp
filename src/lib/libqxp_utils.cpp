@@ -9,6 +9,9 @@
 
 #include "libqxp_utils.h"
 
+#include <unicode/ucnv.h>
+#include <unicode/utypes.h>
+
 #ifdef DEBUG
 #include <cstdarg>
 #include <cstdio>
@@ -31,6 +34,55 @@ void checkStream(librevenge::RVNGInputStream *const input)
 }
 
 struct SeekFailedException {};
+
+static void _appendUCS4(librevenge::RVNGString &text, unsigned ucs4Character)
+{
+  unsigned char first;
+  int len;
+  if (ucs4Character < 0x80)
+  {
+    first = 0;
+    len = 1;
+  }
+  else if (ucs4Character < 0x800)
+  {
+    first = 0xc0;
+    len = 2;
+  }
+  else if (ucs4Character < 0x10000)
+  {
+    first = 0xe0;
+    len = 3;
+  }
+  else if (ucs4Character < 0x200000)
+  {
+    first = 0xf0;
+    len = 4;
+  }
+  else if (ucs4Character < 0x4000000)
+  {
+    first = 0xf8;
+    len = 5;
+  }
+  else
+  {
+    first = 0xfc;
+    len = 6;
+  }
+
+  unsigned char outbuf[6] = { 0, 0, 0, 0, 0, 0 };
+  int i;
+  for (i = len - 1; i > 0; --i)
+  {
+    outbuf[i] = (ucs4Character & 0x3f) | 0x80;
+    ucs4Character >>= 6;
+  }
+  outbuf[0] = (ucs4Character & 0xff) | first;
+
+  for (i = 0; i < len; i++)
+    text.append(char(outbuf[i]));
+}
+
 
 }
 
@@ -342,6 +394,34 @@ double normalizeDegAngle(double degAngle)
   while (degAngle > 360.0)
     degAngle -= 360.0;
   return degAngle;
+}
+
+void appendCharacters(librevenge::RVNGString &text, const char *characters, const size_t size,
+                      const char *encoding)
+{
+  if (size == 0)
+  {
+    QXP_DEBUG_MSG(("Attempt to append 0 characters!"));
+    return;
+  }
+
+  UErrorCode status = U_ZERO_ERROR;
+  std::unique_ptr<UConverter, void(*)(UConverter *)> conv(ucnv_open(encoding, &status), ucnv_close);
+  if (U_SUCCESS(status))
+  {
+    // ICU documentation claims that character-by-character processing is faster "for small amounts of data" and "'normal' charsets"
+    // (in any case, it is more convenient :) )
+    const char *src = &characters[0];
+    const char *srcLimit = (const char *)src + size;
+    while (src < srcLimit)
+    {
+      uint32_t ucs4Character = (uint32_t)ucnv_getNextUChar(conv.get(), &src, srcLimit, &status);
+      if (U_SUCCESS(status))
+      {
+        _appendUCS4(text, ucs4Character);
+      }
+    }
+  }
 }
 
 }
