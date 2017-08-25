@@ -41,7 +41,7 @@ catch (...)
   return false;
 }
 
-QXPAPI QXPDocument::Result QXPDocument::parse(librevenge::RVNGInputStream *const input, librevenge::RVNGDrawingInterface *const document) try
+QXPAPI QXPDocument::Result QXPDocument::parse(librevenge::RVNGInputStream *const input, librevenge::RVNGDrawingInterface *const document, QXPPathResolver * /*resolver*/) try
 {
   QXPDetector detector;
   detector.detect(std::shared_ptr<librevenge::RVNGInputStream>(input, QXPDummyDeleter()));

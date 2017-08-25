@@ -13,19 +13,8 @@
 #include <librevenge/librevenge.h>
 #include <librevenge-stream/librevenge-stream.h>
 
-#ifdef DLL_EXPORT
-#ifdef LIBQXP_BUILD
-#define QXPAPI __declspec(dllexport)
-#else
-#define QXPAPI __declspec(dllimport)
-#endif
-#else // !DLL_EXPORT
-#ifdef LIBQXP_VISIBILITY
-#define QXPAPI __attribute__((visibility("default")))
-#else
-#define QXPAPI
-#endif
-#endif
+#include "QXPPathResolver.h"
+#include "libqxp_api.h"
 
 namespace libqxp
 {
@@ -57,7 +46,7 @@ public:
   };
 
   static QXPAPI bool isSupported(librevenge::RVNGInputStream *input, Type *type = 0);
-  static QXPAPI Result parse(librevenge::RVNGInputStream *input, librevenge::RVNGDrawingInterface *document);
+  static QXPAPI Result parse(librevenge::RVNGInputStream *input, librevenge::RVNGDrawingInterface *document, QXPPathResolver *resolver = 0);
 };
 
 } // namespace libqxp

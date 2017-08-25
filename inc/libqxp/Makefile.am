@@ -4,6 +4,8 @@ libqxpdir = $(includedir)/libqxp-@QXP_MAJOR_VERSION@.@QXP_MINOR_VERSION@/libqxp
 
 dist_libqxp_headers = \
 	libqxp.h \
-	QXPDocument.h
+	libqxp_api.h \
+	QXPDocument.h \
+	QXPPathResolver.h
 
 ## vim:set shiftwidth=4 tabstop=4 noexpandtab:

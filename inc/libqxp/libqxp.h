@@ -11,6 +11,7 @@
 #define INCLUDED_LIBQXP_LIBQXP_H
 
 #include "QXPDocument.h"
+#include "QXPPathResolver.h"
 
 #endif // INCLUDED_LIBQXP_LIBQXP_H
 
