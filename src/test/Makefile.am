@@ -18,6 +18,7 @@ test_LDFLAGS = -L$(top_srcdir)/src/lib
 test_LDADD = \
 	$(top_builddir)/src/lib/libqxp_internal.la \
 	$(CPPUNIT_LIBS) \
+	$(ICU_LIBS) \
 	$(REVENGE_LIBS) \
 	$(REVENGE_STREAM_LIBS)
 
