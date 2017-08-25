@@ -106,14 +106,8 @@ bool QXP33Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> 
   QXPDummyCollector dummyCollector;
 
   unsigned ind = 0;
-  while (true)
+  while (ind < m_header->pagesCount() + m_header->masterPagesCount())
   {
-    if (readU32(stream, be) == 0x9e)
-    {
-      break;
-    }
-    seekRelative(stream, -4);
-
     // don't output master pages, everything is included in normal pages
     QXPCollector &coll = ind < m_header->masterPagesCount() ? dummyCollector : collector;
 
