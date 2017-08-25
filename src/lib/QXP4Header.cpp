@@ -9,7 +9,9 @@
 
 #include "QXP4Header.h"
 
+#include "QXP4Deobfuscator.h"
 #include "QXP4Parser.h"
+#include "libqxp_utils.h"
 
 namespace libqxp
 {
@@ -17,6 +19,7 @@ namespace libqxp
 QXP4Header::QXP4Header(const boost::optional<QXPDocument::Type> &fileType)
   : QXP3HeaderBase(fileType)
   , m_type()
+  , m_pagesCount(0)
   , m_masterPagesCount(0)
   , m_seed(0)
   , m_increment(0)
@@ -31,7 +34,9 @@ bool QXP4Header::load(const std::shared_ptr<librevenge::RVNGInputStream> &input)
   seek(input, 12);
   m_type = readString(input, 2);
 
-  seek(input, 0x4d);
+  skip(input, 20);
+  const uint16_t pagesCountObf = readU16(input, isBigEndian());
+  skip(input, 41);
   m_masterPagesCount = readU8(input);
 
   seek(input, 0x52);
@@ -42,6 +47,10 @@ bool QXP4Header::load(const std::shared_ptr<librevenge::RVNGInputStream> &input)
 
   seek(input, 0x80);
   m_seed = readU16(input, !isLittleEndian());
+
+  QXP4Deobfuscator deobfuscate(m_seed, m_increment);
+  const unsigned pagesCount = deobfuscate(pagesCountObf);
+  m_pagesCount = (pagesCount & 0xfffc) | ((pagesCount & 0x3) ^ 0x3);
 
   seekRelative(input, 42);
   m_documentProperties.superscriptOffset = readFraction(input, isBigEndian());
@@ -78,6 +87,11 @@ QXPDocument::Type QXP4Header::getType() const
 std::unique_ptr<QXPParser> QXP4Header::createParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter)
 {
   return std::unique_ptr<QXPParser>(new QXP4Parser(input, painter, shared_from_this()));
+}
+
+uint16_t QXP4Header::pagesCount() const
+{
+  return m_pagesCount;
 }
 
 uint16_t QXP4Header::masterPagesCount() const

@@ -30,6 +30,7 @@ public:
 
   std::unique_ptr<QXPParser> createParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter) override;
 
+  uint16_t pagesCount() const;
   uint16_t masterPagesCount() const;
   uint16_t seed() const;
   uint16_t increment() const;
@@ -37,6 +38,7 @@ public:
 
 private:
   std::string m_type;
+  uint16_t m_pagesCount;
   uint16_t m_masterPagesCount;
   uint16_t m_seed;
   uint16_t m_increment;
