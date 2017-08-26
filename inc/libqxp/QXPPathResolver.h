@@ -26,6 +26,8 @@ public:
     */
   enum PathFormat { PATH_FORMAT_MAC, PATH_FORMAT_WINDOWS };
 
+  virtual ~QXPPathResolver() = default;
+
   /** Resolves a link's path and returns the content as a stream.
     *
     * The path is sent in "native" format.
