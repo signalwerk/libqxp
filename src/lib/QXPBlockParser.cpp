@@ -26,6 +26,7 @@ using std::vector;
 
 QXPBlockParser::QXPBlockParser(const std::shared_ptr<RVNGInputStream> &input, const std::shared_ptr<QXPHeader> &header)
   : m_input(input)
+  , m_header(header)
   , be(header->isBigEndian())
   , m_blockLength(256)
 {
@@ -40,6 +41,8 @@ std::shared_ptr<RVNGInputStream> QXPBlockParser::getBlock(const uint32_t index)
 
 std::shared_ptr<RVNGInputStream> QXPBlockParser::getChain(const uint32_t index)
 {
+  bool bigIdx = m_header->version() >= QXPVersion::QXP_31_MAC;
+
   vector<unsigned char> chain;
   bool isBig = false;
   uint32_t next = index;
@@ -48,11 +51,11 @@ std::shared_ptr<RVNGInputStream> QXPBlockParser::getChain(const uint32_t index)
     seek(m_input, (next - 1) * m_blockLength);
     const uint16_t count = isBig ? readU16(m_input, be) : 1;
 
-    uint32_t len = (next - 1 + count) * m_blockLength - 4 - m_input->tell();
+    uint32_t len = (next - 1 + count) * m_blockLength - (bigIdx ? 4 : 2) - m_input->tell();
     auto block = readNBytes(m_input, len);
     std::copy(block, block + len, std::back_inserter(chain));
 
-    const int32_t nextVal = readS32(m_input, be);
+    const int32_t nextVal = bigIdx ? readS32(m_input, be) : readS16(m_input, be);
     isBig = nextVal < 0;
     next = abs(nextVal);
   }

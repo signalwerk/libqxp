@@ -31,6 +31,7 @@ public:
 
 private:
   const std::shared_ptr<librevenge::RVNGInputStream> m_input;
+  const std::shared_ptr<QXPHeader> m_header;
   const bool be; // big endian
 
   const uint32_t m_blockLength;
