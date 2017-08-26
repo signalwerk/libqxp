@@ -51,8 +51,6 @@ QXPAPI QXPDocument::Result QXPDocument::parse(librevenge::RVNGInputStream *const
   if (detector.type() != QXPDocument::TYPE_DOCUMENT && detector.type() != QXPDocument::TYPE_TEMPLATE)
     return QXPDocument::RESULT_UNSUPPORTED_FORMAT;
 
-  if (!detector.header()->load(detector.input()))
-    return RESULT_UNKNOWN_ERROR;
   auto parser = detector.header()->createParser(detector.input(), document);
 
   return parser->parse() ? RESULT_OK : RESULT_UNKNOWN_ERROR;
