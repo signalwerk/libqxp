@@ -268,11 +268,7 @@ std::vector<PageSettings> QXPParser::parsePageSettings(const std::shared_ptr<lib
     page.offset.left = readFraction(stream, be);
     page.offset.bottom = readFraction(stream, be);
     page.offset.right = readFraction(stream, be);
-    skip(stream, 20);
-    page.margin.top = readFraction(stream, be);
-    page.margin.bottom = readFraction(stream, be);
-    page.margin.left = readFraction(stream, be);
-    page.margin.right = readFraction(stream, be);
+    skip(stream, 36);
     skip(stream, m_header->version() >= QXP_4 ? 12 : 8);
   }
 

@@ -536,10 +536,9 @@ struct Group : Object
 struct PageSettings
 {
   Rect offset;
-  Rect margin;
 
   PageSettings()
-    : offset(), margin()
+    : offset()
   { }
 };
 
