@@ -336,10 +336,8 @@ void QXPContentCollector::startPage(const Page &page)
 
 void QXPContentCollector::endPage()
 {
-  if (m_unprocessedPages.empty())
-    return;
-
-  draw();
+  if (!m_unprocessedPages.empty())
+    draw();
 }
 
 void QXPContentCollector::collectDocumentProperties(const QXPDocumentProperties &props)
