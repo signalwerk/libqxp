@@ -15,6 +15,9 @@ namespace libqxp
 {
 
 QXP1Header::QXP1Header()
+  : m_pages(0)
+  , m_pageHeight(0.0)
+  , m_pageWidth(0.0)
 {
 }
 
@@ -22,6 +25,16 @@ bool QXP1Header::load(const std::shared_ptr<librevenge::RVNGInputStream> &input)
 {
   m_proc = 'M';
   m_version = readU16(input, true);
+  skip(input, 152);
+  m_pages = readU16(input, true);
+
+  m_pageHeight = readU16(input, true);
+  int pageHeightAdj = readU16(input, true);
+  m_pageWidth = readU16(input, true);
+  int pageWidthAdj = readU16(input, true);
+  QXP1Parser::adjust(m_pageHeight, pageHeightAdj);
+  QXP1Parser::adjust(m_pageWidth, pageWidthAdj);
+
   return true;
 }
 

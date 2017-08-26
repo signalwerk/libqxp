@@ -10,6 +10,7 @@
 #include "QXP1Parser.h"
 
 #include "QXP1Header.h"
+#include "QXPCollector.h"
 
 namespace libqxp
 {
@@ -39,6 +40,11 @@ QXP1Parser::QXP1Parser(const std::shared_ptr<librevenge::RVNGInputStream> &input
 {
 }
 
+void QXP1Parser::adjust(double &pos, unsigned adjustment)
+{
+  pos += double(adjustment - 0x8000) / 0x10000;
+}
+
 bool QXP1Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream, QXPCollector &)
 {
   parseCharFormats(docStream);
@@ -48,8 +54,17 @@ bool QXP1Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStream
 
 bool QXP1Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXPCollector &collector)
 {
-  (void) stream;
-  (void) collector;
+  Page page;
+  page.pageSettings.resize(1);
+  page.pageSettings[0].offset.bottom = m_header->pageHeight();
+  page.pageSettings[0].offset.right = m_header->pageWidth();
+
+  for (unsigned i = 0; i != m_header->pages(); ++i)
+  {
+    collector.startPage(page);
+    collector.endPage();
+  }
+
   return false;
 }
 

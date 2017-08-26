@@ -25,6 +25,26 @@ public:
   QXPDocument::Type getType() const override;
 
   std::unique_ptr<QXPParser> createParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter) override;
+
+  unsigned pages() const
+  {
+    return m_pages;
+  }
+
+  double pageHeight() const
+  {
+    return m_pageHeight;
+  }
+
+  double pageWidth() const
+  {
+    return m_pageWidth;
+  }
+
+private:
+  unsigned m_pages;
+  double m_pageHeight;
+  double m_pageWidth;
 };
 
 }
