@@ -10,6 +10,8 @@
 #ifndef QXP3HEADERBASE_H_INCLUDED
 #define QXP3HEADERBASE_H_INCLUDED
 
+#include <string>
+
 #include "QXPHeader.h"
 
 namespace libqxp
