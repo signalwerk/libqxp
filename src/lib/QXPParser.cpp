@@ -18,7 +18,6 @@
 namespace libqxp
 {
 
-using librevenge::RVNGStringStream;
 using std::make_shared;
 
 QXPParser::QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, librevenge::RVNGDrawingInterface *painter, const std::shared_ptr<QXPHeader> &header)

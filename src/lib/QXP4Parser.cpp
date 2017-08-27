@@ -15,11 +15,11 @@
 #include "QXP4Deobfuscator.h"
 #include "QXP4Header.h"
 #include "QXPCollector.h"
+#include "QXPMemoryStream.h"
 
 namespace libqxp
 {
 
-using librevenge::RVNGStringStream;
 using std::make_shared;
 using std::shared_ptr;
 
@@ -123,7 +123,7 @@ bool QXP4Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &
 void QXP4Parser::parseColors(const std::shared_ptr<librevenge::RVNGInputStream> &docStream)
 {
   unsigned length = readU32(docStream, be);
-  auto stream = make_shared<RVNGStringStream>(readNBytes(docStream, length), length);
+  auto stream = make_shared<QXPMemoryStream>(readNBytes(docStream, length), length);
 
   try
   {

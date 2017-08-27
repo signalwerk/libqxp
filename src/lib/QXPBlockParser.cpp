@@ -15,12 +15,12 @@
 #include <vector>
 
 #include "QXPHeader.h"
+#include "QXPMemoryStream.h"
 
 namespace libqxp
 {
 
 using librevenge::RVNGInputStream;
-using librevenge::RVNGStringStream;
 using std::make_shared;
 using std::vector;
 
@@ -36,7 +36,7 @@ std::shared_ptr<RVNGInputStream> QXPBlockParser::getBlock(const uint32_t index)
 {
   seek(m_input, (index - 1) * m_blockLength);
   auto block = readNBytes(m_input, m_blockLength);
-  return make_shared<RVNGStringStream>(block, m_blockLength);
+  return make_shared<QXPMemoryStream>(block, m_blockLength);
 }
 
 std::shared_ptr<RVNGInputStream> QXPBlockParser::getChain(const uint32_t index)
@@ -59,7 +59,7 @@ std::shared_ptr<RVNGInputStream> QXPBlockParser::getChain(const uint32_t index)
     isBig = nextVal < 0;
     next = abs(nextVal);
   }
-  return make_shared<RVNGStringStream>(chain.data(), chain.size());
+  return make_shared<QXPMemoryStream>(chain.data(), chain.size());
 }
 
 }
