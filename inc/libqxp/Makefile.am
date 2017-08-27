@@ -2,7 +2,7 @@
 
 libqxpdir = $(includedir)/libqxp-@QXP_MAJOR_VERSION@.@QXP_MINOR_VERSION@/libqxp
 
-dist_libqxp_headers = \
+dist_libqxp_HEADERS = \
 	libqxp.h \
 	libqxp_api.h \
 	QXPDocument.h \
