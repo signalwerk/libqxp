@@ -81,10 +81,7 @@ if OS_WIN32
 endif
 
 EXTRA_DIST = \
+	libqxp.rc \
 	libqxp.rc.in
-
-# These may be in the builddir too
-BUILD_EXTRA_DIST = \
-	libqxp.rc
 
 ## vim:set shiftwidth=4 tabstop=4 noexpandtab:
