@@ -48,16 +48,16 @@ EXTRA_DIST = \
 	data/qxp1.zip \
 	data/qxp31mac \
 	data/qxp31win.qxd \
-	data/qxp33win.qxd \
 	data/qxp33mac \
-	data/qxp4win.qxd \
+	data/qxp33mac_text \
+	data/qxp33win.qxd \
+	data/qxp33win_text.qxd \
 	data/qxp4mac \
+	data/qxp4mac_text \
+	data/qxp4win.qxd \
+	data/qxp4win_text.qxd \
 	data/qxp5.qxd \
 	data/qxp6.qxd \
-	data/qxp33mac_text \
-	data/qxp33win_text.qxd \
-	data/qxp4mac_text \
-	data/qxp4win_text.qxd \
 	data/unsupported.zip
 
 ## vim:set shiftwidth=4 tabstop=4 noexpandtab:
