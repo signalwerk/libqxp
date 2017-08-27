@@ -45,6 +45,9 @@ detection_SOURCES = \
 TESTS = $(target_test)
 
 EXTRA_DIST = \
+	data/qxp1.zip \
+	data/qxp31mac \
+	data/qxp31win.qxd \
 	data/qxp33win.qxd \
 	data/qxp33mac \
 	data/qxp4win.qxd \
