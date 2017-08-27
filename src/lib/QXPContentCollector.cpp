@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <utility>
+#include <iterator>
 
 #include <boost/range/adaptor/reversed.hpp>
 #include <boost/variant.hpp>

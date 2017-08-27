@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <memory>
 #include <vector>
+#include <iterator>
 
 #include "QXPHeader.h"
 #include "QXPMemoryStream.h"
