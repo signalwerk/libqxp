@@ -32,6 +32,15 @@ private:
   ParagraphFormat parseParagraphFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) override;
   std::shared_ptr<HJ> parseHJ(const std::shared_ptr<librevenge::RVNGInputStream> &stream) override;
 
+  bool parsePage(const std::shared_ptr<librevenge::RVNGInputStream> &input);
+  bool parseObject(const std::shared_ptr<librevenge::RVNGInputStream> &input, QXPCollector &collector);
+
+  void parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &input, QXPCollector &collector, const Rect &bbox, const Color &color, bool transparent);
+  void parseText(const std::shared_ptr<librevenge::RVNGInputStream> &input, QXPCollector &collector, const Rect &bbox, const Color &color, bool transparent, unsigned content, unsigned textOffset, unsigned linkID);
+  void parsePicture(const std::shared_ptr<librevenge::RVNGInputStream> &input, QXPCollector &collector, const Rect &bbox, const Color &color, bool transparent);
+
+  void parseCoordPair(const std::shared_ptr<librevenge::RVNGInputStream> &input, double &x1, double &y1, double &x2, double &y2);
+
 private:
   const std::shared_ptr<QXP1Header> m_header;
 };

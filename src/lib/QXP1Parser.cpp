@@ -61,7 +61,13 @@ bool QXP1Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &
 
   for (unsigned i = 0; i != m_header->pages(); ++i)
   {
+    const bool empty = parsePage(stream);
     collector.startPage(page);
+    bool last = !empty;
+    while (!last)
+    {
+      last = parseObject(stream, collector);
+    }
     collector.endPage();
   }
 
@@ -125,6 +131,136 @@ ParagraphFormat QXP1Parser::parseParagraphFormat(const std::shared_ptr<libreveng
 std::shared_ptr<HJ> QXP1Parser::parseHJ(const std::shared_ptr<librevenge::RVNGInputStream> &)
 {
   return std::shared_ptr<HJ>();
+}
+
+bool QXP1Parser::parsePage(const std::shared_ptr<librevenge::RVNGInputStream> &input)
+{
+  skip(input, 15);
+  const unsigned empty = readU8(input);
+  switch (empty)
+  {
+  case 1:
+    return false;
+  case 2:
+    return true;
+  default:
+    QXP_DEBUG_MSG(("QXP1Parser::parsePage: unknown 'is empty' value %d, cannot continue\n", empty));
+    throw ParseError();
+  }
+}
+
+bool QXP1Parser::parseObject(const std::shared_ptr<librevenge::RVNGInputStream> &input, QXPCollector &collector)
+{
+  const unsigned type = readU8(input);
+
+  bool transparent = false;
+  const unsigned transVal = readU8(input);
+  switch (transVal)
+  {
+  default:
+    QXP_DEBUG_MSG(("QXP1Parser::parseObject: unexpected 'is transparent' value: %d\n", transVal));
+    QXP_FALLTHROUGH;
+  case 1:
+    transparent = true;
+    break;
+  case 0:
+    transparent = false;
+    break;
+  }
+
+  unsigned contentIndex = readU16(input);
+  skip(input, 2);
+
+  Rect bbox;
+  parseCoordPair(input, bbox.left, bbox.top, bbox.right, bbox.bottom);
+
+  const unsigned textOffset = readU32(input, true) >> 8;
+  skip(input, 8);
+  const unsigned linkId = readU32(input, true);
+  const unsigned shadeId = readU8(input);
+  const unsigned colorId = readU8(input);
+  const auto &color = getColor(colorId).applyShade(getShade(shadeId));
+
+  switch (type)
+  {
+  case 0:
+  case 1:
+    parseLine(input, collector, bbox, color, transparent);
+    break;
+  case 3:
+    parseText(input, collector, bbox, color, transparent, contentIndex, textOffset, linkId);
+    break;
+  case 4:
+  case 5:
+  case 6:
+    parsePicture(input, collector, bbox, color, transparent);
+    break;
+  default:
+    QXP_DEBUG_MSG(("QXP1Parser::parseObject: unknown object type %d, cannot continue\n", type));
+    throw ParseError();
+  }
+
+  const unsigned lastObject = readU8(input);
+  switch (lastObject)
+  {
+  case 0:
+  case 1:
+    return false;
+  case 2:
+    return true;
+  default:
+    QXP_DEBUG_MSG(("QXP1Parser::parseObject: unknown 'last object' value %d, cannot continue\n", lastObject));
+    throw ParseError();
+  }
+}
+
+void QXP1Parser::parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &input, QXPCollector &collector, const Rect &bbox, const Color &color, bool transparent)
+{
+  (void) collector;
+  (void) bbox;
+  (void) color;
+  (void) transparent;
+
+  skip(input, 25);
+}
+
+void QXP1Parser::parseText(const std::shared_ptr<librevenge::RVNGInputStream> &input, QXPCollector &collector, const Rect &bbox, const Color &color, bool transparent, unsigned content, unsigned textOffset, unsigned linkID)
+{
+  (void) collector;
+  (void) bbox;
+  (void) color;
+  (void) transparent;
+  (void) content;
+  (void) textOffset;
+  (void) linkID;
+
+  skip(input, 40);
+}
+
+void QXP1Parser::parsePicture(const std::shared_ptr<librevenge::RVNGInputStream> &input, QXPCollector &collector, const Rect &bbox, const Color &color, bool transparent)
+{
+  (void) collector;
+  (void) bbox;
+  (void) color;
+  (void) transparent;
+
+  skip(input, 54);
+}
+
+void QXP1Parser::parseCoordPair(const std::shared_ptr<librevenge::RVNGInputStream> &input, double &x1, double &y1, double &x2, double &y2)
+{
+  y1 = readU16(input, true);
+  x1 = readU16(input, true);
+  y2 = readU16(input, true);
+  x2 = readU16(input, true);
+  const unsigned y1Adj = readU16(input, true);
+  const unsigned x1Adj = readU16(input, true);
+  const unsigned y2Adj = readU16(input, true);
+  const unsigned x2Adj = readU16(input, true);
+  QXP1Parser::adjust(y1, y1Adj);
+  QXP1Parser::adjust(x1, x1Adj);
+  QXP1Parser::adjust(y2, y2Adj);
+  QXP1Parser::adjust(x2, x2Adj);
 }
 
 }
