@@ -72,9 +72,9 @@ AC_SUBST([BOOST_CFLAGS])
 AS_IF([test "${ICU_CFLAGS+set}" = set],[
 	ICU_CFLAGS_overriden=yes],[
 	ICU_CFLAGS_overriden=no])
-PKG_CHECK_MODULES([ICU],[icu-i18n],[
+PKG_CHECK_MODULES([ICU],[icu-uc],[
 	AS_IF([test "${ICU_CFLAGS_overriden}" = no], [
-		ICU_CFLAGS="${ICU_CFLAGS} `${PKG_CONFIG} icu-i18n --variable=CXXFLAGS`"])
+		ICU_CFLAGS="${ICU_CFLAGS} `${PKG_CONFIG} icu-uc --variable=CXXFLAGS`"])
 	], [
 	AC_PATH_PROG([ICU_CONFIG],[icu-config])
 	AC_MSG_CHECKING([ICU installation])
