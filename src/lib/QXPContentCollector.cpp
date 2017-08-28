@@ -943,7 +943,9 @@ void QXPContentCollector::drawText(const std::shared_ptr<Text> &text, const Link
         break;
       }
 
-      const unsigned long spanTextEnd = std::min<unsigned long>({ charFormat.afterEndIndex(), paragraph.afterEndIndex(), text->text.length(), textEnd });
+      const auto spanTextEnd = static_cast<unsigned long>(
+                                 std::min<uint64_t>({ charFormat.afterEndIndex(), paragraph.afterEndIndex(), text->text.length(), textEnd })
+                               );
 
       if (charFormat.format->isControlChars)
       {
