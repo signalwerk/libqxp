@@ -258,7 +258,7 @@ void seekRelative(librevenge::RVNGInputStream *const input, const long pos)
 
 unsigned long getLength(librevenge::RVNGInputStream *const input)
 {
-  if (!input)
+  if (!input || input->tell() < 0)
     throw SeekFailedException();
 
   const unsigned long begin = input->tell();
