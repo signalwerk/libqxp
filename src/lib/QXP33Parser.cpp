@@ -363,7 +363,7 @@ QXP33Parser::ObjectHeader QXP33Parser::parseObjectHeader(const std::shared_ptr<l
   skip(stream, 4);
 
   const uint8_t boxFlag1 = readU8(stream);
-  const bool boxFlag2 = readU8(stream);
+  const uint8_t boxFlag2 = readU8(stream);
   bool beveled;
   bool concave;
   if (be)
