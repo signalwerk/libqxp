@@ -35,11 +35,13 @@ private:
   CPPUNIT_TEST_SUITE(UtilsTest);
   CPPUNIT_TEST(testFloat16);
   CPPUNIT_TEST(testReadFraction);
+  CPPUNIT_TEST(testGetRemainingLength);
   CPPUNIT_TEST_SUITE_END();
 
 private:
   void testFloat16();
   void testReadFraction();
+  void testGetRemainingLength();
 };
 
 void UtilsTest::setUp()
@@ -88,6 +90,21 @@ void UtilsTest::testReadFraction()
   CPPUNIT_ASSERT_DOUBLES_EQUAL(432.5, readFraction(stream, true), 0.001);
   CPPUNIT_ASSERT_DOUBLES_EQUAL(-8.5, readFraction(stream, false), 0.001);
   CPPUNIT_ASSERT_DOUBLES_EQUAL(-8.5, readFraction(stream, true), 0.001);
+}
+
+void UtilsTest::testGetRemainingLength()
+{
+  uint8_t data[] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+  auto stream = make_shared<RVNGStringStream>(data, sizeof(data));
+
+  using libqxp::getRemainingLength;
+  CPPUNIT_ASSERT_EQUAL(sizeof(data), size_t(getRemainingLength(stream)));
+  stream->seek(2, librevenge::RVNG_SEEK_CUR);
+  CPPUNIT_ASSERT_EQUAL(sizeof(data) - 2, size_t(getRemainingLength(stream)));
+  stream->seek(2, librevenge::RVNG_SEEK_CUR);
+  CPPUNIT_ASSERT_EQUAL(sizeof(data) - 4, size_t(getRemainingLength(stream)));
+  stream->seek(0, librevenge::RVNG_SEEK_END);
+  CPPUNIT_ASSERT_EQUAL(0ul, getRemainingLength(stream));
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(UtilsTest);
