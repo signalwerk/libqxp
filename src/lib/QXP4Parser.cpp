@@ -338,6 +338,12 @@ void QXP4Parser::skipTemplates(const std::shared_ptr<librevenge::RVNGInputStream
 
   skip(stream, length - 4);
 
+  if (count > getRemainingLength(stream) / 4)
+  {
+    QXP_DEBUG_MSG(("Invalid template count %u\n", count));
+    throw ParseError();
+  }
+
   for (unsigned i = 0; i < count; ++i)
   {
     skipRecord(stream);
