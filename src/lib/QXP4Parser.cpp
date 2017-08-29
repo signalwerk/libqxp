@@ -123,6 +123,9 @@ bool QXP4Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &
 void QXP4Parser::parseColors(const std::shared_ptr<librevenge::RVNGInputStream> &docStream)
 {
   unsigned length = readU32(docStream, be);
+  if (length > getRemainingLength(docStream))
+    length = getRemainingLength(docStream);
+
   auto stream = make_shared<QXPMemoryStream>(readNBytes(docStream, length), length);
 
   try
