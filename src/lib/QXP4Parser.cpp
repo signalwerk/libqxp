@@ -124,7 +124,10 @@ void QXP4Parser::parseColors(const std::shared_ptr<librevenge::RVNGInputStream> 
 {
   unsigned length = readU32(docStream, be);
   if (length > getRemainingLength(docStream))
-    length = getRemainingLength(docStream);
+  {
+    QXP_DEBUG_MSG(("Invalid colors length %u\n", length));
+    throw ParseError();
+  }
 
   auto stream = make_shared<QXPMemoryStream>(readNBytes(docStream, length), length);
 
