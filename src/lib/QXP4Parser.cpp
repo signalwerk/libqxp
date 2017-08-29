@@ -558,7 +558,7 @@ QXP4Parser::ObjectHeader QXP4Parser::parseObjectHeader(const std::shared_ptr<lib
   skip(stream, 4);
 
   const bool boxFlag1 = readU8(stream);
-  const bool boxFlag2 = readU8(stream);
+  const uint8_t boxFlag2 = readU8(stream);
   if (be)
   {
     result.hflip = boxFlag1 & 0x80;
