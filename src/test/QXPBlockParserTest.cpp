@@ -32,7 +32,7 @@ using libqxp::QXPDetector;
 using libqxp::QXPHeader;
 using libqxp::QXPBlockParser;
 using libqxp::readString;
-using libqxp::getLength;
+using libqxp::getRemainingLength;
 
 using librevenge::RVNGInputStream;
 using std::string;
@@ -124,7 +124,7 @@ void QXPBlockParserTest::testGetDocChain()
 
     auto parser = createParser(name);
     auto stream = parser->getChain(3);
-    CPPUNIT_ASSERT_EQUAL_MESSAGE(name, expectedSize, getLength(stream));
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(name, expectedSize, getRemainingLength(stream));
   }
 }
 

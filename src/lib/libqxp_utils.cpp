@@ -256,7 +256,7 @@ void seekRelative(librevenge::RVNGInputStream *const input, const long pos)
     throw SeekFailedException();
 }
 
-unsigned long getLength(librevenge::RVNGInputStream *const input)
+unsigned long getRemainingLength(librevenge::RVNGInputStream *const input)
 {
   if (!input || input->tell() < 0)
     throw SeekFailedException();
@@ -361,9 +361,9 @@ void seekRelative(const std::shared_ptr<librevenge::RVNGInputStream> input, cons
   seekRelative(input.get(), pos);
 }
 
-unsigned long getLength(const std::shared_ptr<librevenge::RVNGInputStream> input)
+unsigned long getRemainingLength(const std::shared_ptr<librevenge::RVNGInputStream> &input)
 {
-  return getLength(input.get());
+  return getRemainingLength(input.get());
 }
 
 EndOfStreamException::EndOfStreamException()

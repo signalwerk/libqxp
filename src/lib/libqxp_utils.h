@@ -91,7 +91,7 @@ void skip(librevenge::RVNGInputStream *input, unsigned long numBytes);
 void seek(librevenge::RVNGInputStream *input, unsigned long pos);
 void seekRelative(librevenge::RVNGInputStream *input, long pos);
 
-unsigned long getLength(librevenge::RVNGInputStream *input);
+unsigned long getRemainingLength(librevenge::RVNGInputStream *input);
 
 uint8_t readU8(std::shared_ptr<librevenge::RVNGInputStream> input, bool = false);
 uint16_t readU16(std::shared_ptr<librevenge::RVNGInputStream> input, bool bigEndian=false);
@@ -114,7 +114,7 @@ void skip(std::shared_ptr<librevenge::RVNGInputStream> input, unsigned long numB
 void seek(std::shared_ptr<librevenge::RVNGInputStream> input, unsigned long pos);
 void seekRelative(std::shared_ptr<librevenge::RVNGInputStream> input, long pos);
 
-unsigned long getLength(std::shared_ptr<librevenge::RVNGInputStream> input);
+unsigned long getRemainingLength(const std::shared_ptr<librevenge::RVNGInputStream> &input);
 
 double deg2rad(double value);
 double normalizeDegAngle(double degAngle);

@@ -336,7 +336,7 @@ void QXP4Parser::skipTemplates(const std::shared_ptr<librevenge::RVNGInputStream
 void QXP4Parser::parseTabStops(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
 {
   const unsigned specLength = readU32(stream, be);
-  if (specLength > getLength(stream))
+  if (specLength > getRemainingLength(stream))
   {
     QXP_DEBUG_MSG(("Invalid tab stop spec length %u\n", specLength));
     throw ParseError();
@@ -348,7 +348,7 @@ void QXP4Parser::parseTabStops(const std::shared_ptr<librevenge::RVNGInputStream
   {
     skip(stream, 2);
     const unsigned count = readU16(stream, be);
-    if (count > getLength(stream) / 8)
+    if (count > getRemainingLength(stream) / 8)
     {
       QXP_DEBUG_MSG(("Invalid tab stop count %u\n", count));
       throw ParseError();
@@ -1103,7 +1103,7 @@ void QXP4Parser::readImageData(const std::shared_ptr<librevenge::RVNGInputStream
 void QXP4Parser::readBezierData(const std::shared_ptr<librevenge::RVNGInputStream> &stream, std::vector<CurveComponent> &curveComponents, Rect &bbox)
 {
   const unsigned length = readU32(stream, be);
-  if (length > getLength(stream))
+  if (length > getRemainingLength(stream))
   {
     QXP_DEBUG_MSG(("Invalid bezier data length %ul\n", length));
     throw ParseError();
