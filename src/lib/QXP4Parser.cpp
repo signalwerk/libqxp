@@ -327,11 +327,16 @@ void QXP4Parser::parseLineStyles(const std::shared_ptr<librevenge::RVNGInputStre
 
 void QXP4Parser::skipTemplates(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
 {
-  const unsigned indexEnd = readRecordEndOffset(stream);
+  const unsigned length = readU32(stream, be);
+  if (length > getRemainingLength(stream))
+  {
+    QXP_DEBUG_MSG(("Invalid templates index length %u\n", length));
+    throw ParseError();
+  }
 
   const unsigned count = readU32(stream, be);
 
-  seek(stream, indexEnd);
+  skip(stream, length - 4);
 
   for (unsigned i = 0; i < count; ++i)
   {
