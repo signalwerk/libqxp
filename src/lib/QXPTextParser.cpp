@@ -75,7 +75,9 @@ std::shared_ptr<Text> QXPTextParser::parseText(unsigned index,
   }
 
   {
-    const unsigned paragraphSpecLength = readU32(infoStream, be);
+    unsigned paragraphSpecLength = readU32(infoStream, be);
+    if (paragraphSpecLength > getRemainingLength(infoStream))
+      paragraphSpecLength = unsigned(getRemainingLength(infoStream));
     const long end = infoStream->tell() + paragraphSpecLength;
     while (infoStream->tell() < end)
     {
