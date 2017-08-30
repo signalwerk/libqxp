@@ -999,7 +999,7 @@ bool MWAWInputStream::unMacMIME(MWAWInputStream *inp,
     }
     inp->seek(16, librevenge::RVNG_SEEK_CUR); // filename
     long numEntries = long(inp->readULong(2));
-    if (inp->isEnd() || numEntries <= 0)
+    if (inp->isEnd() || numEntries == 0)
     {
       QXP_DEBUG_MSG(("MWAWInputStream::unMacMIME: can not read number of entries\n"));
       return false;
