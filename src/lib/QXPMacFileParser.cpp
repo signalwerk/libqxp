@@ -1040,8 +1040,7 @@ bool MWAWInputStream::unMacMIME(MWAWInputStream *inp,
         return false;
       }
       /* try to read the data */
-      inp->seek(entryPos, librevenge::RVNG_SEEK_SET);
-      if (inp->tell() != entryPos)
+      if (inp->seek(entryPos, librevenge::RVNG_SEEK_SET) != 0)
       {
         QXP_DEBUG_MSG(("MWAWInputStream::unMacMIME: can not seek entry pos %lx\n", static_cast<long unsigned int>(entryPos)));
         return false;
