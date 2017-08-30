@@ -231,7 +231,13 @@ void QXPParser::parseParagraphFormats(const std::shared_ptr<librevenge::RVNGInpu
 
 void QXPParser::parseCollection(const std::shared_ptr<librevenge::RVNGInputStream> stream, std::function<void()> itemHandler)
 {
-  const unsigned end = readRecordEndOffset(stream);
+  unsigned length = readU32(stream, be);
+  if (length > getRemainingLength(stream))
+  {
+    QXP_DEBUG_MSG(("Invalid record length %u\n", length));
+    throw ParseError();
+  }
+  const long end = stream->tell() + length;
 
   try
   {
