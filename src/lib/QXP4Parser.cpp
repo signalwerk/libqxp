@@ -198,7 +198,13 @@ void QXP4Parser::parseColor(const std::shared_ptr<librevenge::RVNGInputStream> &
 
 void QXP4Parser::skipParagraphStylesheets(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
 {
-  const unsigned end = readRecordEndOffset(stream);
+  const unsigned length = readU32(stream, be);
+  if (length > getRemainingLength(stream))
+  {
+    QXP_DEBUG_MSG(("Invalid paragraph stylesheets length %u\n", length));
+    throw ParseError();
+  }
+  const long end = stream->tell() + length;
 
   unsigned tabRecordsCount = 0;
   while (stream->tell() < end)
