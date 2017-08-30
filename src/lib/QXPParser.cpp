@@ -162,7 +162,7 @@ void QXPParser::parseCharFormats(const std::shared_ptr<librevenge::RVNGInputStre
   m_charFormats.clear();
   parseCollection(stream, [=]()
   {
-    m_charFormats.emplace_back(make_shared<CharFormat>(parseCharFormat(stream)));
+    m_charFormats.push_back(make_shared<CharFormat>(parseCharFormat(stream)));
   });
 }
 
@@ -225,7 +225,7 @@ void QXPParser::parseParagraphFormats(const std::shared_ptr<librevenge::RVNGInpu
   m_paragraphFormats.clear();
   parseCollection(stream, [=]()
   {
-    m_paragraphFormats.emplace_back(make_shared<ParagraphFormat>(parseParagraphFormat(stream)));
+    m_paragraphFormats.push_back(make_shared<ParagraphFormat>(parseParagraphFormat(stream)));
   });
 }
 

@@ -70,7 +70,7 @@ std::shared_ptr<Text> QXPTextParser::parseText(unsigned index,
       {
         charFormat = charFormats[charFormatIndex];
       }
-      text->charFormats.emplace_back(CharFormatSpec(charFormat, startIndex, length));
+      text->charFormats.push_back(CharFormatSpec(charFormat, startIndex, length));
     }
   }
 
@@ -98,7 +98,7 @@ std::shared_ptr<Text> QXPTextParser::parseText(unsigned index,
       {
         paragraphFormat = paragraphFormats[paragraphFormatIndex];
       }
-      text->paragraphs.emplace_back(ParagraphSpec(paragraphFormat, startIndex, length));
+      text->paragraphs.push_back(ParagraphSpec(paragraphFormat, startIndex, length));
     }
   }
 

@@ -139,7 +139,7 @@ private:
   std::shared_ptr<CollectedObject<T>> addObject(const std::shared_ptr<T> &obj, const ObjectHandlerMember<T, QXPContentCollector> &handler)
   {
     auto collectedObj = std::make_shared<CollectedObject<T>>(obj, std::bind(handler, this, std::placeholders::_1, std::placeholders::_2));
-    getInsertionPage(obj).objects.emplace_back(collectedObj);
+    getInsertionPage(obj).objects.push_back(collectedObj);
     return collectedObj;
   }
 

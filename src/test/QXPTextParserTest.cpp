@@ -99,9 +99,9 @@ void QXPTextParserTest::testParseText()
     const auto index = item.second;
 
     vector<shared_ptr<CharFormat>> charFormats;
-    charFormats.emplace_back(make_shared<CharFormat>(CharFormat()));
+    charFormats.push_back(make_shared<CharFormat>(CharFormat()));
     vector<shared_ptr<ParagraphFormat>> paragraphFormats;
-    paragraphFormats.emplace_back(make_shared<ParagraphFormat>(ParagraphFormat()));
+    paragraphFormats.push_back(make_shared<ParagraphFormat>(ParagraphFormat()));
 
     auto parser = createParser(name);
     auto text = parser->parseText(index, charFormats, paragraphFormats);
