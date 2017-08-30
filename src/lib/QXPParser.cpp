@@ -123,7 +123,13 @@ void QXPParser::skipRecord(const std::shared_ptr<librevenge::RVNGInputStream> &s
 
 void QXPParser::parseFonts(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
 {
-  const unsigned end = readRecordEndOffset(stream);
+  unsigned length = readU32(stream, be);
+  if (length > getRemainingLength(stream))
+  {
+    QXP_DEBUG_MSG(("Invalid record length %u\n", length));
+    throw ParseError();
+  }
+  const long end = stream->tell() + length;
 
   try
   {
