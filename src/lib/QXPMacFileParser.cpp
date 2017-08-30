@@ -999,6 +999,8 @@ bool MWAWInputStream::unMacMIME(MWAWInputStream *inp,
     }
     inp->seek(16, librevenge::RVNG_SEEK_CUR); // filename
     long numEntries = long(inp->readULong(2));
+    if (inp->checkPosition(inp->tell() + 12 * numEntries)) // minimal sanity check
+      numEntries = (inp->size() - inp->tell()) / 12;
     if (inp->isEnd() || numEntries == 0)
     {
       QXP_DEBUG_MSG(("MWAWInputStream::unMacMIME: can not read number of entries\n"));
@@ -1012,7 +1014,7 @@ bool MWAWInputStream::unMacMIME(MWAWInputStream *inp,
       "MSDosInfo", "AFPName", "AFPInfo", "AFPDirId"
     };
 #endif
-    for (int i = 0; i < numEntries; i++)
+    for (int i = 0; i < numEntries && !inp->isEnd(); i++)
     {
       long pos = inp->tell();
       int wh = static_cast<int>(inp->readULong(4));
