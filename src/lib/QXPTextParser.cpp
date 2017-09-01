@@ -17,6 +17,45 @@ namespace libqxp
 
 using std::make_shared;
 
+namespace
+{
+
+template <class Format, class FormatSpec>
+void parseFormatSpec(
+  const std::shared_ptr<librevenge::RVNGInputStream> &infoStream,
+  const std::vector<std::shared_ptr<Format>> &formats,
+  unsigned version, bool be,
+  std::vector<FormatSpec> &textFormats)
+{
+  unsigned specLength = readU32(infoStream, be);
+  if (specLength > getRemainingLength(infoStream))
+    specLength = unsigned(getRemainingLength(infoStream));
+  const long end = infoStream->tell() + specLength;
+  while (infoStream->tell() < end)
+  {
+    const unsigned formatIndex = version >= QXP_4 ? readU32(infoStream, be) : readU16(infoStream, be);
+    const unsigned length = readU32(infoStream, be);
+    const unsigned startIndex = textFormats.empty() ? 0 : textFormats.back().afterEndIndex();
+
+    std::shared_ptr<Format> format;
+    if (formatIndex >= formats.size())
+    {
+      QXP_DEBUG_MSG(("Char format %u not found\n", formatIndex));
+      if (!formats.empty())
+      {
+        format = formats[0];
+      }
+    }
+    else
+    {
+      format = formats[formatIndex];
+    }
+    textFormats.push_back(FormatSpec(format, startIndex, length));
+  }
+}
+
+}
+
 QXPTextParser::QXPTextParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, const std::shared_ptr<QXPHeader> &header)
   : m_header(header)
   , be(header->isBigEndian())
@@ -48,59 +87,8 @@ std::shared_ptr<Text> QXPTextParser::parseText(unsigned index,
     }
   }
 
-  {
-    const unsigned charSpecLength = readU32(infoStream, be);
-    const long end = infoStream->tell() + charSpecLength;
-    while (infoStream->tell() < end)
-    {
-      const unsigned charFormatIndex = m_header->version() >= QXP_4 ? readU32(infoStream, be) : readU16(infoStream, be);
-      const unsigned length = readU32(infoStream, be);
-      const unsigned startIndex = text->charFormats.empty() ? 0 : text->charFormats.back().afterEndIndex();
-
-      std::shared_ptr<CharFormat> charFormat;
-      if (charFormatIndex >= charFormats.size())
-      {
-        QXP_DEBUG_MSG(("Char format %u not found\n", charFormatIndex));
-        if (!charFormats.empty())
-        {
-          charFormat = charFormats[0];
-        }
-      }
-      else
-      {
-        charFormat = charFormats[charFormatIndex];
-      }
-      text->charFormats.push_back(CharFormatSpec(charFormat, startIndex, length));
-    }
-  }
-
-  {
-    unsigned paragraphSpecLength = readU32(infoStream, be);
-    if (paragraphSpecLength > getRemainingLength(infoStream))
-      paragraphSpecLength = unsigned(getRemainingLength(infoStream));
-    const long end = infoStream->tell() + paragraphSpecLength;
-    while (infoStream->tell() < end)
-    {
-      const unsigned paragraphFormatIndex = m_header->version() >= QXP_4 ? readU32(infoStream, be) : readU16(infoStream, be);
-      const unsigned length = readU32(infoStream, be);
-      const unsigned startIndex = text->paragraphs.empty() ? 0 : text->paragraphs.back().afterEndIndex();
-
-      std::shared_ptr<ParagraphFormat> paragraphFormat;
-      if (paragraphFormatIndex >= paragraphFormats.size())
-      {
-        QXP_DEBUG_MSG(("Paragraph format %u not found\n", paragraphFormatIndex));
-        if (!paragraphFormats.empty())
-        {
-          paragraphFormat = paragraphFormats[0];
-        }
-      }
-      else
-      {
-        paragraphFormat = paragraphFormats[paragraphFormatIndex];
-      }
-      text->paragraphs.push_back(ParagraphSpec(paragraphFormat, startIndex, length));
-    }
-  }
+  parseFormatSpec(infoStream, charFormats, m_header->version(), be, text->charFormats);
+  parseFormatSpec(infoStream, paragraphFormats, m_header->version(), be, text->paragraphs);
 
   return text;
 }
