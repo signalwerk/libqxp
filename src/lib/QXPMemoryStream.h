@@ -40,7 +40,7 @@ public:
   bool isEnd() override;
 
 private:
-  std::unique_ptr<unsigned char> m_data;
+  std::unique_ptr<unsigned char[]> m_data;
   const long m_length;
   long m_pos;
 };
