@@ -241,6 +241,7 @@ AS_IF([test "x$enable_tests" = "xyes"], [
 AC_SUBST([CPPUNIT_CFLAGS])
 AC_SUBST([CPPUNIT_LIBS])
 AM_CONDITIONAL(WITH_TESTS, [test "x$enable_tests" = "xyes"])
+AS_IF([test "x$enable_tests" = "xyes"], [need_stream=yes])
 
 # =============
 # Documentation
@@ -269,6 +270,7 @@ AC_ARG_ENABLE(tools,
     [AS_IF([test "x$native_win32" = "xyes"], [enable_tools=no], [enable_tools=yes])]
 )
 AM_CONDITIONAL([BUILD_TOOLS], [test "x$enable_tools" = "xyes"])
+AS_IF([test "x$enable_tools" = "xyes"], [need_stream=yes; need_generators=yes])
 
 # =======
 # Fuzzers
@@ -279,13 +281,23 @@ AC_ARG_ENABLE([fuzzers],
     [enable_fuzzers=no]
 )
 AM_CONDITIONAL([BUILD_FUZZERS], [test "x$enable_fuzzers" = "xyes"])
+AS_IF([test "x$enable_fuzzers" = "xyes"], [need_stream=yes; need_generators=yes])
 
-PKG_CHECK_MODULES([REVENGE_GENERATORS],[
-    librevenge-generators-0.0
+AS_IF([test "x$need_generators" = "xyes"], [
+    PKG_CHECK_MODULES([REVENGE_GENERATORS],[
+        librevenge-generators-0.0
+    ])
 ])
-PKG_CHECK_MODULES([REVENGE_STREAM],[
-    librevenge-stream-0.0
+AC_SUBST([REVENGE_GENERATORS_CFLAGS])
+AC_SUBST([REVENGE_GENERATORS_LIBS])
+
+AS_IF([test "x$need_stream" = "xyes"], [
+    PKG_CHECK_MODULES([REVENGE_STREAM],[
+        librevenge-stream-0.0
+    ])
 ])
+AC_SUBST([REVENGE_STREAM_CFLAGS])
+AC_SUBST([REVENGE_STREAM_LIBS])
 
 # =====================
 # Prepare all .in files
