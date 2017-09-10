@@ -81,6 +81,8 @@ std::shared_ptr<RVNGInputStream> QXPBlockParser::getChain(const uint32_t index)
     {
       seek(m_input, (next - 1) * m_blockLength);
       uint16_t count = isBig ? readU16(m_input, be) : 1;
+      if (count > m_lastBlock - next)
+        count = m_lastBlock - next;
       bool stop = false;
 
       // Cycle/overlap detection
