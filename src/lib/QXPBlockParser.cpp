@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <cassert>
 #include <memory>
+#include <set>
 #include <vector>
 #include <iterator>
 
@@ -74,15 +75,33 @@ std::shared_ptr<RVNGInputStream> QXPBlockParser::getChain(const uint32_t index)
   uint32_t next = index;
   try
   {
+    std::set<uint32_t> visited;
+
     while (next > 0 && next <= m_lastBlock)
     {
       seek(m_input, (next - 1) * m_blockLength);
-      const uint16_t count = isBig ? readU16(m_input, be) : 1;
+      uint16_t count = isBig ? readU16(m_input, be) : 1;
+      bool stop = false;
+
+      // Cycle/overlap detection
+      // If this is a big block, we read data up to the previously read
+      // block and only then stop.
+      for (uint32_t i = next - 1; i < next - 1 + count; ++i)
+      {
+        stop = !visited.insert(i).second;
+        if (stop)
+          count = uint16_t(i - next - 1);
+      }
+      if (count == 0)
+        break;
 
       uint32_t len = (next - 1 + count) * m_blockLength - (bigIdx ? 4 : 2) - m_input->tell();
       unsigned long bytes = 0;
       auto block = m_input->read(len, bytes);
       std::copy(block, block + bytes, std::back_inserter(chain));
+
+      if (stop)
+        break;
 
       const int32_t nextVal = bigIdx ? readS32(m_input, be) : readS16(m_input, be);
       isBig = nextVal < 0;
