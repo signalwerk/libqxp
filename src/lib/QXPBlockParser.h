@@ -34,7 +34,9 @@ private:
   const std::shared_ptr<QXPHeader> m_header;
   const bool be; // big endian
 
+  const unsigned long m_length;
   const uint32_t m_blockLength;
+  const uint32_t m_lastBlock;
 };
 
 }
