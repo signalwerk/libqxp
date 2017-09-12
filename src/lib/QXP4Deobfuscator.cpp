@@ -58,7 +58,7 @@ void QXP4Deobfuscator::nextRev()
 
 void QXP4Deobfuscator::nextShift(uint16_t count)
 {
-  m_seed = shift(m_seed, count);
+  m_seed = shift(m_seed, count & 0xf);
 }
 
 }
