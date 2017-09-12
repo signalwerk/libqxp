@@ -105,8 +105,7 @@ bool QXP33Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> 
   QXP33Deobfuscator deobfuscate(m_header->seed(), m_header->increment());
   QXPDummyCollector dummyCollector;
 
-  unsigned ind = 0;
-  while (ind < m_header->pagesCount() + m_header->masterPagesCount())
+  for (unsigned ind = 0; ind < m_header->pagesCount() + m_header->masterPagesCount(); ++ind)
   {
     // don't output master pages, everything is included in normal pages
     QXPCollector &coll = ind < m_header->masterPagesCount() ? dummyCollector : collector;
@@ -123,8 +122,6 @@ bool QXP33Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> 
 
     m_groupObjects.clear();
     coll.endPage();
-
-    ind++;
   }
 
   return true;
