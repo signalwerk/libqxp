@@ -687,16 +687,7 @@ void QXP33Parser::parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> 
   auto group = make_shared<Group>();
   group->boundingBox = header.boundingBox;
 
-  group->objectsIndexes.resize(count);
-  for (unsigned &ind : group->objectsIndexes)
-  {
-    ind = readU32(stream, be);
-    if (ind >= page.objectsCount)
-    {
-      QXP_DEBUG_MSG(("Invalid group element index %u\n", ind));
-      throw ParseError();
-    }
-  }
+  readGroupElements(stream, count, page.objectsCount, group->objectsIndexes);
 
   collector.collectGroup(group);
 }

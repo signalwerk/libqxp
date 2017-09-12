@@ -993,16 +993,7 @@ void QXP4Parser::parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> &
   }
   skip(stream, 10);
 
-  group->objectsIndexes.resize(count);
-  for (unsigned &ind : group->objectsIndexes)
-  {
-    ind = readU32(stream, be);
-    if (ind >= page.objectsCount)
-    {
-      QXP_DEBUG_MSG(("Invalid group element index %u\n", ind));
-      throw ParseError();
-    }
-  }
+  readGroupElements(stream, count, page.objectsCount, group->objectsIndexes);
 
   collector.collectGroup(group);
 }

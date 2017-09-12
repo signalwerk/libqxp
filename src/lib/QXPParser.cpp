@@ -556,6 +556,21 @@ TabStopType QXPParser::convertTabStopType(unsigned type)
   }
 }
 
+void QXPParser::readGroupElements(const std::shared_ptr<librevenge::RVNGInputStream> &stream, unsigned count, const unsigned objectsCount, std::vector<unsigned> &elements)
+{
+  elements.reserve(count);
+  for (unsigned i = 0; i < count; ++i)
+  {
+    const unsigned ind = readU32(stream, be);
+    if (ind >= objectsCount)
+    {
+      QXP_DEBUG_MSG(("Invalid group element index %u\n", ind));
+      continue;
+    }
+    elements.push_back(ind);
+  }
+}
+
 }
 
 /* vim:set shiftwidth=2 softtabstop=2 expandtab: */
