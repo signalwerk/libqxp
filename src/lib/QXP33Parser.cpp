@@ -116,10 +116,12 @@ bool QXP33Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> 
 
     for (unsigned i = 0; i < page.objectsCount; ++i)
     {
-      parseObject(stream, deobfuscate, coll, page);
+
+      parseObject(stream, deobfuscate, coll, page, i);
       deobfuscate.next();
     }
 
+    m_groupObjects.clear();
     coll.endPage();
 
     ind++;
@@ -251,7 +253,7 @@ Page QXP33Parser::parsePage(const std::shared_ptr<librevenge::RVNGInputStream> &
   return page;
 }
 
-void QXP33Parser::parseObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP33Deobfuscator &deobfuscate, QXPCollector &collector, const Page &page)
+void QXP33Parser::parseObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP33Deobfuscator &deobfuscate, QXPCollector &collector, const Page &page, const unsigned index)
 {
   const auto header = parseObjectHeader(stream, deobfuscate);
 
@@ -282,7 +284,7 @@ void QXP33Parser::parseObject(const std::shared_ptr<librevenge::RVNGInputStream>
     parseTextBox(stream, header, collector);
     break;
   case ContentType::OBJECTS:
-    parseGroup(stream, header, collector, page);
+    parseGroup(stream, header, collector, page, index);
     break;
   default:
     QXP_DEBUG_MSG(("Unsupported content\n"));
@@ -673,7 +675,7 @@ void QXP33Parser::parseEmptyBox(const std::shared_ptr<librevenge::RVNGInputStrea
   collector.collectBox(box);
 }
 
-void QXP33Parser::parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP33Parser::ObjectHeader &header, QXPCollector &collector, const Page &page)
+void QXP33Parser::parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP33Parser::ObjectHeader &header, QXPCollector &collector, const Page &page, const unsigned index)
 {
   skip(stream, 10);
   const unsigned count = readU16(stream, be);
@@ -687,7 +689,7 @@ void QXP33Parser::parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> 
   auto group = make_shared<Group>();
   group->boundingBox = header.boundingBox;
 
-  readGroupElements(stream, count, page.objectsCount, group->objectsIndexes);
+  readGroupElements(stream, count, page.objectsCount, index, group->objectsIndexes);
 
   collector.collectGroup(group);
 }

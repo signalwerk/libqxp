@@ -109,9 +109,10 @@ bool QXP4Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &
 
     for (unsigned i = 0; i < page.objectsCount; ++i)
     {
-      parseObject(stream, deobfuscate, coll, page);
+      parseObject(stream, deobfuscate, coll, page, i);
     }
 
+    m_groupObjects.clear();
     coll.endPage();
 
     ind++;
@@ -465,7 +466,7 @@ Page QXP4Parser::parsePage(const std::shared_ptr<librevenge::RVNGInputStream> &s
   return page;
 }
 
-void QXP4Parser::parseObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP4Deobfuscator &deobfuscate, QXPCollector &collector, const Page &page)
+void QXP4Parser::parseObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP4Deobfuscator &deobfuscate, QXPCollector &collector, const Page &page, const unsigned index)
 {
   const auto header = parseObjectHeader(stream, deobfuscate);
 
@@ -540,7 +541,7 @@ void QXP4Parser::parseObject(const std::shared_ptr<librevenge::RVNGInputStream> 
     }
     break;
   case ContentType::OBJECTS:
-    parseGroup(stream, header, collector, page);
+    parseGroup(stream, header, collector, page, index);
     break;
   default:
     QXP_DEBUG_MSG(("Unsupported content\n"));
@@ -975,7 +976,7 @@ void QXP4Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream>
   }
 }
 
-void QXP4Parser::parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &, QXPCollector &collector, const Page &page)
+void QXP4Parser::parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const QXP4Parser::ObjectHeader &, QXPCollector &collector, const Page &page, const unsigned index)
 {
   auto group = make_shared<Group>();
 
@@ -993,7 +994,7 @@ void QXP4Parser::parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> &
   }
   skip(stream, 10);
 
-  readGroupElements(stream, count, page.objectsCount, group->objectsIndexes);
+  readGroupElements(stream, count, page.objectsCount, index, group->objectsIndexes);
 
   collector.collectGroup(group);
 }

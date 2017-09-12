@@ -99,7 +99,7 @@ private:
 
   Page parsePage(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP4Deobfuscator &deobfuscate);
 
-  void parseObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP4Deobfuscator &deobfuscate, QXPCollector &collector, const Page &page);
+  void parseObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP4Deobfuscator &deobfuscate, QXPCollector &collector, const Page &page, unsigned index);
   ObjectHeader parseObjectHeader(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP4Deobfuscator &deobfuscate);
   void parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ObjectHeader &header, QXPCollector &collector);
   void parseBezierLine(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ObjectHeader &header, QXPCollector &collector);
@@ -111,7 +111,7 @@ private:
   void parseBezierText(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ObjectHeader &header, QXPCollector &collector);
   void parseBezierTextBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ObjectHeader &header, QXPCollector &collector);
   void parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ObjectHeader &header, QXPCollector &collector);
-  void parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ObjectHeader &header, QXPCollector &collector, const Page &page);
+  void parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ObjectHeader &header, QXPCollector &collector, const Page &page, unsigned index);
 
   Frame readFrame(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   bool readRunaround(const std::shared_ptr<librevenge::RVNGInputStream> &stream);

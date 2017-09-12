@@ -18,6 +18,7 @@
 #include <deque>
 #include <functional>
 #include <map>
+#include <set>
 #include <vector>
 
 namespace libqxp
@@ -53,6 +54,8 @@ protected:
   std::map<unsigned, LineStyle> m_lineStyles;
   std::vector<Arrow> m_arrows;
   std::deque<std::shared_ptr<HJ>> m_hjs;
+
+  std::set<unsigned> m_groupObjects;
 
   Color getColor(unsigned id, Color defaultColor = Color(0, 0, 0)) const;
   const LineStyle *getLineStyle(unsigned id) const;
@@ -93,7 +96,7 @@ protected:
   std::shared_ptr<ParagraphRule> readParagraphRule(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   uint8_t readParagraphFlags(const std::shared_ptr<librevenge::RVNGInputStream> &stream, bool &incrementalLeading, bool &ruleAbove, bool &ruleBelow);
   uint8_t readObjectFlags(const std::shared_ptr<librevenge::RVNGInputStream> &stream, bool &noColor);
-  void readGroupElements(const std::shared_ptr<librevenge::RVNGInputStream> &stream, unsigned count, unsigned objectsCount, std::vector<unsigned> &elements);
+  void readGroupElements(const std::shared_ptr<librevenge::RVNGInputStream> &stream, unsigned count, unsigned objectsCount, unsigned index, std::vector<unsigned> &elements);
   void setArrow(const unsigned index, Frame &frame) const;
   void skipFileInfo(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
 

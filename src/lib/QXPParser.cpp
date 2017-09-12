@@ -33,6 +33,7 @@ QXPParser::QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, 
   , m_lineStyles()
   , m_arrows()
   , m_hjs()
+  , m_groupObjects()
   , m_header(header)
 {
   // default colors, in case parsing fails
@@ -556,18 +557,19 @@ TabStopType QXPParser::convertTabStopType(unsigned type)
   }
 }
 
-void QXPParser::readGroupElements(const std::shared_ptr<librevenge::RVNGInputStream> &stream, unsigned count, const unsigned objectsCount, std::vector<unsigned> &elements)
+void QXPParser::readGroupElements(const std::shared_ptr<librevenge::RVNGInputStream> &stream, unsigned count, const unsigned objectsCount, const unsigned index, std::vector<unsigned> &elements)
 {
   elements.reserve(count);
   for (unsigned i = 0; i < count; ++i)
   {
     const unsigned ind = readU32(stream, be);
-    if (ind >= objectsCount)
+    if (ind >= objectsCount || ind == index)
     {
       QXP_DEBUG_MSG(("Invalid group element index %u\n", ind));
       continue;
     }
-    elements.push_back(ind);
+    if (m_groupObjects.insert(ind).second)
+      elements.push_back(ind);
   }
 }
 

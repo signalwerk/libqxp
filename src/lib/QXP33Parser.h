@@ -83,14 +83,14 @@ private:
 
   Page parsePage(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
 
-  void parseObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP33Deobfuscator &deobfuscate, QXPCollector &collector, const Page &page);
+  void parseObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP33Deobfuscator &deobfuscate, QXPCollector &collector, const Page &page, unsigned index);
   ObjectHeader parseObjectHeader(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXP33Deobfuscator &deobfuscate);
   void readObjectFlags(const std::shared_ptr<librevenge::RVNGInputStream> &stream, bool &noColor, bool &noRunaround);
   void parseLine(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ObjectHeader &header, QXPCollector &collector);
   void parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ObjectHeader &header, QXPCollector &collector);
   void parsePictureBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ObjectHeader &header, QXPCollector &collector);
   void parseEmptyBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ObjectHeader &header, QXPCollector &collector);
-  void parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ObjectHeader &header, QXPCollector &collector, const Page &page);
+  void parseGroup(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ObjectHeader &header, QXPCollector &collector, const Page &page, unsigned index);
 
   Frame readFrame(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   std::vector<Point> readPolygonData(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
