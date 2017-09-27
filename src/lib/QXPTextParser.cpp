@@ -41,10 +41,7 @@ void parseFormatSpec(
     if (formatIndex >= formats.size())
     {
       QXP_DEBUG_MSG(("Char format %u not found\n", formatIndex));
-      if (!formats.empty())
-      {
-        format = formats[0];
-      }
+      format = formats.empty() ? std::make_shared<Format>() : formats[0];
     }
     else
     {
