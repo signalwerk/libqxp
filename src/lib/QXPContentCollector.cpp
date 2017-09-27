@@ -37,17 +37,24 @@ void writeBorder(RVNGPropertyList &propList, const char *const name, const doubl
   border.sprintf("%fpt", width);
 
   border.append(" ");
-  if (lineStyle->isStripe)
+  if (lineStyle)
   {
-    border.append("double");
-  }
-  if (lineStyle->segmentLengths.size() == 2)
-  {
-    border.append("dotted");
-  }
-  if (lineStyle->segmentLengths.size() > 2)
-  {
-    border.append("dashed");
+    if (lineStyle->isStripe)
+    {
+      border.append("double");
+    }
+    if (lineStyle->segmentLengths.size() == 2)
+    {
+      border.append("dotted");
+    }
+    if (lineStyle->segmentLengths.size() > 2)
+    {
+      border.append("dashed");
+    }
+    else
+    {
+      border.append("solid");
+    }
   }
   else
   {
