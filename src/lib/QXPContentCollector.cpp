@@ -962,8 +962,10 @@ void QXPContentCollector::drawText(const std::shared_ptr<Text> &text, const Link
 
       librevenge::RVNGPropertyList spanPropList;
 
+      const double fontSize = std::max(charFormat.format->fontSize, 1.);
+
       spanPropList.insert("style:font-name", charFormat.format->fontName);
-      spanPropList.insert("fo:font-size", charFormat.format->fontSize, librevenge::RVNG_POINT);
+      spanPropList.insert("fo:font-size", fontSize, librevenge::RVNG_POINT);
       spanPropList.insert("fo:font-weight", charFormat.format->bold ? "bold" : "normal");
       spanPropList.insert("fo:font-style", charFormat.format->italic ? "italic" : "normal");
       if (charFormat.format->underline || charFormat.format->wordUnderline)
@@ -1002,7 +1004,7 @@ void QXPContentCollector::drawText(const std::shared_ptr<Text> &text, const Link
       else if (charFormat.format->superior)
       {
         // approximate "superior" positioning (char ascents are aligned with the cap height of the current font)
-        const double offset = (charFormat.format->fontSize * (1.0 - m_docProps.superiorVScale)) / charFormat.format->fontSize;
+        const double offset = (fontSize * (1.0 - m_docProps.superiorVScale)) / fontSize;
         writeTextPosition(spanPropList, offset + charFormat.format->baselineShift, m_docProps.superiorVScale);
         spanPropList.insert("style:text-scale", m_docProps.superiorHScale, librevenge::RVNG_PERCENT);
       }
