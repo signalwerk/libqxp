@@ -705,7 +705,7 @@ Frame QXP33Parser::readFrame(const std::shared_ptr<librevenge::RVNGInputStream> 
 std::vector<Point> QXP33Parser::readPolygonData(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
 {
   const unsigned length = readU32(stream, be);
-  if (length > getRemainingLength(stream))
+  if (length < 18 || length > getRemainingLength(stream))
   {
     QXP_DEBUG_MSG(("Invalid polygon data length %u\n", length));
     throw ParseError();
