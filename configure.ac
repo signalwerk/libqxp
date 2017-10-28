@@ -43,9 +43,7 @@ PKG_PROG_PKG_CONFIG([0.20])
 # ====================
 # Find additional apps
 # ====================
-PKG_CHECK_MODULES([REVENGE],[
-    librevenge-0.0
-])
+PKG_CHECK_MODULES([REVENGE],[librevenge-0.0])
 
 # ==================
 # Find boost headers
@@ -284,17 +282,13 @@ AM_CONDITIONAL([BUILD_FUZZERS], [test "x$enable_fuzzers" = "xyes"])
 AS_IF([test "x$enable_fuzzers" = "xyes"], [need_stream=yes; need_generators=yes])
 
 AS_IF([test "x$need_generators" = "xyes"], [
-    PKG_CHECK_MODULES([REVENGE_GENERATORS],[
-        librevenge-generators-0.0
-    ])
+    PKG_CHECK_MODULES([REVENGE_GENERATORS],[librevenge-generators-0.0])
 ])
 AC_SUBST([REVENGE_GENERATORS_CFLAGS])
 AC_SUBST([REVENGE_GENERATORS_LIBS])
 
 AS_IF([test "x$need_stream" = "xyes"], [
-    PKG_CHECK_MODULES([REVENGE_STREAM],[
-        librevenge-stream-0.0
-    ])
+    PKG_CHECK_MODULES([REVENGE_STREAM],[librevenge-stream-0.0])
 ])
 AC_SUBST([REVENGE_STREAM_CFLAGS])
 AC_SUBST([REVENGE_STREAM_LIBS])
