@@ -8,7 +8,7 @@ AC_PREREQ([2.65])
 # ====================
 m4_define([libqxp_version_major],[0])
 m4_define([libqxp_version_minor],[0])
-m4_define([libqxp_version_micro],[1])
+m4_define([libqxp_version_micro],[2])
 m4_define([libqxp_version],[libqxp_version_major.libqxp_version_minor.libqxp_version_micro])
 
 # =============
