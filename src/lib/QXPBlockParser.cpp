@@ -100,9 +100,10 @@ std::shared_ptr<RVNGInputStream> QXPBlockParser::getChain(const uint32_t index)
       uint32_t len = (next - 1 + count) * m_blockLength - (bigIdx ? 4 : 2) - m_input->tell();
       unsigned long bytes = 0;
       auto block = m_input->read(len, bytes);
-      std::copy(block, block + bytes, std::back_inserter(chain));
+      if (bool(block) && bytes > 0)
+        std::copy(block, block + bytes, std::back_inserter(chain));
 
-      if (stop)
+      if (stop || bytes < len) // A cycle was detected or we're at the end already
         break;
 
       const int32_t nextVal = bigIdx ? readS32(m_input, be) : readS16(m_input, be);
