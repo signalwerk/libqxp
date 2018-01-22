@@ -499,11 +499,15 @@ void QXPContentCollector::updateLinkedTexts()
     {
       if (textObj->linkSettings.nextLinkedIndex > 0 && !textObj->linkSettings.textLength)
       {
-        const auto textObjects = m_linkIndexedTextObjectsMap.at(textObj->linkSettings.linkId);
-        const auto nextTextObjectIt = textObjects.find(textObj->linkSettings.nextLinkedIndex);
-        if (nextTextObjectIt != textObjects.end())
+        const auto textObjectsIt = m_linkIndexedTextObjectsMap.find(textObj->linkSettings.linkId);
+        if (textObjectsIt != m_linkIndexedTextObjectsMap.end())
         {
-          textObj->linkSettings.textLength = nextTextObjectIt->second->linkSettings.offsetIntoText - textObj->linkSettings.offsetIntoText;
+          const auto &textObjects = textObjectsIt->second;
+          const auto nextTextObjectIt = textObjects.find(textObj->linkSettings.nextLinkedIndex);
+          if (nextTextObjectIt != textObjects.end())
+          {
+            textObj->linkSettings.textLength = nextTextObjectIt->second->linkSettings.offsetIntoText - textObj->linkSettings.offsetIntoText;
+          }
         }
       }
     }
