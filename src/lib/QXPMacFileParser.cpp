@@ -1007,7 +1007,7 @@ bool MWAWInputStream::unMacMIME(MWAWInputStream *inp,
       return false;
     }
 #ifdef DEBUG
-    static const char *(what[]) =
+    static const char *what[] =
     {
       "", "Data", "Rsrc", "FileName", "Comment", "IconBW", "IconColor", "",
       "FileDates", "FinderInfo", "MacInfo", "ProDosInfo",
