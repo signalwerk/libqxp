@@ -78,8 +78,10 @@ std::shared_ptr<Text> QXPTextParser::parseText(unsigned index,
     while (infoStream->tell() < end)
     {
       const unsigned blockIndex = readU32(infoStream, be);
-      const unsigned length = m_header->version() >= QXP_4 ? readU32(infoStream, be) : readU16(infoStream, be);
+      unsigned length = m_header->version() >= QXP_4 ? readU32(infoStream, be) : readU16(infoStream, be);
       auto blockStream = m_blockParser.getBlock(blockIndex);
+      if (length > getRemainingLength(blockStream))
+        length = getRemainingLength(blockStream);
       text->text += readString(blockStream, length);
     }
   }
