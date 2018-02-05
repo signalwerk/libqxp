@@ -84,9 +84,9 @@ private:
     {
       if (!m_isProcessed)
       {
+        m_isProcessed = true;
         m_handler(object, page);
       }
-      m_isProcessed = true;
     }
 
     unsigned zIndex() const override
