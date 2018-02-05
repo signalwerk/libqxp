@@ -291,6 +291,7 @@ QXPContentCollector::QXPContentCollector(librevenge::RVNGDrawingInterface *paint
   : m_painter(painter)
   , m_isDocumentStarted(false)
   , m_isCollectingFacingPage(false)
+  , m_currentObjectIndex(0)
   , m_unprocessedPages()
   , m_linkTextMap()
   , m_linkIndexedTextObjectsMap()
@@ -340,6 +341,7 @@ void QXPContentCollector::startPage(const Page &page)
     m_unprocessedPages.push_back(CollectedPage(page.pageSettings[1]));
   }
   m_isCollectingFacingPage = page.isFacing();
+  m_currentObjectIndex = 0;
 }
 
 void QXPContentCollector::endPage()
@@ -444,7 +446,7 @@ void QXPContentCollector::draw(bool force)
       unsigned i = 0;
       for (auto &obj : boost::adaptors::reverse(page.objects))
       {
-        obj->setZIndex(i);
+        obj.second->setZIndex(i);
         // we can't just increment by 1 because some objects may need to create several elements (such as box + text)
         // also we can't just have a counter instead of this field because groups may not be consecutive
         i += 100;
@@ -460,7 +462,7 @@ void QXPContentCollector::draw(bool force)
 
     for (auto &obj : page.objects)
     {
-      obj->draw(page);
+      obj.second->draw(page);
     }
 
     m_painter->endPage();
@@ -1048,12 +1050,13 @@ void QXPContentCollector::drawGroup(const std::shared_ptr<Group> &group, const Q
 
   for (const unsigned &ind : group->objectsIndexes)
   {
-    if (ind >= page.objects.size())
+    const auto it = page.objects.find(ind);
+    if (it == page.objects.end())
     {
       QXP_DEBUG_MSG(("Group element %u not found\n", ind));
       continue;
     }
-    const auto &obj = page.objects[ind];
+    const auto &obj = it->second;
 
     if (!groupOpened)
     {

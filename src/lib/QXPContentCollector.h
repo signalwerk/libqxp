@@ -13,6 +13,7 @@
 #include "QXPCollector.h"
 #include <vector>
 #include <unordered_map>
+#include <map>
 #include <memory>
 #include <functional>
 #include <type_traits>
@@ -108,7 +109,7 @@ private:
     const PageSettings settings;
     std::vector<std::shared_ptr<CollectedObject<Group>>> groups;
     std::vector<std::shared_ptr<TextObject>> linkedTextObjects;
-    std::vector<std::shared_ptr<CollectedObjectInterface>> objects;
+    std::map<unsigned, std::shared_ptr<CollectedObjectInterface>> objects;
 
     CollectedPage(const PageSettings &pageSettings)
       : settings(pageSettings), groups(), linkedTextObjects(), objects()
@@ -125,6 +126,7 @@ private:
 
   bool m_isDocumentStarted;
   bool m_isCollectingFacingPage;
+  unsigned m_currentObjectIndex;
 
   std::vector<CollectedPage> m_unprocessedPages;
 
@@ -139,7 +141,8 @@ private:
   std::shared_ptr<CollectedObject<T>> addObject(const std::shared_ptr<T> &obj, const ObjectHandlerMember<T, QXPContentCollector> &handler)
   {
     auto collectedObj = std::make_shared<CollectedObject<T>>(obj, std::bind(handler, this, std::placeholders::_1, std::placeholders::_2));
-    getInsertionPage(obj).objects.push_back(collectedObj);
+    getInsertionPage(obj).objects[m_currentObjectIndex] = collectedObj;
+    ++m_currentObjectIndex;
     return collectedObj;
   }
 
