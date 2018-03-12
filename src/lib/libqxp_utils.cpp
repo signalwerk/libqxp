@@ -389,10 +389,9 @@ double normalizeRadAngle(double radAngle)
 
 double normalizeDegAngle(double degAngle)
 {
-  while (degAngle < 0.0)
+  degAngle = std::fmod(degAngle, 360.0);
+  if (degAngle < 0.0)
     degAngle += 360.0;
-  while (degAngle > 360.0)
-    degAngle -= 360.0;
   return degAngle;
 }
 
