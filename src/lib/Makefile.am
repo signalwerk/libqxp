@@ -17,6 +17,10 @@ AM_CXXFLAGS = \
 	$(ICU_CFLAGS) \
 	$(DEBUG_CXXFLAGS)
 
+if HAVE_VISIBILITY
+AM_CXXFLAGS += -fvisibility=hidden -DLIBQXP_VISIBILITY
+endif
+
 libqxp_@QXP_MAJOR_VERSION@_@QXP_MINOR_VERSION@_la_LIBADD = \
 	libqxp_internal.la \
 	$(REVENGE_LIBS) \
