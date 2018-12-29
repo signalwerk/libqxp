@@ -36,6 +36,7 @@ AC_CANONICAL_HOST
 
 AX_CXX_COMPILE_STDCXX_11
 AX_GCC_FUNC_ATTRIBUTE([format])
+AX_GCC_FUNC_ATTRIBUTE([visibility])
 DLP_FALLTHROUGH
 
 PKG_PROG_PKG_CONFIG([0.20])
@@ -124,7 +125,6 @@ AS_IF([test "x$platform_win32" = "xyes"],
         AC_TRY_COMPILE([], [], [have_visibility=yes], [have_visibility=no])
         AC_MSG_RESULT([$have_visibility])
         CXXFLAGS="$saved_CXXFLAGS"
-        AX_GCC_FUNC_ATTRIBUTE([visibility])
     ]
 )
 AM_CONDITIONAL([HAVE_VISIBILITY], [
