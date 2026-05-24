@@ -67,13 +67,21 @@ const unsigned char *QXPMemoryStream::read(unsigned long numBytes, unsigned long
   if ((0 == numBytes) || (0 == m_length))
     return 0;
 
-  if ((static_cast<unsigned long>(m_pos) + numBytes) >= static_cast<unsigned long>(m_length))
-    numBytes = static_cast<unsigned long>(m_length - m_pos);
+  if (m_pos < 0)
+    return 0;
+
+  const unsigned long length = static_cast<unsigned long>(m_length);
+  const unsigned long pos = static_cast<unsigned long>(m_pos);
+  const unsigned long remaining = pos < length ? length - pos : 0;
+  const unsigned long numBytesToRead = numBytes < remaining ? numBytes : remaining;
+
+  if (numBytesToRead == 0)
+    return 0;
 
   const long oldPos = m_pos;
-  m_pos += numBytes;
+  m_pos += numBytesToRead;
 
-  numBytesRead = numBytes;
+  numBytesRead = numBytesToRead;
   return m_data.get() + oldPos;
 }
 catch (...)
