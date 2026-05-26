@@ -8,7 +8,7 @@ AC_PREREQ([2.65])
 # ====================
 m4_define([libqxp_version_major],[0])
 m4_define([libqxp_version_minor],[0])
-m4_define([libqxp_version_micro],[3])
+m4_define([libqxp_version_micro],[4])
 m4_define([libqxp_version],[libqxp_version_major.libqxp_version_minor.libqxp_version_micro])
 
 # =============
@@ -96,17 +96,17 @@ AS_CASE([$host],
     [*-*-mingw*], [
         native_win32=yes
         LIBQXP_WIN32_RESOURCE=libqxp-win32res.lo
-        QXP2RAW_WIN32_RESOURCE=qxp2raw-win32res.lo QXP2SVG_WIN32_RESOURCE=qxp2svg-win32res.lo 
+        QXP2RAW_WIN32_RESOURCE=qxp2raw-win32res.lo QXP2SVG_WIN32_RESOURCE=qxp2svg-win32res.lo
     ], [
         native_win32=no
         LIBQXP_WIN32_RESOURCE=
-        QXP2RAW_WIN32_RESOURCE= QXP2SVG_WIN32_RESOURCE= 
+        QXP2RAW_WIN32_RESOURCE= QXP2SVG_WIN32_RESOURCE=
     ]
 )
 AC_MSG_RESULT([$native_win32])
 AM_CONDITIONAL(OS_WIN32, [test "x$native_win32" = "xyes"])
 AC_SUBST([LIBQXP_WIN32_RESOURCE])
-AC_SUBST([QXP2RAW_WIN32_RESOURCE]) AC_SUBST([QXP2SVG_WIN32_RESOURCE]) 
+AC_SUBST([QXP2RAW_WIN32_RESOURCE]) AC_SUBST([QXP2SVG_WIN32_RESOURCE])
 
 AC_MSG_CHECKING([for Win32 platform in general])
 AS_CASE([$host],
