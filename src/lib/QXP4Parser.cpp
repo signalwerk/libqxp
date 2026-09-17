@@ -33,7 +33,12 @@ shared_ptr<T> createBox(const QXP4Parser::ObjectHeader &header)
   box->cornerType = header.cornerType;
   box->boxType = header.boxType;
   box->rotation = header.rotation;
+  box->skew = header.skew;
+  box->hflip = header.hflip;
+  box->vflip = header.vflip;
   box->fill = header.fillColor;
+  if (header.fillColor)
+    box->fillColorRef = header.colorRef;
   return box;
 }
 
@@ -67,13 +72,29 @@ bool QXP4Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStream
 
   skipRecord(docStream);
 
-  parseColors(docStream);
+  parseColors(docStream, collector);
 
-  // don't need stylesheets, everything is included in the current style
+  // stylesheets refer to H&Js, so they are parsed once H&Js are known
+  const long stylesheetsOffset = docStream->tell();
   skipParagraphStylesheets(docStream);
   skipRecord(docStream);
 
   parseHJs(docStream);
+
+  {
+    const long offset = docStream->tell();
+    try
+    {
+      seek(docStream, stylesheetsOffset);
+      parseParagraphStylesheets(docStream, collector);
+      parseCharacterStylesheets(docStream, collector);
+    }
+    catch (...)
+    {
+      QXP_DEBUG_MSG(("Failed to parse stylesheets\n"));
+    }
+    seek(docStream, offset);
+  }
 
   parseLineStyles(docStream);
 
@@ -99,10 +120,12 @@ bool QXP4Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &
 
   for (unsigned ind = 0; ind < m_header->pagesCount() + m_header->masterPagesCount(); ++ind)
   {
-    // don't output master pages, everything is included in normal pages
-    QXPCollector &coll = ind < m_header->masterPagesCount() ? dummyCollector : collector;
+    // master pages are output only on request, their items are included in normal pages
+    const bool isMaster = ind < m_header->masterPagesCount();
+    QXPCollector &coll = isMaster && !collector.collectsMasterPages() ? dummyCollector : collector;
 
     auto page = parsePage(stream, deobfuscate);
+    page.isMaster = isMaster;
     coll.startPage(page);
     deobfuscate.nextRev();
 
@@ -118,7 +141,7 @@ bool QXP4Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &
   return true;
 }
 
-void QXP4Parser::parseColors(const std::shared_ptr<librevenge::RVNGInputStream> &docStream)
+void QXP4Parser::parseColors(const std::shared_ptr<librevenge::RVNGInputStream> &docStream, QXPCollector &collector)
 {
   unsigned length = readU32(docStream, be);
   if (length > getRemainingLength(docStream))
@@ -151,7 +174,7 @@ void QXP4Parser::parseColors(const std::shared_ptr<librevenge::RVNGInputStream> 
       seek(stream, blocks[i].offset);
       if (readU16(stream, be) + readU16(stream, be) == 6) // 04 02
       {
-        parseColor(stream, blocks);
+        parseColor(stream, blocks, collector);
       }
     }
   }
@@ -170,13 +193,44 @@ QXP4Parser::ColorBlockSpec QXP4Parser::parseColorBlockSpec(const std::shared_ptr
   return spec;
 }
 
-void QXP4Parser::parseColor(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const std::vector<ColorBlockSpec> &blocks)
+void QXP4Parser::parseColor(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const std::vector<ColorBlockSpec> &blocks, QXPCollector &collector)
 {
-  skip(stream, 30);
-  unsigned id = readU16(stream, be);
+  const long start = stream->tell() - 4;
 
-  skip(stream, 70);
+  ColorSpec spec;
+
+  skip(stream, 8);
+  const unsigned nameBlockInd = readU16(stream, be);
+  skip(stream, 8);
+  spec.model = readString(stream, 4);
+
+  seek(stream, start + 34);
+  unsigned id = readU16(stream, be);
+  spec.id = id;
+
+  seek(stream, start + (be ? 48 : 46));
+  const unsigned flags = readU16(stream, be);
+  spec.registration = flags & 0x8;
+
+  seek(stream, start + 106);
   unsigned rgbBlockInd = readU16(stream, be);
+
+  if (nameBlockInd != 0 && nameBlockInd < blocks.size())
+  {
+    const unsigned nameStart = blocks[nameBlockInd].offset + 4;
+    const unsigned blockEnd = nameBlockInd + 1 < blocks.size() ? blocks[nameBlockInd + 1].offset : unsigned(getRemainingLength(stream) + stream->tell());
+    // the block is padded to 4 bytes; the padding is not necessarily zeroed
+    const unsigned nameEnd = blockEnd - blocks[nameBlockInd].padding;
+    if (nameEnd > nameStart && nameEnd <= blockEnd && nameEnd <= getRemainingLength(stream) + stream->tell())
+    {
+      seek(stream, nameStart);
+      std::string name = readString(stream, nameEnd - nameStart);
+      const auto nul = name.find('\0');
+      if (nul != std::string::npos)
+        name.erase(nul);
+      spec.name = toString(name);
+    }
+  }
 
   if (rgbBlockInd != 0)
   {
@@ -191,6 +245,10 @@ void QXP4Parser::parseColor(const std::shared_ptr<librevenge::RVNGInputStream> &
     color.green = readColorComp(stream);
     color.blue = readColorComp(stream);
     m_colors[id] = color;
+
+    spec.rgb = color;
+    if (!spec.name.empty())
+      collector.collectColor(spec);
   }
 }
 
@@ -224,11 +282,110 @@ void QXP4Parser::skipParagraphStylesheets(const std::shared_ptr<librevenge::RVNG
   }
 }
 
+void QXP4Parser::parseParagraphStylesheets(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXPCollector &collector)
+{
+  const unsigned length = readU32(stream, be);
+  if (length > getRemainingLength(stream))
+  {
+    QXP_DEBUG_MSG(("Invalid paragraph stylesheets length %u\n", length));
+    throw ParseError();
+  }
+  const long end = stream->tell() + length;
+
+  std::vector<ParagraphStyle> styles;
+  std::vector<unsigned> tabsCounts;
+  try
+  {
+    while (stream->tell() + 244 <= end)
+    {
+      const long start = stream->tell();
+      ParagraphStyle style;
+      style.name = toString(readPlatformString(stream, be));
+      seek(stream, start + 72);
+      style.nextIndex = readU32(stream, be);
+      seek(stream, start + 84);
+      style.charStyleIndex = readS16(stream, be);
+      seek(stream, start + 88);
+      style.paragraphFormat = parseParagraphFormat(stream);
+      style.paragraphFormat.styleIndex = 0;
+      style.paragraphFormat.tabStops.clear();
+      seek(stream, start + 90);
+      const unsigned tabsCount = readU16(stream, be);
+      seek(stream, start + 180);
+      style.charFormat = parseCharFormat(stream);
+      style.charFormat.styleIndex = 0;
+      seek(stream, start + 244);
+      styles.push_back(style);
+      tabsCounts.push_back(tabsCount);
+    }
+  }
+  catch (...)
+  {
+    QXP_DEBUG_MSG(("Failed to parse paragraph stylesheet, offset %ld\n", stream->tell()));
+  }
+
+  seek(stream, end);
+
+  // tab stops of stylesheets follow in separate records
+  for (size_t i = 0; i < tabsCounts.size(); ++i)
+  {
+    if (tabsCounts[i] == 0)
+      continue;
+    const unsigned tabsLength = readU32(stream, be);
+    if (tabsLength > getRemainingLength(stream))
+    {
+      QXP_DEBUG_MSG(("Invalid stylesheet tab stops length %u\n", tabsLength));
+      throw ParseError();
+    }
+    const long tabsEnd = stream->tell() + tabsLength;
+    while (stream->tell() + 8 <= tabsEnd)
+      styles[i].paragraphFormat.tabStops.push_back(parseTabStop(stream));
+    seek(stream, tabsEnd);
+  }
+
+  for (const auto &style : styles)
+    collector.collectParagraphStyle(style);
+}
+
+void QXP4Parser::parseCharacterStylesheets(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXPCollector &collector)
+{
+  const unsigned length = readU32(stream, be);
+  if (length > getRemainingLength(stream))
+  {
+    QXP_DEBUG_MSG(("Invalid character stylesheets length %u\n", length));
+    throw ParseError();
+  }
+  const long end = stream->tell() + length;
+
+  try
+  {
+    while (stream->tell() + 140 <= end)
+    {
+      const long start = stream->tell();
+      CharacterStyle style;
+      style.name = toString(readPlatformString(stream, be));
+      seek(stream, start + 76);
+      style.format = parseCharFormat(stream);
+      style.format.styleIndex = 0;
+      seek(stream, start + 140);
+      collector.collectCharacterStyle(style);
+    }
+  }
+  catch (...)
+  {
+    QXP_DEBUG_MSG(("Failed to parse character stylesheet, offset %ld\n", stream->tell()));
+  }
+
+  seek(stream, end);
+}
+
 CharFormat QXP4Parser::parseCharFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
 {
-  skip(stream, 8);
+  skip(stream, 4);
 
   CharFormat result;
+  result.styleIndex = readS16(stream, be);
+  skip(stream, 2);
   parseCommonCharFormatProps(stream, result);
 
   skip(stream, 4);
@@ -239,6 +396,7 @@ CharFormat QXP4Parser::parseCharFormat(const std::shared_ptr<librevenge::RVNGInp
 
   const double shade = readFraction(stream, be);
   result.color = getColor(colorId).applyShade(shade);
+  result.colorRef = ColorRef(colorId, shade);
 
   skip(stream, 8);
   result.baselineShift = readFraction(stream, be);
@@ -396,7 +554,9 @@ ParagraphFormat QXP4Parser::parseParagraphFormat(const std::shared_ptr<libreveng
 {
   ParagraphFormat result;
 
-  skip(stream, 8);
+  skip(stream, 4);
+  result.styleIndex = readU16(stream, be);
+  skip(stream, 2);
 
   bool hasRuleAbove, hasRuleBelow;
   readParagraphFlags(stream, result.incrementalLeading, hasRuleAbove, hasRuleBelow);
@@ -459,6 +619,7 @@ Page QXP4Parser::parsePage(const std::shared_ptr<librevenge::RVNGInputStream> &s
 {
   Page page;
   page.pageSettings = parsePageSettings(stream);
+  page.name = m_pageName;
   page.objectsCount = deobfuscate(uint16_t(readU32(stream, be) & 0xffff));
   return page;
 }
@@ -560,6 +721,7 @@ QXP4Parser::ObjectHeader QXP4Parser::parseObjectHeader(const std::shared_ptr<lib
   const unsigned colorId = readU16(stream, be);
   const double shade = readFraction(stream, be);
   result.color = getColor(colorId).applyShade(shade);
+  result.colorRef = ColorRef(colorId, shade);
   if (!noColor)
   {
     result.fillColor = result.color;
@@ -704,7 +866,7 @@ void QXP4Parser::parseBezierEmptyBox(const std::shared_ptr<librevenge::RVNGInput
 
   if (header.gradientId != 0)
   {
-    box->fill = readGradient(stream, header.color);
+    box->fill = readGradient(stream, header.color, header.colorRef);
   }
 
   readBezierData(stream, box->curveComponents, box->boundingBox);
@@ -729,7 +891,7 @@ void QXP4Parser::parseEmptyBox(const std::shared_ptr<librevenge::RVNGInputStream
 
   if (header.gradientId != 0)
   {
-    box->fill = readGradient(stream, header.color);
+    box->fill = readGradient(stream, header.color, header.colorRef);
   }
 
   collector.collectBox(box);
@@ -748,16 +910,17 @@ void QXP4Parser::parseBezierPictureBox(const std::shared_ptr<librevenge::RVNGInp
 
   if (header.gradientId != 0)
   {
-    box->fill = readGradient(stream, header.color);
+    box->fill = readGradient(stream, header.color, header.colorRef);
   }
 
   readPictureSettings(stream, box);
 
   skip(stream, 76);
 
+  box->hasPicture = header.contentIndex != 0;
   if (header.contentIndex != 0 && header.oleId == 0)
   {
-    readImageData(stream);
+    readImageData(stream, *box);
   }
 
   readBezierData(stream, box->curveComponents, box->boundingBox);
@@ -784,16 +947,17 @@ void QXP4Parser::parsePictureBox(const std::shared_ptr<librevenge::RVNGInputStre
 
   if (header.gradientId != 0)
   {
-    picturebox->fill = readGradient(stream, header.color);
+    picturebox->fill = readGradient(stream, header.color, header.colorRef);
   }
 
   readPictureSettings(stream, picturebox);
 
   skip(stream, 76);
 
+  picturebox->hasPicture = header.contentIndex != 0;
   if (header.contentIndex != 0 && header.oleId == 0)
   {
-    readImageData(stream);
+    readImageData(stream, *picturebox);
   }
 
   collector.collectBox(picturebox);
@@ -893,7 +1057,7 @@ void QXP4Parser::parseBezierTextBox(const std::shared_ptr<librevenge::RVNGInputS
 
   if (header.gradientId != 0)
   {
-    textbox->fill = readGradient(stream, header.color);
+    textbox->fill = readGradient(stream, header.color, header.colorRef);
   }
 
   textbox->linkSettings.offsetIntoText = readU32(stream, be);
@@ -943,7 +1107,7 @@ void QXP4Parser::parseTextBox(const std::shared_ptr<librevenge::RVNGInputStream>
 
   if (header.gradientId != 0)
   {
-    textbox->fill = readGradient(stream, header.color);
+    textbox->fill = readGradient(stream, header.color, header.colorRef);
   }
 
   textbox->linkSettings.offsetIntoText = readU32(stream, be);
@@ -1003,9 +1167,11 @@ Frame QXP4Parser::readFrame(const std::shared_ptr<librevenge::RVNGInputStream> &
   const double shade = readFraction(stream, be);
   const unsigned colorId = readU16(stream, be);
   frame.color = getColor(colorId).applyShade(shade);
+  frame.colorRef = ColorRef(colorId, shade);
   const unsigned gapColorId = readU16(stream, be);
   const double gapShade = readFraction(stream, be);
   frame.gapColor = getColor(gapColorId).applyShade(gapShade);
+  frame.gapColorRef = ColorRef(gapColorId, gapShade);
 
   const uint8_t arrowType = readU8(stream);
   setArrow((arrowType >> 2) & 0xf, frame);
@@ -1106,9 +1272,26 @@ void QXP4Parser::readPictureSettings(const std::shared_ptr<librevenge::RVNGInput
   picturebox->scaleVert = readFraction(stream, be);
 }
 
-void QXP4Parser::readImageData(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+void QXP4Parser::readImageData(const std::shared_ptr<librevenge::RVNGInputStream> &stream, PictureBox &picturebox)
 {
   const unsigned length = readU32(stream, be);
+  const long start = stream->tell();
+  if (length >= 40 && length <= getRemainingLength(stream))
+  {
+    try
+    {
+      picturebox.fileType = readString(stream, 4);
+      seek(stream, start + 38);
+      const auto path = readPlatformString(stream, be);
+      if (stream->tell() <= start + long(length))
+        picturebox.filePath = toString(path);
+    }
+    catch (...)
+    {
+      QXP_DEBUG_MSG(("Failed to parse image data, offset %ld\n", stream->tell()));
+    }
+    seek(stream, start);
+  }
   skip(stream, length);
 }
 

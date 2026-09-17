@@ -96,17 +96,17 @@ AS_CASE([$host],
     [*-*-mingw*], [
         native_win32=yes
         LIBQXP_WIN32_RESOURCE=libqxp-win32res.lo
-        QXP2RAW_WIN32_RESOURCE=qxp2raw-win32res.lo QXP2SVG_WIN32_RESOURCE=qxp2svg-win32res.lo
+        QXP2OPENLAYOUT_WIN32_RESOURCE=qxp2openlayout-win32res.lo QXP2RAW_WIN32_RESOURCE=qxp2raw-win32res.lo QXP2SVG_WIN32_RESOURCE=qxp2svg-win32res.lo
     ], [
         native_win32=no
         LIBQXP_WIN32_RESOURCE=
-        QXP2RAW_WIN32_RESOURCE= QXP2SVG_WIN32_RESOURCE=
+        QXP2OPENLAYOUT_WIN32_RESOURCE= QXP2RAW_WIN32_RESOURCE= QXP2SVG_WIN32_RESOURCE=
     ]
 )
 AC_MSG_RESULT([$native_win32])
 AM_CONDITIONAL(OS_WIN32, [test "x$native_win32" = "xyes"])
 AC_SUBST([LIBQXP_WIN32_RESOURCE])
-AC_SUBST([QXP2RAW_WIN32_RESOURCE]) AC_SUBST([QXP2SVG_WIN32_RESOURCE])
+AC_SUBST([QXP2OPENLAYOUT_WIN32_RESOURCE]) AC_SUBST([QXP2RAW_WIN32_RESOURCE]) AC_SUBST([QXP2SVG_WIN32_RESOURCE])
 
 AC_MSG_CHECKING([for Win32 platform in general])
 AS_CASE([$host],
@@ -301,6 +301,8 @@ src/conv/Makefile
 src/fuzz/Makefile
 src/lib/Makefile
 src/lib/libqxp.rc
+src/conv/openlayout/Makefile
+src/conv/openlayout/qxp2openlayout.rc
 src/conv/raw/Makefile
 src/conv/raw/qxp2raw.rc
 src/conv/svg/Makefile

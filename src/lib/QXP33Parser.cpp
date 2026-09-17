@@ -33,9 +33,14 @@ shared_ptr<T> createBox(const QXP33Parser::ObjectHeader &header)
   box->runaround = header.runaround;
   box->boxType = header.boxType;
   box->fill = header.fill;
+  if (header.fill && boost::get<Color>(header.fill.get_ptr()))
+    box->fillColorRef = header.colorRef;
   box->cornerType = header.cornerType;
   box->cornerRadius = header.cornerRadius;
   box->rotation = header.rotation;
+  box->skew = header.skew;
+  box->hflip = header.hflip;
+  box->vflip = header.vflip;
   return box;
 }
 
@@ -51,6 +56,7 @@ shared_ptr<T> createLine(const QXP33Parser::ObjectHeader &header)
     if (auto color = boost::get<Color>(fill))
     {
       line->style.color = *color;
+      line->style.colorRef = header.colorRef;
     }
     else
     {
@@ -82,12 +88,29 @@ bool QXP33Parser::parseDocument(const std::shared_ptr<librevenge::RVNGInputStrea
   if (m_header->version() == QXP_33)
     skipRecord(docStream);
 
-  parseColors(docStream);
+  parseColors(docStream, collector);
 
   skipRecord(docStream);
-  skipRecord(docStream); // don't need stylesheets, everything is included in the current style
+  // stylesheets refer to H&Js, so they are parsed once H&Js are known
+  const long stylesheetsOffset = docStream->tell();
+  skipRecord(docStream);
 
   parseHJs(docStream);
+
+  if (m_header->version() == QXP_33)
+  {
+    const long offset = docStream->tell();
+    try
+    {
+      seek(docStream, stylesheetsOffset);
+      parseStylesheets(docStream, collector);
+    }
+    catch (...)
+    {
+      QXP_DEBUG_MSG(("Failed to parse stylesheets\n"));
+    }
+    seek(docStream, offset);
+  }
 
   skipRecord(docStream);
 
@@ -107,10 +130,12 @@ bool QXP33Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> 
 
   for (unsigned ind = 0; ind < m_header->pagesCount() + m_header->masterPagesCount(); ++ind)
   {
-    // don't output master pages, everything is included in normal pages
-    QXPCollector &coll = ind < m_header->masterPagesCount() ? dummyCollector : collector;
+    // master pages are output only on request, their items are included in normal pages
+    const bool isMaster = ind < m_header->masterPagesCount();
+    QXPCollector &coll = isMaster && !collector.collectsMasterPages() ? dummyCollector : collector;
 
     auto page = parsePage(stream);
+    page.isMaster = isMaster;
     coll.startPage(page);
 
     for (unsigned i = 0; i < page.objectsCount; ++i)
@@ -127,7 +152,7 @@ bool QXP33Parser::parsePages(const std::shared_ptr<librevenge::RVNGInputStream> 
   return true;
 }
 
-void QXP33Parser::parseColors(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
+void QXP33Parser::parseColors(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXPCollector &collector)
 {
   const unsigned end = readRecordEndOffset(stream);
 
@@ -145,13 +170,56 @@ void QXP33Parser::parseColors(const std::shared_ptr<librevenge::RVNGInputStream>
       color.green = readColorComp(stream);
       color.blue = readColorComp(stream);
       m_colors[id] = color;
-      skip(stream, 42);
-      readName(stream); // skip
+
+      ColorSpec spec;
+      spec.id = id;
+      spec.rgb = color;
+      std::vector<double> cmyk(4);
+      for (auto &comp : cmyk)
+        comp = readU16(stream, be) / 65535.0;
+      spec.cmyk = cmyk;
+      skip(stream, 22);
+      spec.spot = readU8(stream) == 0;
+      spec.registration = readU8(stream) != 0;
+      skip(stream, 10);
+      spec.name = toString(readName(stream));
+      if (spec.registration)
+        spec.spot = boost::none;
+      collector.collectColor(spec);
     }
   }
   catch (...)
   {
     QXP_DEBUG_MSG(("Failed to parse colors, offset %ld\n", stream->tell()));
+  }
+
+  seek(stream, end);
+}
+
+void QXP33Parser::parseStylesheets(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXPCollector &collector)
+{
+  const unsigned end = readRecordEndOffset(stream);
+
+  try
+  {
+    while (stream->tell() + 306 < end)
+    {
+      const long start = stream->tell();
+      ParagraphStyle style;
+      style.charFormat = parseCharFormat(stream);
+      seek(stream, start + 38);
+      style.paragraphFormat = parseParagraphFormat(stream);
+      style.paragraphFormat.styleIndex = 0;
+      skip(stream, 4);
+      style.nextIndex = readU16(stream, be);
+      skip(stream, 6);
+      style.name = toString(readName(stream));
+      collector.collectParagraphStyle(style);
+    }
+  }
+  catch (...)
+  {
+    QXP_DEBUG_MSG(("Failed to parse stylesheets, offset %ld\n", stream->tell()));
   }
 
   seek(stream, end);
@@ -172,6 +240,7 @@ CharFormat QXP33Parser::parseCharFormat(const std::shared_ptr<librevenge::RVNGIn
 
   const double shade = readFraction(stream, be);
   result.color = getColor(colorId).applyShade(shade);
+  result.colorRef = ColorRef(colorId, shade);
 
   skip(stream, 8);
   result.baselineShift = readFraction(stream, be);
@@ -226,7 +295,8 @@ ParagraphFormat QXP33Parser::parseParagraphFormat(const std::shared_ptr<libreven
     }
   }
 
-  skip(stream, 6);
+  result.styleIndex = readU8(stream);
+  skip(stream, 5);
 
   return result;
 }
@@ -246,6 +316,7 @@ Page QXP33Parser::parsePage(const std::shared_ptr<librevenge::RVNGInputStream> &
 {
   Page page;
   page.pageSettings = parsePageSettings(stream);
+  page.name = m_pageName;
   page.objectsCount = readU32(stream, be);
   return page;
 }
@@ -339,6 +410,7 @@ QXP33Parser::ObjectHeader QXP33Parser::parseObjectHeader(const std::shared_ptr<l
   const unsigned colorId = readU8(stream);
   const double shade = readFraction(stream, be);
   const auto color = getColor(colorId).applyShade(shade);
+  result.colorRef = ColorRef(colorId, shade);
 
   result.contentIndex = deobfuscate(uint16_t(readU32(stream, be) & 0xffff));
 
@@ -461,7 +533,7 @@ QXP33Parser::ObjectHeader QXP33Parser::parseObjectHeader(const std::shared_ptr<l
 
   if (result.gradientId != 0)
   {
-    result.fill = readGradient(stream, color);
+    result.fill = readGradient(stream, color, result.colorRef);
   }
 
   result.boundingBox = readObjectBBox(stream);
@@ -619,6 +691,7 @@ void QXP33Parser::parsePictureBox(const std::shared_ptr<librevenge::RVNGInputStr
 
   auto picturebox = createBox<PictureBox>(header);
   picturebox->frame = frame;
+  picturebox->hasPicture = header.contentIndex != 0;
 
   picturebox->pictureRotation = readFraction(stream, be);
   picturebox->pictureSkew = readFraction(stream, be);
@@ -698,6 +771,7 @@ Frame QXP33Parser::readFrame(const std::shared_ptr<librevenge::RVNGInputStream> 
   const double shade = readFraction(stream, be);
   const unsigned colorId = readU8(stream);
   frame.color = getColor(colorId).applyShade(shade);
+  frame.colorRef = ColorRef(colorId, shade);
   skip(stream, 1);
   return frame;
 }

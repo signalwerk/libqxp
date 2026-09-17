@@ -40,6 +40,7 @@ public:
   struct ObjectHeader
   {
     boost::optional<Fill> fill;
+    ColorRef colorRef;
 
     bool runaround;
 
@@ -63,7 +64,7 @@ public:
     BoxType boxType;
 
     ObjectHeader()
-      : fill(), runaround(false), contentIndex(0), linkId(0), gradientId(0),
+      : fill(), colorRef(), runaround(false), contentIndex(0), linkId(0), gradientId(0),
         rotation(0), skew(0), hflip(false), vflip(false), cornerType(CornerType::DEFAULT),
         cornerRadius(0), contentType(ContentType::UNKNOWN), shapeType(ShapeType::UNKNOWN), boundingBox(),
         boxType(BoxType::UNKNOWN)
@@ -76,7 +77,8 @@ private:
   bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream, QXPCollector &collector) override;
   bool parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &pagesStream, QXPCollector &collector) override;
 
-  void parseColors(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
+  void parseColors(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXPCollector &collector);
+  void parseStylesheets(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXPCollector &collector);
   CharFormat parseCharFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) override;
   ParagraphFormat parseParagraphFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) override;
   std::shared_ptr<HJ> parseHJ(const std::shared_ptr<librevenge::RVNGInputStream> &stream) override;

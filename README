@@ -3,4 +3,13 @@ QuarkXPress file format. It supports versions 3.1-4.1 currently.
 
 libqxp requires boost, icu and librevenge to build.
 
+Conversion tools:
+
+- qxp2svg, qxp2text, qxp2raw: convert through librevenge.
+- qxp2openlayout: converts a document to OpenLayout JSON
+  (https://github.com/signalwerk/spec.OpenLayout), keeping its structure:
+  master pages, paragraph and character stylesheets, the color list and
+  linked text chains. Data the OpenLayout spec doesn't cover yet is written
+  with the "qxp:" namespace prefix. Run "qxp2openlayout --help" for options.
+
 The library is available under MPL 2.0+.

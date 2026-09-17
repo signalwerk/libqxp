@@ -34,6 +34,7 @@ QXPParser::QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, 
   , m_arrows()
   , m_hjs()
   , m_groupObjects()
+  , m_pageName()
   , m_header(header)
 {
   // default colors, in case parsing fails
@@ -65,7 +66,11 @@ QXPParser::QXPParser(const std::shared_ptr<librevenge::RVNGInputStream> &input, 
 bool QXPParser::parse()
 {
   QXPContentCollector collector(m_painter);
+  return parse(collector);
+}
 
+bool QXPParser::parse(QXPCollector &collector)
+{
   collector.startDocument();
 
   auto docStream = m_blockParser.getChain(3);
@@ -111,6 +116,14 @@ std::string QXPParser::getFont(int id, std::string defaultFont) const
     return defaultFont;
   }
   return (*it).second;
+}
+
+librevenge::RVNGString QXPParser::toString(const std::string &str) const
+{
+  librevenge::RVNGString result;
+  if (!str.empty())
+    appendCharacters(result, str.c_str(), str.size(), m_header->encoding());
+  return result;
 }
 
 void QXPParser::skipRecord(const std::shared_ptr<librevenge::RVNGInputStream> &stream)
@@ -189,7 +202,7 @@ void QXPParser::parseHJProps(const std::shared_ptr<librevenge::RVNGInputStream> 
 void QXPParser::parseCommonCharFormatProps(const std::shared_ptr<librevenge::RVNGInputStream> &stream, CharFormat &result)
 {
   const int fontIndex = readS16(stream, be);
-  result.fontName = getFont(fontIndex).c_str();
+  result.fontName = toString(getFont(fontIndex));
 
   const unsigned flags = readU16(stream, be);
   convertCharFormatFlags(flags, result);
@@ -280,8 +293,18 @@ std::vector<PageSettings> QXPParser::parsePageSettings(const std::shared_ptr<lib
     page.offset.left = readFraction(stream, be);
     page.offset.bottom = readFraction(stream, be);
     page.offset.right = readFraction(stream, be);
-    skip(stream, 36);
-    skip(stream, m_header->version() >= QXP_4 ? 12 : 8);
+    skip(stream, 8);
+    const unsigned masterIndex = readU16(stream, be);
+    page.masterIndex = masterIndex == 0xffff ? 0 : masterIndex;
+    skip(stream, 10);
+    page.margins.top = readFraction(stream, be);
+    page.margins.left = readFraction(stream, be);
+    page.margins.bottom = readFraction(stream, be);
+    page.margins.right = readFraction(stream, be);
+    page.columnsCount = readU16(stream, be);
+    skip(stream, 2);
+    page.gutterWidth = readFraction(stream, be);
+    skip(stream, m_header->version() >= QXP_4 ? 4 : 0);
   }
 
   for (unsigned i = 0; i <= count; ++i)
@@ -295,7 +318,19 @@ std::vector<PageSettings> QXPParser::parsePageSettings(const std::shared_ptr<lib
     skip(stream, 4);
   }
   const unsigned nameLength = readU32(stream, be);
-  skip(stream, nameLength);
+  if (nameLength > 0 && nameLength <= 256 && nameLength <= getRemainingLength(stream))
+  {
+    std::string name = readString(stream, nameLength);
+    const auto nul = name.find('\0');
+    if (nul != std::string::npos)
+      name.erase(nul);
+    m_pageName = toString(name);
+  }
+  else
+  {
+    m_pageName.clear();
+    skip(stream, nameLength);
+  }
 
   return pages;
 }
@@ -336,10 +371,11 @@ Rect QXPParser::readObjectBBox(const std::shared_ptr<librevenge::RVNGInputStream
   return bbox;
 }
 
-Gradient QXPParser::readGradient(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const Color &color1)
+Gradient QXPParser::readGradient(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const Color &color1, const boost::optional<ColorRef> &color1Ref)
 {
   Gradient gradient;
   gradient.color1 = color1;
+  gradient.color1Ref = color1Ref;
 
   skip(stream, m_header->version() >= QXP_4 ? 20 : 14);
 
@@ -382,6 +418,7 @@ Gradient QXPParser::readGradient(const std::shared_ptr<librevenge::RVNGInputStre
   }
   const double shade = readFraction(stream, be);
   gradient.color2 = getColor(colorId).applyShade(shade);
+  gradient.color2Ref = ColorRef(colorId, shade);
 
   gradient.angle = readFraction(stream, be);
   skip(stream, 4);
@@ -449,6 +486,7 @@ std::shared_ptr<ParagraphRule> QXPParser::readParagraphRule(const std::shared_pt
   const unsigned colorId = m_header->version() >= QXP_4 ? readU16(stream, be) : readU8(stream);
   const double shade = readFraction(stream, be);
   rule->color = getColor(colorId).applyShade(shade);
+  rule->colorRef = ColorRef(colorId, shade);
 
   rule->leftMargin = readFraction(stream, be);
   rule->rightMargin = readFraction(stream, be);

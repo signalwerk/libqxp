@@ -16,9 +16,12 @@ namespace libqxp
 {
 
 struct Box;
+struct CharacterStyle;
+struct ColorSpec;
 struct Group;
 struct Line;
 struct Page;
+struct ParagraphStyle;
 struct QXPDocumentProperties;
 struct Text;
 struct TextBox;
@@ -41,6 +44,17 @@ public:
   virtual void endPage() { }
 
   virtual void collectDocumentProperties(const QXPDocumentProperties &) { }
+
+  /** Whether master pages should be passed to this collector (see Page::isMaster).
+    */
+  virtual bool collectsMasterPages() const
+  {
+    return false;
+  }
+
+  virtual void collectColor(const ColorSpec &) { }
+  virtual void collectParagraphStyle(const ParagraphStyle &) { }
+  virtual void collectCharacterStyle(const CharacterStyle &) { }
 
   virtual void collectLine(const std::shared_ptr<Line> &) { }
   virtual void collectBox(const std::shared_ptr<Box> &) { }

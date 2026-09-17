@@ -84,6 +84,39 @@ struct Color
   Color applyShade(double shade) const;
 };
 
+/** Reference to a color of the document color list, with shade (tint) applied.
+  */
+struct ColorRef
+{
+  unsigned id;
+  double shade;
+
+  ColorRef()
+    : id(0), shade(1.0)
+  { }
+
+  ColorRef(unsigned colorId, double colorShade)
+    : id(colorId), shade(colorShade)
+  { }
+};
+
+/** Swatch as defined in the document color list.
+  */
+struct ColorSpec
+{
+  unsigned id;
+  librevenge::RVNGString name;
+  Color rgb;
+  boost::optional<std::vector<double>> cmyk; // 0..1 per component
+  std::string model; // e.g. QCMK, QRGB, PnHx (4.x only)
+  boost::optional<bool> spot;
+  bool registration;
+
+  ColorSpec()
+    : id(0), name(), rgb(), cmyk(), model(), spot(), registration(false)
+  { }
+};
+
 enum class GradientType
 {
   LINEAR,
@@ -99,10 +132,12 @@ struct Gradient
   GradientType type;
   Color color1;
   Color color2;
+  boost::optional<ColorRef> color1Ref;
+  boost::optional<ColorRef> color2Ref;
   double angle;
 
   Gradient()
-    : type(), color1(), color2(), angle(0.0)
+    : type(), color1(), color2(), color1Ref(), color2Ref(), angle(0.0)
   { }
 };
 
@@ -147,6 +182,8 @@ struct CharFormat
   double fontSize;
   double baselineShift;
   Color color;
+  boost::optional<ColorRef> colorRef;
+  int styleIndex; // 1-based index of character stylesheet, <= 0 if none
   bool bold;
   bool italic;
   bool underline;
@@ -163,7 +200,7 @@ struct CharFormat
   bool isControlChars;
 
   CharFormat()
-    : fontName("Arial"), fontSize(12.0), baselineShift(0.0), color(0, 0, 0),
+    : fontName("Arial"), fontSize(12.0), baselineShift(0.0), color(0, 0, 0), colorRef(), styleIndex(0),
       bold(false), italic(false), underline(false), outline(false), shadow(false), superscript(false), subscript(false), superior(false),
       strike(false), allCaps(false), smallCaps(false), wordUnderline(false),
       isControlChars(false)
@@ -234,13 +271,14 @@ struct ParagraphRule
 {
   double width;
   Color color;
+  boost::optional<ColorRef> colorRef;
   const LineStyle *lineStyle;
   double leftMargin;
   double rightMargin;
   double offset;
 
   ParagraphRule()
-    : width(1.0), color(0, 0, 0), lineStyle(nullptr), leftMargin(0), rightMargin(0), offset(0)
+    : width(1.0), color(0, 0, 0), colorRef(), lineStyle(nullptr), leftMargin(0), rightMargin(0), offset(0)
   {  }
 };
 
@@ -255,11 +293,35 @@ struct ParagraphFormat
   std::shared_ptr<ParagraphRule> ruleBelow;
   std::vector<TabStop> tabStops;
   std::shared_ptr<HJ> hj;
+  int styleIndex; // 1-based index of paragraph stylesheet, <= 0 if none
 
   ParagraphFormat()
     : alignment(HorizontalAlignment::LEFT), margin(), firstLineIndent(0), leading(0), incrementalLeading(false),
-      ruleAbove(nullptr), ruleBelow(nullptr), tabStops(), hj(nullptr)
+      ruleAbove(nullptr), ruleBelow(nullptr), tabStops(), hj(nullptr), styleIndex(0)
   {  }
+};
+
+struct ParagraphStyle
+{
+  librevenge::RVNGString name;
+  unsigned nextIndex; // 1-based, 0 if unknown
+  int charStyleIndex; // 1-based index of character stylesheet, <= 0 if the style has own char attributes
+  ParagraphFormat paragraphFormat;
+  CharFormat charFormat;
+
+  ParagraphStyle()
+    : name(), nextIndex(0), charStyleIndex(0), paragraphFormat(), charFormat()
+  { }
+};
+
+struct CharacterStyle
+{
+  librevenge::RVNGString name;
+  CharFormat format;
+
+  CharacterStyle()
+    : name(), format()
+  { }
 };
 
 enum class ContentType
@@ -346,12 +408,14 @@ struct Frame
   double width;
   boost::optional<Color> color;
   boost::optional<Color> gapColor;
+  boost::optional<ColorRef> colorRef;
+  boost::optional<ColorRef> gapColorRef;
   const LineStyle *lineStyle;
   const Arrow *startArrow;
   const Arrow *endArrow;
 
   Frame()
-    : width(1.0), color(), gapColor(), lineStyle(nullptr), startArrow(nullptr), endArrow(nullptr)
+    : width(1.0), color(), gapColor(), colorRef(), gapColorRef(), lineStyle(nullptr), startArrow(nullptr), endArrow(nullptr)
   { }
 
   Frame(const Frame &other) = default;
@@ -440,6 +504,8 @@ struct Object
   bool runaround; // we probably don't need other runaround properties because ODF doesn't support them
   unsigned zIndex;
 
+  virtual ~Object() = default;
+
 protected:
   Object()
     : boundingBox(), runaround(false), zIndex(0)
@@ -486,17 +552,21 @@ enum class BoxType
 struct Box : Object
 {
   boost::optional<Fill> fill;
+  boost::optional<ColorRef> fillColorRef;
   Frame frame;
   BoxType boxType;
   CornerType cornerType;
   double cornerRadius;
   double rotation;
+  double skew;
+  bool hflip;
+  bool vflip;
   std::vector<Point> customPoints;
   std::vector<CurveComponent> curveComponents;
 
   Box()
-    : fill(), frame(), boxType(BoxType::UNKNOWN), cornerType(CornerType::DEFAULT), cornerRadius(0.0), rotation(0),
-      customPoints(), curveComponents()
+    : fill(), fillColorRef(), frame(), boxType(BoxType::UNKNOWN), cornerType(CornerType::DEFAULT), cornerRadius(0.0), rotation(0),
+      skew(0), hflip(false), vflip(false), customPoints(), curveComponents()
   { }
 };
 
@@ -517,10 +587,14 @@ struct PictureBox : Box
   double offsetTop;
   double scaleHor;
   double scaleVert;
+  bool hasPicture;
+  std::string fileType; // four-character type, e.g. TIFF, EPSF
+  librevenge::RVNGString filePath; // path as stored in the document
 
   PictureBox()
     : pictureRotation(0.0), pictureSkew(0.0),
-      offsetLeft(0.0), offsetTop(0.0), scaleHor(0.0), scaleVert(0.0)
+      offsetLeft(0.0), offsetTop(0.0), scaleHor(0.0), scaleVert(0.0),
+      hasPicture(false), fileType(), filePath()
   { }
 };
 
@@ -536,9 +610,13 @@ struct Group : Object
 struct PageSettings
 {
   Rect offset;
+  unsigned masterIndex; // 1-based index of master page (spread), 0 if none
+  Rect margins; // left and right are inside and outside on facing pages
+  unsigned columnsCount;
+  double gutterWidth;
 
   PageSettings()
-    : offset()
+    : offset(), masterIndex(0), margins(), columnsCount(1), gutterWidth(0)
   { }
 };
 
@@ -546,9 +624,11 @@ struct Page
 {
   std::vector<PageSettings> pageSettings;
   unsigned objectsCount;
+  bool isMaster;
+  librevenge::RVNGString name;
 
   Page()
-    : pageSettings(), objectsCount(0)
+    : pageSettings(), objectsCount(0), isMaster(false), name()
   { }
 
   bool isFacing() const

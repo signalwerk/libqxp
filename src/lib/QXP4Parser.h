@@ -42,6 +42,7 @@ public:
   {
     boost::optional<Color> fillColor;
     Color color;
+    ColorRef colorRef;
 
     unsigned contentIndex;
     unsigned linkId;
@@ -61,7 +62,7 @@ public:
     CornerType cornerType;
 
     ObjectHeader()
-      : fillColor(), color(), contentIndex(0), linkId(0), oleId(0), gradientId(0),
+      : fillColor(), color(), colorRef(), contentIndex(0), linkId(0), oleId(0), gradientId(0),
         rotation(0), skew(0), hflip(false), vflip(false),
         contentType(ContentType::UNKNOWN), shapeType(ShapeType::UNKNOWN),
         boxType(BoxType::UNKNOWN), cornerType(CornerType::DEFAULT)
@@ -86,10 +87,12 @@ private:
   bool parseDocument(const std::shared_ptr<librevenge::RVNGInputStream> &docStream, QXPCollector &collector) override;
   bool parsePages(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXPCollector &collector) override;
 
-  void parseColors(const std::shared_ptr<librevenge::RVNGInputStream> &docStream);
+  void parseColors(const std::shared_ptr<librevenge::RVNGInputStream> &docStream, QXPCollector &collector);
   ColorBlockSpec parseColorBlockSpec(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
-  void parseColor(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const std::vector<ColorBlockSpec> &blocks);
+  void parseColor(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const std::vector<ColorBlockSpec> &blocks, QXPCollector &collector);
   void skipParagraphStylesheets(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
+  void parseParagraphStylesheets(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXPCollector &collector);
+  void parseCharacterStylesheets(const std::shared_ptr<librevenge::RVNGInputStream> &stream, QXPCollector &collector);
   CharFormat parseCharFormat(const std::shared_ptr<librevenge::RVNGInputStream> &stream) override;
   void parseLineStyles(const std::shared_ptr<librevenge::RVNGInputStream> &docStream);
   void skipTemplates(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
@@ -120,7 +123,7 @@ private:
   void readTextPathSettings(const std::shared_ptr<librevenge::RVNGInputStream> &stream, TextPathSettings &settings);
   void readOleObject(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   void readPictureSettings(const std::shared_ptr<librevenge::RVNGInputStream> &stream, std::shared_ptr<PictureBox> &picturebox);
-  void readImageData(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
+  void readImageData(const std::shared_ptr<librevenge::RVNGInputStream> &stream, PictureBox &picturebox);
   void readBezierData(const std::shared_ptr<librevenge::RVNGInputStream> &stream, std::vector<CurveComponent> &curveComponents, Rect &bbox);
   void skipTextObjectEnd(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const ObjectHeader &header, const LinkedTextSettings &linkedTextSettings);
 };

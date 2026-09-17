@@ -39,6 +39,10 @@ public:
 
   bool parse();
 
+  /** Parses the document, passing its content to the given collector.
+    */
+  bool parse(QXPCollector &collector);
+
 protected:
   const std::shared_ptr<librevenge::RVNGInputStream> m_input;
   librevenge::RVNGDrawingInterface *m_painter;
@@ -56,10 +60,12 @@ protected:
   std::deque<std::shared_ptr<HJ>> m_hjs;
 
   std::set<unsigned> m_groupObjects;
+  librevenge::RVNGString m_pageName; // name of the last parsed page (spread)
 
   Color getColor(unsigned id, Color defaultColor = Color(0, 0, 0)) const;
   const LineStyle *getLineStyle(unsigned id) const;
   std::string getFont(int id, std::string defaultFont = "Arial") const;
+  librevenge::RVNGString toString(const std::string &str) const;
 
   void convertCharFormatFlags(unsigned flags, CharFormat &format);
   TabStopType convertTabStopType(unsigned type);
@@ -89,7 +95,7 @@ protected:
   uint32_t readRecordEndOffset(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   uint8_t readColorComp(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   Rect readObjectBBox(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
-  Gradient readGradient(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const Color &color1);
+  Gradient readGradient(const std::shared_ptr<librevenge::RVNGInputStream> &stream, const Color &color1, const boost::optional<ColorRef> &color1Ref = boost::none);
   HorizontalAlignment readHorAlign(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   VerticalAlignment readVertAlign(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
   Point readYX(const std::shared_ptr<librevenge::RVNGInputStream> &stream);
