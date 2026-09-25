@@ -10,6 +10,7 @@ Conversion tools:
   (https://github.com/signalwerk/spec.OpenLayout), keeping its structure:
   master pages, paragraph and character stylesheets, the color list and
   linked text chains. Data the OpenLayout spec doesn't cover yet is written
-  with the "qxp:" namespace prefix. Run "qxp2openlayout --help" for options.
+  with the "qxp:" namespace prefix, as the spec provides for extensions.
+  Run "qxp2openlayout --help" for options.
 
 The library is available under MPL 2.0+.

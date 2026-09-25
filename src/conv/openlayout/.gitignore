@@ -1,0 +1,9 @@
+.deps
+.libs
+*.lo
+*.la
+Makefile
+Makefile.in
+qxp2openlayout
+qxp2openlayout.exe
+qxp2openlayout.rc

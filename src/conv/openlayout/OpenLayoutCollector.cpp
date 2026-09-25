@@ -107,6 +107,24 @@ string slugify(const string &name)
   return slug;
 }
 
+/// Maps the QuarkXPress model tag to the model names of the spec (3.3).
+string colorModel(const string &tag, const bool hasCmyk)
+{
+  if (tag == "QCMK")
+    return "cmyk";
+  if (tag == "QRGB")
+    return "rgb";
+  if (tag == "QHSB")
+    return "hsb";
+  if (tag == "QLAB")
+    return "lab";
+  if (tag == "PnHx")
+    return "hexachrome";
+  if (!tag.empty())
+    return tag;
+  return hasCmyk ? "cmyk" : "rgb";
+}
+
 JsonValue node(const char *const type)
 {
   JsonValue n = JsonValue::object();
@@ -168,8 +186,18 @@ JsonValue defaultValue(const string &property)
     return JsonValue("normal");
   if (property == "textDecorationLine" || property == "textTransform" || property == "borderTop" || property == "borderBottom")
     return JsonValue("none");
+  if (property == "ruleAbove" || property == "ruleBelow")
+    return JsonValue("none");
   if (property == "verticalAlign")
     return JsonValue("baseline");
+  if (property == "fontVariantPosition")
+    return JsonValue("normal");
+  if (property == "textStroke" || property == "textShadow" || property == "contentTransform")
+    return JsonValue("none");
+  if (property == "baselineShift")
+    return JsonValue("0");
+  if (property == "hj")
+    return JsonValue();
   if (property == "textAlignLast")
     return JsonValue("auto");
   if (property == "tabStops")
@@ -197,6 +225,17 @@ JsonValue diffStyle(const JsonValue &local, const JsonValue &base)
       diff.set(member.first, defaultValue(member.first));
   }
   return diff;
+}
+
+/// Moves the hj reference out of the style object: in the spec it is a key of the node.
+void takeHj(JsonValue &n, JsonValue &style)
+{
+  const JsonValue *const hj = style.get("hj");
+  if (!hj)
+    return;
+  if (!hj->isNull())
+    n.set("hj", *hj);
+  style.erase("hj");
 }
 
 void mergeStyle(JsonValue &target, const JsonValue &source)
@@ -307,6 +346,7 @@ private:
   string fontId(const string &family);
 
   // formats
+  string hjId(const HJ &hj);
   JsonValue paragraphCss(const ParagraphFormat &format);
   JsonValue charCss(const CharFormat &format);
   string ruleCss(const ParagraphRule &rule) const;
@@ -330,7 +370,8 @@ private:
   void setGeometry(JsonValue &style, const Geometry &geometry) const;
   void setTransform(JsonValue &style, double rotation, double skew, bool hflip, bool vflip) const;
   void setFill(JsonValue &style, const Box &box, bool svgPaint) const;
-  void setFrame(JsonValue &style, const Frame &frame, bool isLine) const;
+  string strokeStyleId(const LineStyle &lineStyle);
+  void setFrame(JsonValue &style, const Frame &frame, bool isLine);
   string bezierPath(const vector<CurveComponent> &components, double originX, double originY, bool closable) const;
   string polygonPath(const vector<Point> &points, double originX, double originY) const;
   void setText(JsonValue &n, const TextObject &textObject);
@@ -340,6 +381,7 @@ private:
   void buildMasters(JsonValue &masters);
   void buildPages(JsonValue &pages);
   vector<JsonValue> linkToMaster(const vector<JsonValue> &items, const vector<JsonValue> &masterItems) const;
+  vector<JsonValue> detachFromMaster(const vector<JsonValue> &items, const vector<JsonValue> &masterItems) const;
 
   JsonValue head();
 
@@ -360,6 +402,10 @@ private:
   vector<JsonValue> m_characterStyleCss;
   vector<JsonValue> m_paragraphStyleParaCss;
   JsonValue m_styleNodes;
+  JsonValue m_hjNodes;
+  std::map<string, string> m_hjIds;
+  JsonValue m_strokeStyleNodes;
+  std::map<string, string> m_strokeStyleIds;
   vector<string> m_fontFamilies;
   std::map<string, string> m_fontIds;
   std::unordered_map<unsigned, ChainInfo> m_chains;
@@ -393,6 +439,10 @@ OpenLayoutBuilder::OpenLayoutBuilder(const OpenLayoutOptions &options,
   , m_characterStyleCss()
   , m_paragraphStyleParaCss()
   , m_styleNodes(JsonValue::array())
+  , m_hjNodes(JsonValue::array())
+  , m_hjIds()
+  , m_strokeStyleNodes(JsonValue::array())
+  , m_strokeStyleIds()
   , m_fontFamilies()
   , m_fontIds()
   , m_chains()
@@ -463,12 +513,18 @@ void OpenLayoutBuilder::buildColors()
     }
     if (color.spot && color.spot.get())
       n.set("spot", true);
-    if (color.cmyk)
-      n.set("qxp:rgb", color.rgb.toString().cstr());
-    if (!color.model.empty())
-      n.set("qxp:model", color.model);
     if (color.registration)
-      n.set("qxp:registration", true);
+      n.set("registration", true);
+    const string model = colorModel(color.model, bool(color.cmyk));
+    if (!model.empty())
+      n.set("model", model);
+    if (color.cmyk)
+    {
+      // the RGB value is the screen alternate of a CMYK definition
+      JsonValue alternates = JsonValue::object();
+      alternates.set("rgb", color.rgb.toString().cstr());
+      n.set("alternates", alternates);
+    }
     n.set("qxp:index", color.id);
     m_colorNodes.push(n);
   }
@@ -483,7 +539,7 @@ string OpenLayoutBuilder::colorValue(const boost::optional<ColorRef> &ref, const
     {
       const string var = "var(--" + it->second + ")";
       if (ref->shade >= 0 && ref->shade < 1.0 - 1e-6)
-        return "color-mix(in srgb, " + var + " " + percent(ref->shade) + ", white)";
+        return "color-mix(in srgb, " + var + " " + percent(ref->shade) + ", transparent)";
       return var;
     }
   }
@@ -536,19 +592,14 @@ JsonValue OpenLayoutBuilder::charCss(const CharFormat &format)
   else if (format.subscript)
     css.set("verticalAlign", "sub");
   if (format.superior)
-    css.set("qxp:superior", true);
+    css.set("fontVariantPosition", "superior");
+  // baselineShift is added to the shift of verticalAlign / fontVariantPosition
   if (!QXP_ALMOST_ZERO(format.baselineShift))
-  {
-    const string shift = formatNumber(format.baselineShift, 4) + "em";
-    if (css.has("verticalAlign"))
-      css.set("qxp:baselineShift", shift);
-    else
-      css.set("verticalAlign", shift);
-  }
+    css.set("baselineShift", formatNumber(format.baselineShift, 4) + "em");
   if (format.outline)
-    css.set("qxp:outline", true);
+    css.set("textStroke", "auto");
   if (format.shadow)
-    css.set("qxp:shadow", true);
+    css.set("textShadow", "auto");
 
   css.set("color", colorValue(format.colorRef, format.color));
   return css;
@@ -573,7 +624,36 @@ JsonValue OpenLayoutBuilder::ruleExtra(const ParagraphRule &rule) const
   extra.set("offset", QXP_ALMOST_ZERO(rule.offset) ? JsonValue("0") : JsonValue(pt(rule.offset)));
   extra.set("indentLeft", len(rule.leftMargin));
   extra.set("indentRight", len(rule.rightMargin));
+  // libqxp does not read the length mode yet; the spec default is the column width
   return extra;
+}
+
+/** Returns the id of an hj resource (spec 3.5) with these settings, creating it on first use.
+  *
+  * QuarkXPress H&J sets have names, but libqxp does not read them, so the sets are
+  * deduplicated by their values and numbered.
+  */
+string OpenLayoutBuilder::hjId(const HJ &hj)
+{
+  JsonValue style = JsonValue::object();
+  style.set("hyphens", hj.hyphenate ? "auto" : "manual");
+  style.set("hyphenateLimitChars", "auto " + std::to_string(hj.minBefore) + " " + std::to_string(hj.minAfter));
+  style.set("hyphenateLimitLines", hj.maxInRow == 0 ? JsonValue("no-limit") : JsonValue(hj.maxInRow));
+  if (!hj.singleWordJustify)
+    style.set("singleWordJustify", false);
+
+  const string key = style.toString();
+  const auto it = m_hjIds.find(key);
+  if (it != m_hjIds.end())
+    return it->second;
+
+  const string id = uniqueId("hj-" + std::to_string(m_hjIds.size() + 1));
+  m_hjIds[key] = id;
+  JsonValue n = node("hj");
+  n.set("id", id);
+  n.set("style", style);
+  m_hjNodes.push(n);
+  return id;
 }
 
 JsonValue OpenLayoutBuilder::paragraphCss(const ParagraphFormat &format)
@@ -631,13 +711,7 @@ JsonValue OpenLayoutBuilder::paragraphCss(const ParagraphFormat &format)
   }
 
   if (format.hj)
-  {
-    css.set("hyphens", format.hj->hyphenate ? "auto" : "manual");
-    css.set("hyphenateLimitChars", "auto " + std::to_string(format.hj->minBefore) + " " + std::to_string(format.hj->minAfter));
-    css.set("hyphenateLimitLines", format.hj->maxInRow == 0 ? JsonValue("no-limit") : JsonValue(format.hj->maxInRow));
-    if (!format.hj->singleWordJustify)
-      css.set("qxp:singleWordJustify", false);
-  }
+    css.set("hj", hjId(*format.hj));
 
   if (!format.tabStops.empty())
   {
@@ -660,12 +734,12 @@ JsonValue OpenLayoutBuilder::paragraphCss(const ParagraphFormat &format)
   if (format.ruleAbove)
   {
     css.set("borderTop", ruleCss(*format.ruleAbove));
-    css.set("qxp:ruleAbove", ruleExtra(*format.ruleAbove));
+    css.set("ruleAbove", ruleExtra(*format.ruleAbove));
   }
   if (format.ruleBelow)
   {
     css.set("borderBottom", ruleCss(*format.ruleBelow));
-    css.set("qxp:ruleBelow", ruleExtra(*format.ruleBelow));
+    css.set("ruleBelow", ruleExtra(*format.ruleBelow));
   }
 
   return css;
@@ -727,11 +801,20 @@ void OpenLayoutBuilder::buildStyles()
     const string next = paragraphStyleId(int(style.nextIndex));
     if (!next.empty())
       n.set("next", next);
+    // the paragraph style takes its character formatting from a character style (spec 3.4)
     const string charStyle = characterStyleId(style.charStyleIndex);
-    if (!charStyle.empty())
-      n.set("qxp:characterStyle", charStyle);
     JsonValue css = m_paragraphStyleParaCss[i];
-    mergeStyle(css, m_paragraphStyleCharCss[i]);
+    if (charStyle.empty())
+    {
+      mergeStyle(css, m_paragraphStyleCharCss[i]);
+    }
+    else
+    {
+      n.set("characterStyle", charStyle);
+      // only what this style changes on top of the referenced character style
+      mergeStyle(css, diffStyle(m_paragraphStyleCharCss[i], m_characterStyleCss[size_t(style.charStyleIndex) - 1]));
+    }
+    takeHj(n, css);
     n.set("style", css);
     m_styleNodes.push(n);
   }
@@ -774,7 +857,7 @@ void OpenLayoutBuilder::appendRun(JsonValue &children, const string &styleClass,
     {
       flush();
       JsonValue br = node("br");
-      br.set("qxp:break", "column");
+      br.set("break", "column");
       pieces.push(br);
       break;
     }
@@ -782,7 +865,7 @@ void OpenLayoutBuilder::appendRun(JsonValue &children, const string &styleClass,
     {
       flush();
       JsonValue br = node("br");
-      br.set("qxp:break", "box");
+      br.set("break", "frame");
       pieces.push(br);
       break;
     }
@@ -790,7 +873,7 @@ void OpenLayoutBuilder::appendRun(JsonValue &children, const string &styleClass,
     {
       flush();
       JsonValue field = node("field");
-      field.set("name", "qxp:previousBoxPageNumber");
+      field.set("name", "previousFramePageNumber");
       pieces.push(field);
       break;
     }
@@ -798,7 +881,7 @@ void OpenLayoutBuilder::appendRun(JsonValue &children, const string &styleClass,
     {
       flush();
       JsonValue field = node("field");
-      field.set("name", "qxp:nextBoxPageNumber");
+      field.set("name", "nextFramePageNumber");
       pieces.push(field);
       break;
     }
@@ -816,7 +899,7 @@ void OpenLayoutBuilder::appendRun(JsonValue &children, const string &styleClass,
       break;
     case 0x08:
       flush();
-      pieces.push(node("qxp:indentHere"));
+      pieces.push(node("indentHere"));
       break;
     case 0x0f:
       current.append("\xc2\xa0"); // nonbreaking space
@@ -913,7 +996,8 @@ JsonValue OpenLayoutBuilder::blocks(const Text &text, const unsigned start, cons
 
     const JsonValue css = paragraphCss(*paragraph.format);
     const JsonValue baseCss = styleId.empty() ? m_empty : m_paragraphStyleParaCss[size_t(paragraph.format->styleIndex) - 1];
-    const JsonValue localCss = diffStyle(css, baseCss);
+    JsonValue localCss = diffStyle(css, baseCss);
+    takeHj(p, localCss);
     if (!localCss.empty())
       p.set("style", localCss);
 
@@ -1119,35 +1203,42 @@ public:
 
   void operator()(const Gradient &gradient)
   {
+    // QuarkXPress angles are counterclockwise and start at "left to right", CSS angles
+    // are clockwise and start at "to top" (spec 5.6)
     const string angle = formatNumber(90 - gradient.angle) + "deg";
+    const char *shape = nullptr;
     switch (gradient.type)
     {
     case GradientType::LINEAR:
       m_style.set("backgroundImage", "linear-gradient(" + angle + ", " + m_color1 + ", " + m_color2 + ")");
       return;
     case GradientType::MIDLINEAR:
+      // a mid-linear blend is a plain CSS gradient with three stops
       m_style.set("backgroundImage", "linear-gradient(" + angle + ", " + m_color1 + ", " + m_color2 + ", " + m_color1 + ")");
-      m_style.set("qxp:blend", "midLinear");
       return;
-    case GradientType::RECTANGULAR:
-      m_style.set("backgroundImage", "radial-gradient(closest-side, " + m_color2 + ", " + m_color1 + ")");
-      m_style.set("qxp:blend", "rectangular");
-      break;
-    case GradientType::DIAMOND:
-      m_style.set("backgroundImage", "radial-gradient(closest-side, " + m_color2 + ", " + m_color1 + ")");
-      m_style.set("qxp:blend", "diamond");
-      break;
     case GradientType::CIRCULAR:
       m_style.set("backgroundImage", "radial-gradient(closest-side, " + m_color2 + ", " + m_color1 + ")");
-      m_style.set("qxp:blend", "circular");
-      break;
+      return;
     case GradientType::FULLCIRCULAR:
       m_style.set("backgroundImage", "radial-gradient(farthest-corner, " + m_color2 + ", " + m_color1 + ")");
-      m_style.set("qxp:blend", "fullCircular");
+      return;
+    case GradientType::RECTANGULAR:
+      shape = "rectangular";
+      break;
+    case GradientType::DIAMOND:
+      shape = "diamond";
       break;
     }
-    if (!QXP_ALMOST_ZERO(gradient.angle))
-      m_style.set("qxp:blendAngle", formatNumber(gradient.angle) + "deg");
+    // no CSS gradient for these: the approximation stays as the mandatory fallback
+    m_style.set("backgroundImage", "radial-gradient(closest-side, " + m_color2 + ", " + m_color1 + ")");
+    JsonValue blend = JsonValue::object();
+    blend.set("shape", shape);
+    blend.set("angle", angle);
+    JsonValue stops = JsonValue::array();
+    stops.push(JsonValue(m_color2));
+    stops.push(JsonValue(m_color1));
+    blend.set("stops", stops);
+    m_style.set("blend", blend);
   }
 
 private:
@@ -1178,85 +1269,113 @@ void OpenLayoutBuilder::setFill(JsonValue &style, const Box &box, const bool svg
   boost::apply_visitor(visitor, box.fill.get());
 }
 
-void OpenLayoutBuilder::setFrame(JsonValue &style, const Frame &frame, const bool isLine) const
+/** Returns the id of a strokeStyle resource (spec 3.9), creating it on first use.
+  *
+  * A solid line needs no resource. QuarkXPress names its "Dashes & Stripes",
+  * but libqxp does not read the names, so they are deduplicated and numbered.
+  */
+string OpenLayoutBuilder::strokeStyleId(const LineStyle &lineStyle)
+{
+  if (lineStyle.segmentLengths.size() < 2)
+    return string();
+
+  JsonValue n = node("strokeStyle");
+  JsonValue segments = JsonValue::array();
+  for (const double segment : lineStyle.segmentLengths)
+    segments.push(JsonValue(std::stod(formatNumber(segment, 4))));
+  if (lineStyle.isStripe)
+  {
+    // shares of the stroke width, from one edge to the other
+    n.set("stripes", segments);
+  }
+  else
+  {
+    n.set("dashes", segments);
+    n.set("patternLength", std::stod(formatNumber(lineStyle.patternLength, 4)));
+    n.set("proportional", lineStyle.isProportional);
+    switch (lineStyle.endcapType)
+    {
+    case LineCapType::ROUND:
+      n.set("strokeLinecap", "round");
+      break;
+    case LineCapType::RECT:
+      n.set("strokeLinecap", "square");
+      break;
+    // "stretch" is not a cap in the spec: the pattern is stretched, which
+    // proportional + patternLength already say
+    case LineCapType::STRETCH:
+    case LineCapType::BUTT:
+      break;
+    }
+    switch (lineStyle.joinType)
+    {
+    case LineJoinType::ROUND:
+      n.set("strokeLinejoin", "round");
+      break;
+    case LineJoinType::BEVEL:
+      n.set("strokeLinejoin", "bevel");
+      break;
+    case LineJoinType::MITER:
+      break;
+    }
+  }
+
+  const string key = n.toString();
+  const auto it = m_strokeStyleIds.find(key);
+  if (it != m_strokeStyleIds.end())
+    return it->second;
+
+  const string id = uniqueId((lineStyle.isStripe ? "stripe-" : "dash-") + std::to_string(m_strokeStyleIds.size() + 1));
+  m_strokeStyleIds[key] = id;
+  JsonValue withId = node("strokeStyle");
+  withId.set("id", id);
+  for (const auto &member : n.members())
+  {
+    if (member.first != "type")
+      withId.set(member.first, member.second);
+  }
+  m_strokeStyleNodes.push(withId);
+  return id;
+}
+
+void OpenLayoutBuilder::setFrame(JsonValue &style, const Frame &frame, const bool isLine)
 {
   if (!frame.color || (!isLine && QXP_ALMOST_ZERO(frame.width)))
     return;
 
-  const string color = colorValue(frame.colorRef, frame.color.get());
-  const LineStyle *const lineStyle = frame.lineStyle;
+  // every page item is stroked with the SVG vocabulary, frames included (spec 5.8)
+  style.set("stroke", colorValue(frame.colorRef, frame.color.get()));
+  style.set("strokeWidth", pt(frame.width));
 
-  if (isLine)
+  const LineStyle *const lineStyle = frame.lineStyle;
+  const bool patterned = lineStyle && lineStyle->segmentLengths.size() > 1;
+  if (patterned)
   {
-    style.set("stroke", color);
-    style.set("strokeWidth", pt(frame.width));
-    if (lineStyle)
-    {
-      if (lineStyle->segmentLengths.size() > 1 && !lineStyle->isStripe)
-      {
-        const double scale = lineStyle->isProportional ? lineStyle->patternLength * frame.width : lineStyle->patternLength;
-        string dashes;
-        for (const double segment : lineStyle->segmentLengths)
-        {
-          if (!dashes.empty())
-            dashes.push_back(' ');
-          dashes.append(pt(segment * scale));
-        }
-        style.set("strokeDasharray", dashes);
-      }
-      switch (lineStyle->endcapType)
-      {
-      case LineCapType::ROUND:
-        style.set("strokeLinecap", "round");
-        break;
-      case LineCapType::RECT:
-        style.set("strokeLinecap", "square");
-        break;
-      case LineCapType::STRETCH:
-        style.set("qxp:strokeLinecap", "stretch");
-        break;
-      case LineCapType::BUTT:
-        break;
-      }
-      switch (lineStyle->joinType)
-      {
-      case LineJoinType::ROUND:
-        style.set("strokeLinejoin", "round");
-        break;
-      case LineJoinType::BEVEL:
-        style.set("strokeLinejoin", "bevel");
-        break;
-      case LineJoinType::MITER:
-        break;
-      }
-      if (lineStyle->isStripe)
-        style.set("qxp:stripe", true);
-    }
+    const string styleId = strokeStyleId(*lineStyle);
+    if (!styleId.empty())
+      style.set("strokeStyle", styleId);
+  }
+
+  if (!isLine)
+  {
+    // a box frame sits inside the box
+    style.set("strokeAlign", "inside");
+  }
+  else
+  {
     // libqxp knows two arrow shapes: an arrowhead and a feathered tail
     const auto arrowName = [](const Arrow &arrow)
     {
       return arrow.path.compare(0, 4, "m9 5") == 0 ? "tail" : "arrowhead";
     };
     if (frame.startArrow)
-      style.set("qxp:markerStart", arrowName(*frame.startArrow));
+      style.set("markerStart", arrowName(*frame.startArrow));
     if (frame.endArrow)
-      style.set("qxp:markerEnd", arrowName(*frame.endArrow));
-  }
-  else
-  {
-    string borderStyle = "solid";
-    if (lineStyle)
-    {
-      if (lineStyle->isStripe)
-        borderStyle = "double";
-      else if (lineStyle->segmentLengths.size() > 1)
-        borderStyle = "dashed";
-    }
-    style.set("border", pt(frame.width) + " " + borderStyle + " " + color);
+      style.set("markerEnd", arrowName(*frame.endArrow));
   }
 
-  if (lineStyle && (lineStyle->isStripe || lineStyle->segmentLengths.size() > 1) && frame.gapColor)
-    style.set("qxp:gapColor", colorValue(frame.gapColorRef, frame.gapColor.get()));
+  if (patterned && frame.gapColor)
+    style.set("strokeGapColor", colorValue(frame.gapColorRef, frame.gapColor.get()));
 }
 
 string OpenLayoutBuilder::bezierPath(const vector<CurveComponent> &components, const double originX, const double originY, const bool closable) const
@@ -1309,7 +1428,7 @@ JsonValue OpenLayoutBuilder::lineItem(const Line &line, const double originX, co
     const Point p2 = line.boundingBox.bottomRight().rotateDeg(-line.rotation, center);
     const Rect bounds = boundsOf({p1, p2});
 
-    n = node(textPath ? "qxp:textPath" : "line");
+    n = node(textPath ? "textPath" : "line");
     setGeometry(style, Geometry{bounds.left - originX, bounds.top - originY, bounds.width(), bounds.height()});
     if (textPath)
     {
@@ -1326,7 +1445,7 @@ JsonValue OpenLayoutBuilder::lineItem(const Line &line, const double originX, co
   }
   else
   {
-    n = node(textPath ? "qxp:textPath" : "path");
+    n = node(textPath ? "textPath" : "path");
     const Rect &bbox = line.boundingBox;
     setGeometry(style, Geometry{bbox.left - originX, bbox.top - originY, bbox.width(), bbox.height()});
     setTransform(style, line.rotation, 0, false, false);
@@ -1340,7 +1459,6 @@ JsonValue OpenLayoutBuilder::lineItem(const Line &line, const double originX, co
 
   if (textPath)
   {
-    JsonValue settings = JsonValue::object();
     const char *alignment = "baseline";
     switch (textPath->settings.alignment)
     {
@@ -1368,11 +1486,18 @@ JsonValue OpenLayoutBuilder::lineItem(const Line &line, const double originX, co
     case TextPathLineAlignment::TOP:
       break;
     }
-    settings.set("alignText", alignment);
-    settings.set("alignWithLine", lineAlignment);
-    settings.set("rotateText", textPath->settings.rotate);
-    settings.set("skewText", textPath->settings.skew);
-    n.set("qxp:textPathSettings", settings);
+    const char *orientation = "none";
+    if (textPath->settings.rotate && textPath->settings.skew)
+      orientation = "rotate-skew";
+    else if (textPath->settings.rotate)
+      orientation = "rotate";
+    else if (textPath->settings.skew)
+      orientation = "skew";
+
+    JsonValue *const pathStyle = n.get("style");
+    pathStyle->set("textPathAlign", alignment);
+    pathStyle->set("textPathLineAlign", lineAlignment);
+    pathStyle->set("textPathOrientation", orientation);
     setText(n, *textPath);
   }
 
@@ -1482,10 +1607,15 @@ JsonValue OpenLayoutBuilder::boxItem(const Item &item, const Spread &spread, con
     case VerticalAlignment::TOP:
       break;
     }
+    // the text is transformed, the frame stays as it is (spec 5.3);
+    // QuarkXPress angles are counterclockwise, CSS angles clockwise
+    string contentTransform;
     if (!QXP_ALMOST_ZERO(settings.rotation))
-      style.set("qxp:textAngle", formatNumber(settings.rotation) + "deg");
+      contentTransform = "rotate(" + formatNumber(-settings.rotation) + "deg)";
     if (!QXP_ALMOST_ZERO(settings.skew))
-      style.set("qxp:textSkew", formatNumber(settings.skew) + "deg");
+      contentTransform += string(contentTransform.empty() ? "" : " ") + "skewX(" + formatNumber(-settings.skew) + "deg)";
+    if (!contentTransform.empty())
+      style.set("contentTransform", contentTransform);
   }
 
   n.set("style", style);
@@ -1499,12 +1629,13 @@ JsonValue OpenLayoutBuilder::boxItem(const Item &item, const Spread &spread, con
     JsonValue img = node("img");
     const string path = pictureBox->filePath.cstr();
     if (!path.empty())
-    {
       img.set("src", convertPath(path));
-      img.set("qxp:path", path);
-    }
     if (!pictureBox->fileType.empty())
-      img.set("qxp:fileType", pictureBox->fileType);
+    {
+      JsonValue link = JsonValue::object();
+      link.set("fileType", pictureBox->fileType);
+      img.set("link", link);
+    }
 
     JsonValue imgStyle = JsonValue::object();
     imgStyle.set("left", len(pictureBox->offsetLeft));
@@ -1572,12 +1703,23 @@ JsonValue OpenLayoutBuilder::item(const Spread &spread, const unsigned index, co
 
 JsonValue OpenLayoutBuilder::pageStyle(const PageSettings &settings, const bool leftPage) const
 {
+  (void) leftPage;
   JsonValue style = JsonValue::object();
   style.set("size", len(settings.offset.width()) + " " + len(settings.offset.height()));
-  // on facing pages QuarkXPress stores inside margin as left, outside as right
-  const double left = leftPage ? settings.margins.right : settings.margins.left;
-  const double right = leftPage ? settings.margins.left : settings.margins.right;
-  style.set("margin", len(settings.margins.top) + " " + len(right) + " " + len(settings.margins.bottom) + " " + len(left));
+  style.set("marginTop", len(settings.margins.top));
+  style.set("marginBottom", len(settings.margins.bottom));
+  if (m_facing)
+  {
+    // QuarkXPress stores the inside margin as left and the outside as right;
+    // the spec resolves the logical margins per page side (4.1)
+    style.set("marginInside", len(settings.margins.left));
+    style.set("marginOutside", len(settings.margins.right));
+  }
+  else
+  {
+    style.set("marginLeft", len(settings.margins.left));
+    style.set("marginRight", len(settings.margins.right));
+  }
   if (settings.columnsCount > 1)
   {
     style.set("columnCount", settings.columnsCount);
@@ -1753,6 +1895,25 @@ vector<JsonValue> OpenLayoutBuilder::linkToMaster(const vector<JsonValue> &items
   return overrides;
 }
 
+vector<JsonValue> OpenLayoutBuilder::detachFromMaster(const vector<JsonValue> &items, const vector<JsonValue> &masterItems) const
+{
+  // Every master item is hidden and every item of the page is written out, so the page
+  // shows exactly what QuarkXPress stored on it. The page keeps its master, and with it
+  // the page style.
+  vector<JsonValue> result;
+  for (const auto &masterItem : masterItems)
+  {
+    JsonValue override = node("override");
+    override.set("ref", *masterItem.get("id"));
+    JsonValue style = JsonValue::object();
+    style.set("display", "none");
+    override.set("style", style);
+    result.push_back(override);
+  }
+  result.insert(result.end(), items.begin(), items.end());
+  return result;
+}
+
 void OpenLayoutBuilder::buildPages(JsonValue &pages)
 {
   unsigned pageNumber = 0;
@@ -1787,19 +1948,16 @@ void OpenLayoutBuilder::buildPages(JsonValue &pages)
           masterPage = &(*masterPages)[0];
       }
 
-      if (m_options.linkMasters && !masterId.empty())
-        page.set("master", masterId);
-      else
-        page.set("master", JsonValue());
-      if (!m_options.linkMasters && !masterId.empty())
-        page.set("qxp:master", masterId);
+      // the document says which master the page was made from, so OpenLayout says it too
+      page.set("master", masterId.empty() ? JsonValue() : JsonValue(masterId));
       if (m_facing && !facing)
         page.set("side", left ? "left" : "right");
 
+      // the page style is inherited from the master; only the differences are written
       const JsonValue style = pageStyle(settings, left);
-      if (!m_options.linkMasters || !masterPage || !isSameStyle(*masterPage->page.get("style"), style))
+      if (!masterPage || !isSameStyle(*masterPage->page.get("style"), style))
       {
-        const JsonValue *const masterStyle = masterPage && m_options.linkMasters ? masterPage->page.get("style") : nullptr;
+        const JsonValue *const masterStyle = masterPage ? masterPage->page.get("style") : nullptr;
         page.set("style", masterStyle ? diffStyle(style, *masterStyle) : style);
       }
 
@@ -1819,8 +1977,8 @@ void OpenLayoutBuilder::buildPages(JsonValue &pages)
         items.push_back(withId);
       }
 
-      if (m_options.linkMasters && masterPage)
-        items = linkToMaster(items, masterPage->items);
+      if (masterPage)
+        items = m_options.linkMasters ? linkToMaster(items, masterPage->items) : detachFromMaster(items, masterPage->items);
 
       if (!items.empty())
       {
@@ -1868,24 +2026,35 @@ JsonValue OpenLayoutBuilder::head()
   meta("qxp:version", versionName(m_options.version));
   meta("qxp:platform", m_options.bigEndian ? "mac" : "windows");
 
-  JsonValue prefs = node("qxp:preferences");
-  prefs.set("facingPages", m_facing);
-  prefs.set("autoLeading", m_docProps.isIncrementalAutoLeading() ? JsonValue(pt(m_docProps.autoLeading())) : JsonValue(percent(m_docProps.autoLeading())));
+  JsonValue settings = node("settings");
+  settings.set("facingPages", m_facing);
+  settings.set("units", m_options.unit == OpenLayoutUnit::MILLIMETER ? "mm" : "pt");
+  // unitless numbers in path.d and clipPath: path() use this unit (spec 3.8, 5.5)
+  settings.set("geometryUnit", m_options.unit == OpenLayoutUnit::MILLIMETER ? "mm" : "pt");
+
+  JsonValue typography = JsonValue::object();
+  // autoLeading is the meaning of lineHeight: "normal": QuarkXPress stores the increment
+  typography.set("autoLeading", m_docProps.isIncrementalAutoLeading()
+                 ? JsonValue("calc(1em + " + pt(m_docProps.autoLeading()) + ")")
+                 : JsonValue(percent(1 + m_docProps.autoLeading())));
+  const auto scale = [](const double horizontal, const double vertical)
+  {
+    return percent(horizontal) + " " + percent(vertical);
+  };
   JsonValue superscript = JsonValue::object();
   superscript.set("offset", percent(m_docProps.superscriptOffset));
-  superscript.set("horizontalScale", percent(m_docProps.superscriptHScale));
-  superscript.set("verticalScale", percent(m_docProps.superscriptVScale));
-  prefs.set("superscript", superscript);
+  superscript.set("scale", scale(m_docProps.superscriptHScale, m_docProps.superscriptVScale));
+  typography.set("superscript", superscript);
   JsonValue subscript = JsonValue::object();
-  subscript.set("offset", percent(-m_docProps.subscriptOffset));
-  subscript.set("horizontalScale", percent(m_docProps.subscriptHScale));
-  subscript.set("verticalScale", percent(m_docProps.subscriptVScale));
-  prefs.set("subscript", subscript);
+  // a subscript is shifted down: the spec counts a positive offset upwards
+  subscript.set("offset", percent(m_docProps.subscriptOffset));
+  subscript.set("scale", scale(m_docProps.subscriptHScale, m_docProps.subscriptVScale));
+  typography.set("subscript", subscript);
   JsonValue superior = JsonValue::object();
-  superior.set("horizontalScale", percent(m_docProps.superiorHScale));
-  superior.set("verticalScale", percent(m_docProps.superiorVScale));
-  prefs.set("superior", superior);
-  children.push(prefs);
+  superior.set("scale", scale(m_docProps.superiorHScale, m_docProps.superiorVScale));
+  typography.set("superior", superior);
+  settings.set("typography", typography);
+  children.push(settings);
 
   for (const auto &family : m_fontFamilies)
   {
@@ -1899,6 +2068,10 @@ JsonValue OpenLayoutBuilder::head()
 
   for (const auto &color : m_colorNodes.items())
     children.push(color);
+  for (const auto &strokeStyle : m_strokeStyleNodes.items())
+    children.push(strokeStyle);
+  for (const auto &hj : m_hjNodes.items())
+    children.push(hj);
   for (const auto &style : m_styleNodes.items())
     children.push(style);
 

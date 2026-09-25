@@ -40,9 +40,11 @@ int printUsage()
   std::printf("\n");
   std::printf("Options:\n");
   std::printf("\t-o, --output FILE     write the document to FILE instead of standard output\n");
-  std::printf("\t--unit pt|mm          unit of geometry, default pt (type sizes and strokes are always pt)\n");
+  std::printf("\t--unit pt|mm          unit of geometry, default pt (type sizes and strokes are always pt);\n");
+  std::printf("\t                      also written as settings.geometryUnit for unitless path numbers\n");
   std::printf("\t--compact             write JSON without indentation\n");
-  std::printf("\t--no-master-links     do not link pages to masters; keep every item on its page\n");
+  std::printf("\t--no-master-links     do not inherit master items: hide them and keep every item\n");
+  std::printf("\t                      on its page (the page still uses its master)\n");
   std::printf("\t--help                show this help message\n");
   std::printf("\t--version             print version and exit\n");
   std::printf("\n");
