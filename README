@@ -6,11 +6,15 @@ libqxp requires boost, icu and librevenge to build.
 Conversion tools:
 
 - qxp2svg, qxp2text, qxp2raw: convert through librevenge.
-- qxp2openlayout: converts a document to OpenLayout JSON
+- qxp2openlayout: converts a document to OpenLayout 0.4 JSON
   (https://github.com/signalwerk/spec.OpenLayout), keeping its structure:
   master pages, paragraph and character stylesheets, the color list and
   linked text chains. Data the OpenLayout spec doesn't cover yet is written
-  with the "qxp:" namespace prefix, as the spec provides for extensions.
+  with the "qxd:" namespace prefix, as the spec provides for extensions.
+  Styles live directly in defs, with shared UX:type authoring categories and
+  UX:next paragraph-style links. A qxd:settings
+  style supplies body defaults. Script metrics use reusable fontSize/transform
+  styles; unitless path coordinates always use CSS pixels, independent of --unit.
   Run "qxp2openlayout --help" for options.
 
 The library is available under MPL 2.0+.

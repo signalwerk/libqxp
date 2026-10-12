@@ -132,6 +132,15 @@ JsonValue node(const char *const type)
   return n;
 }
 
+void addClass(JsonValue &n, const string &id)
+{
+  if (id.empty())
+    return;
+  if (!n.has("class"))
+    n.set("class", JsonValue::array());
+  n.get("class")->push(JsonValue(id));
+}
+
 JsonValue textNode(const string &value)
 {
   JsonValue n = node("text");
@@ -182,6 +191,8 @@ JsonValue defaultValue(const string &property)
 {
   if (property == "fontWeight")
     return JsonValue(400);
+  if (property == "textDecorationSkipSpaces")
+    return JsonValue("no");
   if (property == "fontStyle" || property == "fontVariantCaps")
     return JsonValue("normal");
   if (property == "textDecorationLine" || property == "textTransform" || property == "borderTop" || property == "borderBottom")
@@ -196,13 +207,15 @@ JsonValue defaultValue(const string &property)
     return JsonValue("none");
   if (property == "baselineShift")
     return JsonValue("0");
+  if (property == "lineHeight")
+    return JsonValue("inherit");
   if (property == "hj")
     return JsonValue();
   if (property == "textAlignLast")
     return JsonValue("auto");
   if (property == "tabStops")
-    return JsonValue::array();
-  if (property.compare(0, 4, "qxp:") == 0)
+    return JsonValue("none");
+  if (property.compare(0, 4, "qxd:") == 0)
     return JsonValue(false);
   if (property.compare(0, 6, "margin") == 0 || property == "textIndent")
     return JsonValue("0");
@@ -227,14 +240,19 @@ JsonValue diffStyle(const JsonValue &local, const JsonValue &base)
   return diff;
 }
 
-/// Moves the hj reference out of the style object: in the spec it is a key of the node.
+/// H&J IDs are internal bookkeeping; serialized nodes compose general styles.
 void takeHj(JsonValue &n, JsonValue &style)
 {
   const JsonValue *const hj = style.get("hj");
   if (!hj)
     return;
   if (!hj->isNull())
-    n.set("hj", *hj);
+    addClass(n, hj->asString());
+  else
+  {
+    for (const char *property : {"hyphens", "hyphenateLimitChars", "hyphenateLimitLines", "singleWordJustify"})
+      style.set(property, "initial");
+  }
   style.erase("hj");
 }
 
@@ -347,10 +365,11 @@ private:
 
   // formats
   string hjId(const HJ &hj);
+  string scriptStyleId(const CharFormat &format);
   JsonValue paragraphCss(const ParagraphFormat &format);
   JsonValue charCss(const CharFormat &format);
   string ruleCss(const ParagraphRule &rule) const;
-  JsonValue ruleExtra(const ParagraphRule &rule) const;
+  string ruleExtra(const ParagraphRule &rule) const;
   const JsonValue &paragraphStyleCharCss(int styleIndex) const;
   string paragraphStyleId(int styleIndex) const;
   string characterStyleId(int styleIndex) const;
@@ -358,7 +377,7 @@ private:
   // text
   void collectChains();
   JsonValue blocks(const Text &text, unsigned start, unsigned end);
-  void appendRun(JsonValue &children, const string &styleClass, const JsonValue &style, const string &utf8);
+  void appendRun(JsonValue &children, const string &styleClass, const JsonValue &style, const string &utf8, const string &scriptClass);
 
   // items
   vector<unsigned> topLevelItems(const Spread &spread, size_t pageIndex) const;
@@ -371,7 +390,7 @@ private:
   void setTransform(JsonValue &style, double rotation, double skew, bool hflip, bool vflip) const;
   void setFill(JsonValue &style, const Box &box, bool svgPaint) const;
   string strokeStyleId(const LineStyle &lineStyle);
-  void setFrame(JsonValue &style, const Frame &frame, bool isLine);
+  void setFrame(JsonValue &n, JsonValue &style, const Frame &frame, bool isLine);
   string bezierPath(const vector<CurveComponent> &components, double originX, double originY, bool closable) const;
   string polygonPath(const vector<Point> &points, double originX, double originY) const;
   void setText(JsonValue &n, const TextObject &textObject);
@@ -383,7 +402,7 @@ private:
   vector<JsonValue> linkToMaster(const vector<JsonValue> &items, const vector<JsonValue> &masterItems) const;
   vector<JsonValue> detachFromMaster(const vector<JsonValue> &items, const vector<JsonValue> &masterItems) const;
 
-  JsonValue head();
+  JsonValue definitions(const JsonValue &masterList, const string &preferencesId);
 
   const OpenLayoutOptions &m_options;
   const QXPDocumentProperties &m_docProps;
@@ -402,6 +421,7 @@ private:
   vector<JsonValue> m_characterStyleCss;
   vector<JsonValue> m_paragraphStyleParaCss;
   JsonValue m_styleNodes;
+  std::map<string, string> m_scriptStyleIds;
   JsonValue m_hjNodes;
   std::map<string, string> m_hjIds;
   JsonValue m_strokeStyleNodes;
@@ -439,6 +459,7 @@ OpenLayoutBuilder::OpenLayoutBuilder(const OpenLayoutOptions &options,
   , m_characterStyleCss()
   , m_paragraphStyleParaCss()
   , m_styleNodes(JsonValue::array())
+  , m_scriptStyleIds()
   , m_hjNodes(JsonValue::array())
   , m_hjIds()
   , m_strokeStyleNodes(JsonValue::array())
@@ -499,7 +520,7 @@ void OpenLayoutBuilder::buildColors()
     const string id = uniqueId(slugify(name).empty() ? "color-" + std::to_string(color.id) : slugify(name));
     m_colorIds[color.id] = id;
 
-    JsonValue n = node("color");
+    JsonValue n = node("swatch");
     n.set("id", id);
     n.set("name", name);
     if (color.cmyk && color.cmyk->size() == 4)
@@ -525,7 +546,7 @@ void OpenLayoutBuilder::buildColors()
       alternates.set("rgb", color.rgb.toString().cstr());
       n.set("alternates", alternates);
     }
-    n.set("qxp:index", color.id);
+    n.set("qxd:index", color.id);
     m_colorNodes.push(n);
   }
 }
@@ -567,42 +588,89 @@ JsonValue OpenLayoutBuilder::charCss(const CharFormat &format)
     css.set("fontFamily", family);
   }
   css.set("fontSize", pt(format.fontSize));
-  if (format.bold)
-    css.set("fontWeight", 700);
-  if (format.italic)
-    css.set("fontStyle", "italic");
+  css.set("fontWeight", format.bold ? 700 : 400);
+  css.set("fontStyle", format.italic ? "italic" : "normal");
 
   string decoration;
   if (format.underline || format.wordUnderline)
     decoration = "underline";
   if (format.strike)
     decoration += decoration.empty() ? "line-through" : " line-through";
-  if (!decoration.empty())
-    css.set("textDecorationLine", decoration);
-  if (format.wordUnderline)
-    css.set("textDecorationSkipSpaces", "all");
+  css.set("textDecorationLine", decoration.empty() ? "none" : decoration);
+  css.set("textDecorationSkipSpaces", format.wordUnderline ? "all" : "no");
 
-  if (format.allCaps)
-    css.set("textTransform", "uppercase");
-  if (format.smallCaps)
-    css.set("fontVariantCaps", "small-caps");
+  css.set("textTransform", format.allCaps ? "uppercase" : "none");
+  css.set("fontVariantCaps", format.smallCaps ? "small-caps" : "normal");
 
-  if (format.superscript)
-    css.set("verticalAlign", "super");
-  else if (format.subscript)
-    css.set("verticalAlign", "sub");
-  if (format.superior)
-    css.set("fontVariantPosition", "superior");
+  // Source script metrics are applied by a nested span with a reusable style.
+  css.set("verticalAlign", "baseline");
+  css.set("fontVariantPosition", "normal");
   // baselineShift is added to the shift of verticalAlign / fontVariantPosition
-  if (!QXP_ALMOST_ZERO(format.baselineShift))
-    css.set("baselineShift", formatNumber(format.baselineShift, 4) + "em");
-  if (format.outline)
-    css.set("textStroke", "auto");
-  if (format.shadow)
-    css.set("textShadow", "auto");
+  css.set("baselineShift", QXP_ALMOST_ZERO(format.baselineShift) ? "0" : formatNumber(format.baselineShift, 4) + "em");
+  css.set("textStroke", format.outline ? "auto" : "none");
+  css.set("textShadow", format.shadow ? "auto" : "none");
 
   css.set("color", colorValue(format.colorRef, format.color));
   return css;
+}
+
+string OpenLayoutBuilder::scriptStyleId(const CharFormat &format)
+{
+  string kind;
+  double horizontal = 1, vertical = 1, offset = 0;
+  if (format.superscript)
+  {
+    kind = "superscript";
+    horizontal = m_docProps.superscriptHScale;
+    vertical = m_docProps.superscriptVScale;
+    offset = m_docProps.superscriptOffset;
+  }
+  else if (format.subscript)
+  {
+    kind = "subscript";
+    horizontal = m_docProps.subscriptHScale;
+    vertical = m_docProps.subscriptVScale;
+    offset = m_docProps.subscriptOffset;
+  }
+  else if (format.superior)
+  {
+    kind = "superior";
+    horizontal = m_docProps.superiorHScale;
+    vertical = m_docProps.superiorVScale;
+  }
+  else
+    return string();
+  const auto found = m_scriptStyleIds.find(kind);
+  if (found != m_scriptStyleIds.end()) return found->second;
+  const string id = uniqueId("qxd-" + kind);
+  m_scriptStyleIds[kind] = id;
+  JsonValue effect = node("style");
+  effect.set("id", id);
+  effect.set("UX:type", kind);
+  JsonValue css = JsonValue::object();
+  if (vertical > 0 && horizontal >= 0)
+  {
+    css.set("fontSize", percent(vertical));
+    css.set("display", "inline-block");
+    css.set("transformOrigin", "left center");
+    // em/cap are relative to the already reduced inner span's font size.
+    const string shift = kind == "superior"
+      ? formatNumber(-(1.0 / vertical - 1), 6) + "cap"
+      : formatNumber(-offset / vertical, 6) + "em";
+    css.set("transform", "translateY(" + shift + ") scaleX(" + formatNumber(horizontal / vertical, 6) + ")");
+  }
+  else
+  {
+    // Only invalid values need a source fallback; valid metrics live in CSS.
+    JsonValue unresolved = JsonValue::object();
+    unresolved.set("horizontalScale", horizontal);
+    unresolved.set("verticalScale", vertical);
+    unresolved.set("offset", offset);
+    effect.set("qxd:unresolvedMetrics", unresolved);
+  }
+  effect.set("style", css);
+  m_styleNodes.push(effect);
+  return id;
 }
 
 string OpenLayoutBuilder::ruleCss(const ParagraphRule &rule) const
@@ -618,17 +686,13 @@ string OpenLayoutBuilder::ruleCss(const ParagraphRule &rule) const
   return pt(rule.width) + " " + style + " " + colorValue(rule.colorRef, rule.color);
 }
 
-JsonValue OpenLayoutBuilder::ruleExtra(const ParagraphRule &rule) const
+string OpenLayoutBuilder::ruleExtra(const ParagraphRule &rule) const
 {
-  JsonValue extra = JsonValue::object();
-  extra.set("offset", QXP_ALMOST_ZERO(rule.offset) ? JsonValue("0") : JsonValue(pt(rule.offset)));
-  extra.set("indentLeft", len(rule.leftMargin));
-  extra.set("indentRight", len(rule.rightMargin));
-  // libqxp does not read the length mode yet; the spec default is the column width
-  return extra;
+  // The parser does not expose the source rule-length mode; retain column width.
+  return pt(rule.offset) + " " + len(rule.leftMargin) + " " + len(rule.rightMargin) + " column";
 }
 
-/** Returns the id of an hj resource (spec 3.5) with these settings, creating it on first use.
+/** Returns the id of a general H&J style with these settings, creating it on first use.
   *
   * QuarkXPress H&J sets have names, but libqxp does not read them, so the sets are
   * deduplicated by their values and numbered.
@@ -639,8 +703,7 @@ string OpenLayoutBuilder::hjId(const HJ &hj)
   style.set("hyphens", hj.hyphenate ? "auto" : "manual");
   style.set("hyphenateLimitChars", "auto " + std::to_string(hj.minBefore) + " " + std::to_string(hj.minAfter));
   style.set("hyphenateLimitLines", hj.maxInRow == 0 ? JsonValue("no-limit") : JsonValue(hj.maxInRow));
-  if (!hj.singleWordJustify)
-    style.set("singleWordJustify", false);
+  style.set("singleWordJustify", hj.singleWordJustify ? "justify" : "none");
 
   const string key = style.toString();
   const auto it = m_hjIds.find(key);
@@ -649,7 +712,8 @@ string OpenLayoutBuilder::hjId(const HJ &hj)
 
   const string id = uniqueId("hj-" + std::to_string(m_hjIds.size() + 1));
   m_hjIds[key] = id;
-  JsonValue n = node("hj");
+  JsonValue n = node("style");
+  n.set("UX:type", "hyphenationSet");
   n.set("id", id);
   n.set("style", style);
   m_hjNodes.push(n);
@@ -696,18 +760,19 @@ JsonValue OpenLayoutBuilder::paragraphCss(const ParagraphFormat &format)
   }
   else
   {
-    // auto leading, possibly with an increment
-    string autoLeading;
-    if (m_docProps.isIncrementalAutoLeading())
-      autoLeading = "1em + " + pt(m_docProps.autoLeading());
-    else
-      autoLeading = formatNumber(1 + m_docProps.autoLeading(), 4) + "em";
-    if (QXP_ALMOST_ZERO(format.leading) && !m_docProps.isIncrementalAutoLeading())
-      css.set("lineHeight", std::stod(formatNumber(1 + m_docProps.autoLeading(), 4)));
-    else if (QXP_ALMOST_ZERO(format.leading))
-      css.set("lineHeight", "calc(" + autoLeading + ")");
-    else
-      css.set("lineHeight", "calc(" + autoLeading + (format.leading < 0 ? " - " : " + ") + pt(std::fabs(format.leading)) + ")");
+    // A ratio inherits from body as a unitless lineHeight. A fixed point
+    // increment must be evaluated at the paragraph's font size (CSS otherwise
+    // inherits a computed length from body).
+    if (!QXP_ALMOST_ZERO(format.leading) || m_docProps.isIncrementalAutoLeading())
+    {
+      string leading = m_docProps.isIncrementalAutoLeading()
+        ? "1em " + string(m_docProps.autoLeading() < 0 ? "- " : "+ ") + pt(std::fabs(m_docProps.autoLeading()))
+        : formatNumber(1 + m_docProps.autoLeading(), 4) + "em";
+      if (!QXP_ALMOST_ZERO(format.leading))
+        leading += string(format.leading < 0 ? " - " : " + ") + pt(std::fabs(format.leading));
+      css.set("lineHeight", "calc(" + leading + ")");
+    }
+
   }
 
   if (format.hj)
@@ -715,18 +780,18 @@ JsonValue OpenLayoutBuilder::paragraphCss(const ParagraphFormat &format)
 
   if (!format.tabStops.empty())
   {
-    JsonValue tabs = JsonValue::array();
+    string tabs;
     for (const auto &tab : format.tabStops)
     {
-      JsonValue t = JsonValue::object();
-      t.set("position", len(tab.position));
-      t.set("align", tabAlign(tab.type));
+      if (!tabs.empty())
+        tabs += ", ";
+      tabs += len(tab.position) + " ";
+      tabs += tab.type == TabStopType::ALIGN
+              ? "char(" + JsonValue(tab.alignChar.cstr()).toString() + ")"
+              : tabAlign(tab.type);
       const string leader = tab.fillChar.cstr();
       if (!leader.empty() && leader != " " && leader[0] != '\0')
-        t.set("leader", leader);
-      if (tab.type == TabStopType::ALIGN)
-        t.set("character", tab.alignChar.cstr());
-      tabs.push(t);
+        tabs += " leader(" + JsonValue(leader).toString() + ")";
     }
     css.set("tabStops", tabs);
   }
@@ -795,12 +860,13 @@ void OpenLayoutBuilder::buildStyles()
   for (size_t i = 0; i < m_paragraphStyles.size(); ++i)
   {
     const auto &style = m_paragraphStyles[i];
-    JsonValue n = node("paragraphStyle");
+    JsonValue n = node("style");
+    n.set("UX:type", "paragraphStyle");
     n.set("id", m_paragraphStyleIds[i]);
     n.set("name", style.name.cstr());
     const string next = paragraphStyleId(int(style.nextIndex));
     if (!next.empty())
-      n.set("next", next);
+      n.set("UX:next", next);
     // the paragraph style takes its character formatting from a character style (spec 3.4)
     const string charStyle = characterStyleId(style.charStyleIndex);
     JsonValue css = m_paragraphStyleParaCss[i];
@@ -810,7 +876,7 @@ void OpenLayoutBuilder::buildStyles()
     }
     else
     {
-      n.set("characterStyle", charStyle);
+      addClass(n, charStyle);
       // only what this style changes on top of the referenced character style
       mergeStyle(css, diffStyle(m_paragraphStyleCharCss[i], m_characterStyleCss[size_t(style.charStyleIndex) - 1]));
     }
@@ -821,7 +887,8 @@ void OpenLayoutBuilder::buildStyles()
 
   for (size_t i = 0; i < m_characterStyles.size(); ++i)
   {
-    JsonValue n = node("characterStyle");
+    JsonValue n = node("style");
+    n.set("UX:type", "characterStyle");
     n.set("id", m_characterStyleIds[i]);
     n.set("name", m_characterStyles[i].name.cstr());
     n.set("style", m_characterStyleCss[i]);
@@ -829,7 +896,7 @@ void OpenLayoutBuilder::buildStyles()
   }
 }
 
-void OpenLayoutBuilder::appendRun(JsonValue &children, const string &styleClass, const JsonValue &style, const string &utf8)
+void OpenLayoutBuilder::appendRun(JsonValue &children, const string &styleClass, const JsonValue &style, const string &utf8, const string &scriptClass)
 {
   // split the run into text, line breaks and special characters
   JsonValue pieces = JsonValue::array();
@@ -911,7 +978,8 @@ void OpenLayoutBuilder::appendRun(JsonValue &children, const string &styleClass,
       if (static_cast<unsigned char>(c) < 0x20 && c != '\t')
       {
         flush();
-        JsonValue special = node("qxp:char");
+        JsonValue special = node("control");
+        special.set("name", "qxd:char");
         special.set("code", unsigned(static_cast<unsigned char>(c)));
         pieces.push(special);
       }
@@ -927,6 +995,14 @@ void OpenLayoutBuilder::appendRun(JsonValue &children, const string &styleClass,
   if (pieces.empty())
     return;
 
+  if (!scriptClass.empty())
+  {
+    JsonValue script = node("span");
+    addClass(script, scriptClass);
+    script.set("children", pieces);
+    pieces = JsonValue::array();
+    pieces.push(script);
+  }
   const bool plain = styleClass.empty() && style.empty();
 
   // continue the previous span if it has the same formatting
@@ -939,7 +1015,7 @@ void OpenLayoutBuilder::appendRun(JsonValue &children, const string &styleClass,
     {
       const JsonValue *const lastClass = last.get("class");
       const JsonValue *const lastStyle = last.get("style");
-      const string lastClassName = lastClass ? lastClass->asString() : string();
+      const string lastClassName = lastClass && lastClass->size() == 1 ? lastClass->items()[0].asString() : string();
       if (lastClassName == styleClass && isSameStyle(lastStyle ? *lastStyle : m_empty, style))
         target = last.get("children");
     }
@@ -950,7 +1026,7 @@ void OpenLayoutBuilder::appendRun(JsonValue &children, const string &styleClass,
   {
     JsonValue span = node("span");
     if (!styleClass.empty())
-      span.set("class", styleClass);
+      addClass(span, styleClass);
     if (!style.empty())
       span.set("style", style);
     span.set("children", JsonValue::array());
@@ -992,7 +1068,7 @@ JsonValue OpenLayoutBuilder::blocks(const Text &text, const unsigned start, cons
     JsonValue p = node("p");
     const string styleId = paragraphStyleId(paragraph.format->styleIndex);
     if (!styleId.empty())
-      p.set("class", styleId);
+      addClass(p, styleId);
 
     const JsonValue css = paragraphCss(*paragraph.format);
     const JsonValue baseCss = styleId.empty() ? m_empty : m_paragraphStyleParaCss[size_t(paragraph.format->styleIndex) - 1];
@@ -1026,8 +1102,20 @@ JsonValue OpenLayoutBuilder::blocks(const Text &text, const unsigned start, cons
         spanClass = characterStyleId(charStyle);
         base = &m_characterStyleCss[size_t(charStyle) - 1];
       }
-      const JsonValue spanCss = diffStyle(charCss(*charFormat.format), *base);
-      appendRun(children, spanClass, spanCss, converted.cstr());
+      const JsonValue completeCss = charCss(*charFormat.format);
+      JsonValue spanCss = diffStyle(completeCss, *base);
+      // These character properties do not inherit from a paragraph in 0.4.
+      // Keep non-default source values on the text run even if the paragraph
+      // definition carries the same values.
+      if (spanClass.empty())
+      {
+        for (const char *property : {"verticalAlign", "baselineShift", "textDecorationLine", "textDecorationSkipSpaces"})
+        {
+          const JsonValue *value = completeCss.get(property);
+          if (value && *value != defaultValue(property)) spanCss.set(property, *value);
+        }
+      }
+      appendRun(children, spanClass, spanCss, converted.cstr(), scriptStyleId(*charFormat.format));
     }
     if (!children.empty())
       p.set("children", children);
@@ -1231,14 +1319,7 @@ public:
     }
     // no CSS gradient for these: the approximation stays as the mandatory fallback
     m_style.set("backgroundImage", "radial-gradient(closest-side, " + m_color2 + ", " + m_color1 + ")");
-    JsonValue blend = JsonValue::object();
-    blend.set("shape", shape);
-    blend.set("angle", angle);
-    JsonValue stops = JsonValue::array();
-    stops.push(JsonValue(m_color2));
-    stops.push(JsonValue(m_color1));
-    blend.set("stops", stops);
-    m_style.set("blend", blend);
+    m_style.set("blend", string(shape) + "-gradient(" + angle + ", " + m_color2 + ", " + m_color1 + ")");
   }
 
 private:
@@ -1269,7 +1350,7 @@ void OpenLayoutBuilder::setFill(JsonValue &style, const Box &box, const bool svg
   boost::apply_visitor(visitor, box.fill.get());
 }
 
-/** Returns the id of a strokeStyle resource (spec 3.9), creating it on first use.
+/** Returns the id of a general stroke style, creating it on first use.
   *
   * A solid line needs no resource. QuarkXPress names its "Dashes & Stripes",
   * but libqxp does not read the names, so they are deduplicated and numbered.
@@ -1279,20 +1360,23 @@ string OpenLayoutBuilder::strokeStyleId(const LineStyle &lineStyle)
   if (lineStyle.segmentLengths.size() < 2)
     return string();
 
-  JsonValue n = node("strokeStyle");
-  JsonValue segments = JsonValue::array();
+  JsonValue n = JsonValue::object();
+  string segments;
   for (const double segment : lineStyle.segmentLengths)
-    segments.push(JsonValue(std::stod(formatNumber(segment, 4))));
+  {
+    if (!segments.empty()) segments += " ";
+    segments += formatNumber(segment, 4);
+  }
   if (lineStyle.isStripe)
   {
     // shares of the stroke width, from one edge to the other
-    n.set("stripes", segments);
+    n.set("strokeStripes", segments);
   }
   else
   {
-    n.set("dashes", segments);
-    n.set("patternLength", std::stod(formatNumber(lineStyle.patternLength, 4)));
-    n.set("proportional", lineStyle.isProportional);
+    n.set("strokeDasharray", segments);
+    n.set("strokePatternLength", std::stod(formatNumber(lineStyle.isProportional ? lineStyle.patternLength : lineStyle.patternLength * 96.0 / 72.0, 4)));
+    n.set("strokePatternUnits", lineStyle.isProportional ? "strokeWidth" : "userSpaceOnUse");
     switch (lineStyle.endcapType)
     {
     case LineCapType::ROUND:
@@ -1327,18 +1411,15 @@ string OpenLayoutBuilder::strokeStyleId(const LineStyle &lineStyle)
 
   const string id = uniqueId((lineStyle.isStripe ? "stripe-" : "dash-") + std::to_string(m_strokeStyleIds.size() + 1));
   m_strokeStyleIds[key] = id;
-  JsonValue withId = node("strokeStyle");
+  JsonValue withId = node("style");
   withId.set("id", id);
-  for (const auto &member : n.members())
-  {
-    if (member.first != "type")
-      withId.set(member.first, member.second);
-  }
+  withId.set("UX:type", "strokeStyle");
+  withId.set("style", n);
   m_strokeStyleNodes.push(withId);
   return id;
 }
 
-void OpenLayoutBuilder::setFrame(JsonValue &style, const Frame &frame, const bool isLine)
+void OpenLayoutBuilder::setFrame(JsonValue &n, JsonValue &style, const Frame &frame, const bool isLine)
 {
   if (!frame.color || (!isLine && QXP_ALMOST_ZERO(frame.width)))
     return;
@@ -1353,7 +1434,7 @@ void OpenLayoutBuilder::setFrame(JsonValue &style, const Frame &frame, const boo
   {
     const string styleId = strokeStyleId(*lineStyle);
     if (!styleId.empty())
-      style.set("strokeStyle", styleId);
+      addClass(n, styleId);
   }
 
   if (!isLine)
@@ -1384,7 +1465,7 @@ string OpenLayoutBuilder::bezierPath(const vector<CurveComponent> &components, c
   string d;
   const auto point = [&](const Point &p)
   {
-    return formatNumber(conv(p.x - originX)) + " " + formatNumber(conv(p.y - originY));
+    return formatNumber((p.x - originX) * 96.0 / 72.0) + " " + formatNumber((p.y - originY) * 96.0 / 72.0);
   };
   for (const auto &component : components)
   {
@@ -1408,7 +1489,7 @@ string OpenLayoutBuilder::polygonPath(const vector<Point> &points, const double 
   for (size_t i = 0; i < points.size(); ++i)
   {
     d.append(i == 0 ? "M " : " L ");
-    d.append(formatNumber(conv(points[i].x - originX)) + " " + formatNumber(conv(points[i].y - originY)));
+    d.append(formatNumber((points[i].x - originX) * 96.0 / 72.0) + " " + formatNumber((points[i].y - originY) * 96.0 / 72.0));
   }
   if (!d.empty())
     d.append(" Z");
@@ -1432,8 +1513,8 @@ JsonValue OpenLayoutBuilder::lineItem(const Line &line, const double originX, co
     setGeometry(style, Geometry{bounds.left - originX, bounds.top - originY, bounds.width(), bounds.height()});
     if (textPath)
     {
-      n.set("d", "M " + formatNumber(conv(p1.x - bounds.left)) + " " + formatNumber(conv(p1.y - bounds.top)) +
-            " L " + formatNumber(conv(p2.x - bounds.left)) + " " + formatNumber(conv(p2.y - bounds.top)));
+      n.set("d", "M " + formatNumber((p1.x - bounds.left) * 96.0 / 72.0) + " " + formatNumber((p1.y - bounds.top) * 96.0 / 72.0) +
+            " L " + formatNumber((p2.x - bounds.left) * 96.0 / 72.0) + " " + formatNumber((p2.y - bounds.top) * 96.0 / 72.0));
     }
     else
     {
@@ -1452,7 +1533,7 @@ JsonValue OpenLayoutBuilder::lineItem(const Line &line, const double originX, co
     n.set("d", bezierPath(line.curveComponents, bbox.left, bbox.top, false));
   }
 
-  setFrame(style, line.style, true);
+  setFrame(n, style, line.style, true);
   if (line.runaround)
     style.set("wrap", "boundingBox");
   n.set("style", style);
@@ -1567,11 +1648,11 @@ JsonValue OpenLayoutBuilder::boxItem(const Item &item, const Spread &spread, con
   {
     if (!box.fill)
       style.set("fill", "none");
-    setFrame(style, box.frame, true);
+    setFrame(n, style, box.frame, true);
   }
   else
   {
-    setFrame(style, box.frame, false);
+    setFrame(n, style, box.frame, false);
   }
 
   if (box.runaround)
@@ -1626,8 +1707,8 @@ JsonValue OpenLayoutBuilder::boxItem(const Item &item, const Spread &spread, con
   }
   else if (pictureBox && pictureBox->hasPicture)
   {
-    JsonValue img = node("img");
     const string path = pictureBox->filePath.cstr();
+    JsonValue img = node(path.empty() ? "missingImage" : "img");
     if (!path.empty())
       img.set("src", convertPath(path));
     if (!pictureBox->fileType.empty())
@@ -1759,10 +1840,11 @@ void OpenLayoutBuilder::buildMasters(JsonValue &masters)
     const string id = uniqueId(prefix);
     m_masterIds.push_back(id);
 
-    JsonValue master = node("master");
+    JsonValue master = node("symbol");
+    master.set("UX:type", "masterPage");
     master.set("id", id);
     master.set("name", name);
-    master.set("qxp:index", masterNumber);
+    master.set("qxd:index", masterNumber);
 
     JsonValue pages = JsonValue::array();
     vector<PageItems> pageItems;
@@ -1854,6 +1936,33 @@ vector<JsonValue> OpenLayoutBuilder::linkToMaster(const vector<JsonValue> &items
       override.set("ref", *masterItems[m].get("id"));
       const JsonValue masterItem = withoutId(masterItems[m]);
       const JsonValue pageItem = withoutId(it);
+      // The 0.4 override shape patches formatting/content, not arbitrary item
+      // attributes (flowFrom, path data, line endpoints). Keep those changes
+      // as an independent page item and hide the inherited source instead.
+      bool canOverride = true;
+      const auto checkAttributes = [&canOverride](const JsonValue &a, const JsonValue &b)
+      {
+        for (const auto &member : a.members())
+        {
+          if (member.first == "type" || member.first == "style" || member.first == "class" || member.first == "children" || member.first.find(':') != string::npos)
+            continue;
+          const JsonValue *value = b.get(member.first);
+          if (!value || *value != member.second) canOverride = false;
+        }
+      };
+      checkAttributes(masterItem, pageItem);
+      checkAttributes(pageItem, masterItem);
+      if (!canOverride)
+      {
+        JsonValue hidden = JsonValue::object();
+        hidden.set("display", "none");
+        override.set("style", hidden);
+        overrides.push_back(override);
+        result.push_back(it);
+        continue;
+      }
+      if (!pageItem.has("class") && masterItem.has("class"))
+        override.set("class", JsonValue::array());
       for (const auto &member : pageItem.members())
       {
         if (member.first == "type")
@@ -1949,7 +2058,8 @@ void OpenLayoutBuilder::buildPages(JsonValue &pages)
       }
 
       // the document says which master the page was made from, so OpenLayout says it too
-      page.set("master", masterId.empty() ? JsonValue() : JsonValue(masterId));
+      if (!masterId.empty())
+        page.set("template", masterId);
       if (m_facing && !facing)
         page.set("side", left ? "left" : "right");
 
@@ -2007,88 +2117,78 @@ void OpenLayoutBuilder::buildPages(JsonValue &pages)
   }
 }
 
-JsonValue OpenLayoutBuilder::head()
+JsonValue OpenLayoutBuilder::definitions(const JsonValue &masterList, const string &preferencesId)
 {
-  JsonValue h = node("head");
+  JsonValue defs = node("defs");
   JsonValue children = JsonValue::array();
-
-  const auto meta = [&children](const string &name, const string &content)
+  JsonValue metadata = node("metadata");
+  JsonValue metaChildren = JsonValue::array();
+  const auto meta = [&metaChildren](const string &name, const string &content)
   {
     JsonValue m = node("meta");
     m.set("name", name);
     m.set("content", content);
-    children.push(m);
+    metaChildren.push(m);
   };
-  if (!m_options.title.empty())
-    meta("title", m_options.title);
-  if (!m_options.generator.empty())
-    meta("generator", m_options.generator);
-  meta("qxp:version", versionName(m_options.version));
-  meta("qxp:platform", m_options.bigEndian ? "mac" : "windows");
+  if (!m_options.title.empty()) meta("title", m_options.title);
+  if (!m_options.generator.empty()) meta("generator", m_options.generator);
+  metadata.set("qxd:version", versionName(m_options.version));
+  metadata.set("qxd:platform", m_options.bigEndian ? "mac" : "windows");
+  metadata.set("children", metaChildren);
+  children.push(metadata);
 
   JsonValue settings = node("settings");
-  settings.set("facingPages", m_facing);
   settings.set("units", m_options.unit == OpenLayoutUnit::MILLIMETER ? "mm" : "pt");
-  // unitless numbers in path.d and clipPath: path() use this unit (spec 3.8, 5.5)
-  settings.set("geometryUnit", m_options.unit == OpenLayoutUnit::MILLIMETER ? "mm" : "pt");
-
-  JsonValue typography = JsonValue::object();
-  // autoLeading is the meaning of lineHeight: "normal": QuarkXPress stores the increment
-  typography.set("autoLeading", m_docProps.isIncrementalAutoLeading()
-                 ? JsonValue("calc(1em + " + pt(m_docProps.autoLeading()) + ")")
-                 : JsonValue(percent(1 + m_docProps.autoLeading())));
-  const auto scale = [](const double horizontal, const double vertical)
-  {
-    return percent(horizontal) + " " + percent(vertical);
-  };
-  JsonValue superscript = JsonValue::object();
-  superscript.set("offset", percent(m_docProps.superscriptOffset));
-  superscript.set("scale", scale(m_docProps.superscriptHScale, m_docProps.superscriptVScale));
-  typography.set("superscript", superscript);
-  JsonValue subscript = JsonValue::object();
-  // a subscript is shifted down: the spec counts a positive offset upwards
-  subscript.set("offset", percent(m_docProps.subscriptOffset));
-  subscript.set("scale", scale(m_docProps.subscriptHScale, m_docProps.subscriptVScale));
-  typography.set("subscript", subscript);
-  JsonValue superior = JsonValue::object();
-  superior.set("scale", scale(m_docProps.superiorHScale, m_docProps.superiorVScale));
-  typography.set("superior", superior);
-  settings.set("typography", typography);
+  settings.set("qxd:facingPages", m_facing);
   children.push(settings);
+
+  // Rendering preferences inherit from body and can be overridden at any scope.
+  JsonValue preferences = node("style");
+  preferences.set("id", preferencesId);
+  preferences.set("name", "Document preferences");
+  preferences.set("qxd:settings", true);
+  JsonValue css = JsonValue::object();
+  css.set("lineHeight", m_docProps.isIncrementalAutoLeading()
+          ? JsonValue("calc(1em " + string(m_docProps.autoLeading() < 0 ? "- " : "+ ") + pt(std::fabs(m_docProps.autoLeading())) + ")")
+          : JsonValue(std::stod(formatNumber(1 + m_docProps.autoLeading(), 4))));
+  preferences.set("qxd:autoLeading", m_docProps.autoLeading());
+  preferences.set("style", css);
+  children.push(preferences);
 
   for (const auto &family : m_fontFamilies)
   {
-    JsonValue font = node("font");
+    JsonValue font = node("font-face");
     font.set("id", m_fontIds[family]);
     font.set("fontFamily", family);
     font.set("fontWeight", 400);
     font.set("fontStyle", "normal");
     children.push(font);
   }
-
-  for (const auto &color : m_colorNodes.items())
-    children.push(color);
-  for (const auto &strokeStyle : m_strokeStyleNodes.items())
-    children.push(strokeStyle);
-  for (const auto &hj : m_hjNodes.items())
-    children.push(hj);
-  for (const auto &style : m_styleNodes.items())
-    children.push(style);
-
-  h.set("children", children);
-  return h;
+  for (const auto &color : m_colorNodes.items()) children.push(color);
+  for (const auto &strokeStyle : m_strokeStyleNodes.items()) children.push(strokeStyle);
+  for (const auto &hj : m_hjNodes.items()) children.push(hj);
+  for (const auto &style : m_styleNodes.items()) children.push(style);
+  for (const auto &master : masterList.items()) children.push(master);
+  defs.set("children", children);
+  return defs;
 }
 
 JsonValue OpenLayoutBuilder::build()
 {
   buildColors();
   buildStyles();
+  // Preserve every decoded preference as a reusable effect, even when unused.
+  CharFormat superFormat, subFormat, superiorFormat;
+  superFormat.superscript = true;
+  subFormat.subscript = true;
+  superiorFormat.superior = true;
+  scriptStyleId(superFormat);
+  scriptStyleId(subFormat);
+  scriptStyleId(superiorFormat);
   collectChains();
 
-  JsonValue masters = node("masters");
   JsonValue masterList = JsonValue::array();
   buildMasters(masterList);
-  masters.set("children", masterList);
 
   JsonValue pages = node("pages");
   JsonValue pageList = JsonValue::array();
@@ -2099,12 +2199,17 @@ JsonValue OpenLayoutBuilder::build()
   stories.set("children", m_stories);
 
   JsonValue document = node("document");
-  document.set("version", "0.1");
+  document.set("version", "0.4");
+  const string preferencesId = uniqueId("qxd-settings");
+  JsonValue body = node("body");
+  addClass(body, preferencesId);
+  JsonValue bodyChildren = JsonValue::array();
+  bodyChildren.push(pages);
+  bodyChildren.push(stories);
+  body.set("children", bodyChildren);
   JsonValue children = JsonValue::array();
-  children.push(head());
-  children.push(masters);
-  children.push(pages);
-  children.push(stories);
+  children.push(definitions(masterList, preferencesId));
+  children.push(body);
   document.set("children", children);
   return document;
 }

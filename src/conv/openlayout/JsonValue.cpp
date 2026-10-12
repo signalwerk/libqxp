@@ -159,6 +159,17 @@ JsonValue &JsonValue::set(const std::string &key, const JsonValue &value)
       return member.second;
     }
   }
+  // A node's content should read after its metadata and formatting, even when
+  // children were attached before later attributes were discovered.
+  if (key != "children")
+  {
+    const auto children = std::find_if(m_members.begin(), m_members.end(), [](const Member &member)
+    {
+      return member.first == "children";
+    });
+    if (children != m_members.end())
+      return m_members.insert(children, Member(key, value))->second;
+  }
   m_members.push_back(Member(key, value));
   return m_members.back().second;
 }

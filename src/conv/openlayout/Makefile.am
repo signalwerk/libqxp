@@ -27,6 +27,11 @@ qxp2openlayout_SOURCES = \
 	OpenLayoutCollector.h \
 	qxp2openlayout.cpp
 
+# Built on demand by the spec repository's converter integration tests.
+check_PROGRAMS = openlayout-fixture
+openlayout_fixture_SOURCES = JsonValue.cpp OpenLayoutCollector.cpp OpenLayoutFixture.cpp
+openlayout_fixture_LDADD = $(qxp2openlayout_LDADD)
+
 if OS_WIN32
 
 @QXP2OPENLAYOUT_WIN32_RESOURCE@ : qxp2openlayout.rc $(qxp2openlayout_OBJECTS)
